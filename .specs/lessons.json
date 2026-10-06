@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 2,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "spec_precision_gap::assert transcribed reference text with exact equality not a loose pattern match",
+      "text": "Assert transcribed reference text with exact equality, not a loose pattern match",
+      "signal": "spec_precision_gap",
+      "scope": "plan-data",
+      "status": "candidate",
+      "features": [
+        "gym-app"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C3 - src/domain/plan.test.ts:11 (plan-data)"
+      ],
+      "created": "2026-10-06T17:39:40Z",
+      "last_seen": "2026-10-06T17:39:40Z"
+    }
+  ]
+}

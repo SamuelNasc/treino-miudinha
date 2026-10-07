@@ -19,7 +19,15 @@ const base: ExerciseGuide = {
   moves: [[[20, 20], [30, 30], [40, 40]]],
 };
 
-const COLOUR = /#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|\b(red|green|blue|black|white|gr[ae]y|pink|purple|orange|yellow|brown|maroon|navy|teal|olive|crimson|salmon|tomato|coral|gold|silver|cyan|magenta|lime|indigo|violet|beige|ivory|khaki|lavender|plum|orchid|tan|wheat|aqua|fuchsia|firebrick|darkred|lightpink|hotpink|deeppink)\b/i;
+// Every CSS named colour (CSS Color 4, 148 names), so "no literal colour" covers the whole set.
+const NAMED = "aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen".split(" ");
+const COLOUR = new RegExp(`#[0-9a-f]{3,8}\\b|rgba?\\(|hsla?\\(|\\b(${NAMED.join("|")})\\b`, "i");
+
+it("colour matcher knows all 148 named colours", () => {
+  expect(new Set(NAMED).size).toBe(148);
+  for (const n of NAMED) expect(n, n).toMatch(COLOUR);
+  for (const ok of ["none", "currentColor", "var(--fig)"]) expect(ok).not.toMatch(COLOUR);
+});
 
 describe("GuideDrawing", () => {
   it("frame is 200x140", () => {

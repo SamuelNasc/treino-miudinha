@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/exercise-guides/plan.md`
 
-35 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
+36 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
 
 All proofs run under `vitest.config.ts` (jsdom, `TZ=America/Sao_Paulo`). The binding mockup is
 saved verbatim as `tests/fixtures/mockup-v4.html` (fetched from the artifact, not retyped), and
@@ -132,6 +132,9 @@ Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every guide in dark mode"
 **C35** - For every guide in `GUIDES`, the rendered drawing equals, element by element and attribute by attribute (numbers to 3 decimals), the SVG that mockup v4's own `pose()`, `arrow()` and `drawing()` functions produce from the same data, run from `tests/fixtures/mockup-v4.html`. That fixes the limb points (hip→knee→foot, neck→elbow→hand), the torso ends, head radius 9 and bun radius 5, the paint order inside a pose, and the arrowhead geometry. Added 2026-10-07 after the verifier found the rendered geometry unproven (AC 1-3, door 1) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "geometry matches the mockup renderer"`
 
+**C36** - In Chromium, with Hack and then Elevação pélvica open, each drawing part has mockup v4's computed colour, under `colorScheme: "light"` and `"dark"`: arrow stroke and arrowhead fill `--leaf` (`#3f9a4a` / `#6cc677`), torso stroke `--berry` (`#e8304a` / `#ff4a64`), bun fill `--cherry` (`#b3122e` / `#ff5c75`), head fill and limb stroke `--fig`, pad stroke `--pad`, machine line, floor and machine-shape stroke and weight fill `--mach`, machine-shape fill `--surface` (`#ffffff` / `#2a1016`). Added 2026-10-07 after the verifier found 9 of the 11 part colours unproven (AC 4, AC 5) — done
+Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every drawing part in its colour"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -151,14 +154,15 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "geometry matche
 | drawing paint order (4) | machine C33 · start pose C33, C2 · end pose C33, C2 · arrows C33 | - |
 | rendered geometry from the mockup renderer (6) | leg polyline C35 · arm polyline C35 · torso C35 · head and bun radii C35 · order inside a pose C35 · arrowhead C35 | - |
 | expanded row arrangement (4) | region inside the `li`, after the weight field C16 · drawing above cue C16 · below the row's controls C17 · full-row width C17 | - |
-| colour schemes (2) | light C5, C14 · dark C5, C32 | - |
+| colour schemes (2) | light C5, C14, C36 · dark C5, C32, C36 | - |
+| drawing part colours, mockup v4 (11) | arrow C36 · arrowhead C36 · torso C36 · bun C36 · head C5, C36 · limb C36 · pad C36 · machine line C5, C36 · floor C36 · weight C36 · machine shape fill and stroke C36 | - |
 | one-way doors (3) | door 1 C7, C10, C12, C13 · door 2 C8, C29 · door 3 C31 | - |
 | Relations entities (2) | `Exercicio` → `ExerciseGuide` C27 · shared id, one guide C29 | - |
 | Impact rows (5) | `ExerciseGuide` term C8 · exercise id now keys guides C8 · Hoje row C26 · theme tokens C5 · tooling C31 | - |
 
 - Startup config: the guides need none - they are a bundled module the component imports. The two test runners are two assemblies of the same app: Vitest renders `App` in jsdom, Playwright loads the dev server's `index.html`. C31 keeps them from collecting each other's files
 - Claims naming a screen output: C15, C16, C18-C25, C29 - each proof renders `App`
-- Claims about applied style, layout or colour scheme: C5, C14, C16 (second proof), C17, C32 - each proof runs in Chromium, none reads CSS as text
+- Claims about applied style, layout or colour scheme: C5, C14, C16 (second proof), C17, C32, C36 - each proof runs in Chromium, none reads CSS as text
 - No other check claims more than the cases its proof exercises
 
 Out of reach of a selector, enumerated per screen. The Verifier compares these against the mockup

@@ -95,3 +95,40 @@ test.describe("dark", () => {
     expect(seen.size).toBe(28);
   });
 });
+
+// Mockup v4's colour for every drawing part (tests/fixtures/mockup-v4.html, `.mach` to `.move-head`).
+const PART_COLOURS = {
+  light: { leaf: "#3f9a4a", berry: "#e8304a", cherry: "#b3122e", surface: "#ffffff", ...TOKENS.light },
+  dark: { leaf: "#6cc677", berry: "#ff4a64", cherry: "#ff5c75", surface: "#2a1016", ...TOKENS.dark },
+} as const;
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`every drawing part in its colour - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    const c = PART_COLOURS[scheme];
+    const hack = await openHack(page);
+    const solid = hack.locator("g:not(.ghost)");
+    const parts: [ReturnType<Page["locator"]>, string, string][] = [
+      [hack.locator("path.move").first(), "stroke", c.leaf],
+      [hack.locator("polygon.move-head").first(), "fill", c.leaf],
+      [solid.locator(".torso"), "stroke", c.berry],
+      [solid.locator("circle.bun"), "fill", c.cherry],
+      [solid.locator("circle.head"), "fill", c["--fig"]],
+      [solid.locator("polyline.limb").first(), "stroke", c["--fig"]],
+      [hack.locator("path.mach.pad"), "stroke", c["--pad"]],
+      [hack.locator("path.mach.line").first(), "stroke", c["--mach"]],
+      [hack.locator("path.floor"), "stroke", c["--mach"]],
+    ];
+    for (const [part, prop, hex] of parts) await expect(part, `${prop} ${hex}`).toHaveCSS(prop, rgb(hex));
+
+    // Opening another guide closes Hack, so its parts are checked first.
+    await page.getByRole("button", { name: /^Elevação pélvica / }).click();
+    const pelvic = page.getByRole("img", { name: "Desenho do exercício Elevação pélvica" });
+    const more: typeof parts = [
+      [pelvic.locator("circle.weight").first(), "fill", c["--mach"]],
+      [pelvic.locator("rect.mach").first(), "fill", c.surface],
+      [pelvic.locator("rect.mach").first(), "stroke", c["--mach"]],
+    ];
+    for (const [part, prop, hex] of more) await expect(part, `${prop} ${hex}`).toHaveCSS(prop, rgb(hex));
+  });
+}

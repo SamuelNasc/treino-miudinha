@@ -72,3 +72,26 @@ test.describe("phone", () => {
     expect(Math.abs(region.x + region.width - (weight.x + weight.width))).toBeLessThanOrEqual(1);
   });
 });
+
+test.describe("dark", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("every guide in dark mode", async ({ page }) => {
+    await page.goto("/");
+    const picker = page.getByRole("group", { name: "Escolher treino" });
+    const seen = new Set<string>();
+    for (const w of ["A", "B", "C", "D"]) {
+      await picker.getByRole("button", { name: `Treino ${w}` }).click();
+      for (const name of await page.getByTestId("ex-name").allTextContents()) {
+        await page.getByRole("button", { name: new RegExp(`^${name} `) }).click();
+        const img = page.getByRole("img", { name: `Desenho do exercício ${name}` });
+        await expect(img.locator("g:not(.ghost) > circle.head")).toHaveCSS("fill", rgb(TOKENS.dark["--fig"]));
+        const b = await img.boundingBox();
+        expect(b && b.width > 0 && b.height > 0, name).toBe(true);
+        await expect(img).toBeVisible();
+        seen.add(name);
+      }
+    }
+    expect(seen.size).toBe(28);
+  });
+});

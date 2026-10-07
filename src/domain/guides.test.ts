@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { GUIDES, guideProblems, type ExerciseGuide, type Pose, type Shape } from "./guides";
+import { GUIDES, guideProblems, missingGuides, type ExerciseGuide, type Pose, type Shape } from "./guides";
 import { PLAN } from "./plan";
 
 const valid = (): ExerciseGuide => ({
@@ -93,6 +93,12 @@ describe("guides", () => {
 });
 
 describe("guide coverage", () => {
+  it("every plan exercise has a guide", () => {
+    expect(missingGuides(GUIDES)).toEqual([]);
+    const { extensao: _a, voador: _b, ...rest } = GUIDES;
+    expect(missingGuides(rest).sort()).toEqual(["extensao", "voador"]);
+  });
+
   it("plan has 28 distinct exercises", () => {
     const per = Object.values(PLAN).map((w) => w.exercises.map((e) => e.id));
     expect(new Set(per.flat()).size).toBe(28);

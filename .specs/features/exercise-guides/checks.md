@@ -108,19 +108,19 @@ Proof: `pnpm vitest list --filesOnly` - lists no file under `e2e/`
 
 ### S3 - Guides for Treino A, B and D · ~2 files · ~50 KB · ~13k
 
-**C27** - Every one of the 28 distinct exercise ids in `PLAN` has a `GUIDES` entry. With `GUIDES` missing `extensao` and `voador`, the coverage check lists exactly those two (AC 22)
+**C27** - Every one of the 28 distinct exercise ids in `PLAN` has a `GUIDES` entry. With `GUIDES` missing `extensao` and `voador`, the coverage check lists exactly those two (AC 22) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "every plan exercise has a guide"`
 
-**C28** - `PLAN` has exactly 28 distinct exercise ids (A 6, B 9, C 6, D 7 new) (AC 22, assumption confirmed)
+**C28** - `PLAN` has exactly 28 distinct exercise ids (A 6, B 9, C 6, D 7 new) (AC 22, assumption confirmed) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "plan has 28 distinct exercises"`
 
-**C29** - Opening "Abdominal reto" in Treino B and in Treino D shows the same cue text and the same drawing markup. `GUIDES` has one key `abdominal-reto` and one key `abdominal-inferior` (AC 23)
+**C29** - Opening "Abdominal reto" in Treino B and in Treino D shows the same cue text and the same drawing markup. `GUIDES` has one key `abdominal-reto` and one key `abdominal-inferior` (AC 23) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: shared exercise, one guide"`
 
-**C30** - Every guide in `GUIDES` renders with `viewBox="0 0 200 140"`, no literal colour, its arrows and its named image, so the 22 new guides meet C1, C3, C4 and C6 (AC 1, 3, 4, 6)
+**C30** - Every guide in `GUIDES` renders with `viewBox="0 0 200 140"`, no literal colour, its arrows and its named image, so the 22 new guides meet C1, C3, C4 and C6 (AC 1, 3, 4, 6) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "every guide renders"`
 
-**C32** - In Chromium under `colorScheme: "dark"`, opening every exercise of Treino A, B, C and D in turn shows a drawing whose end-pose head has computed `fill` `#ffc9d1` and a visible, non-zero bounding box, for all 28 ids (AC 5, AC 22)
+**C32** - In Chromium under `colorScheme: "dark"`, opening every exercise of Treino A, B, C and D in turn shows a drawing whose end-pose head has computed `fill` `#ffc9d1` and a visible, non-zero bounding box, for all 28 ids (AC 5, AC 22) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every guide in dark mode"
 
 ## Coverage

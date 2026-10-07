@@ -214,9 +214,298 @@ export const GUIDES: Record<string, ExerciseGuide> = {
       { rect: [100, 116, 40, 12, 3], as: "mach" },
       { path: "M146 30 V116", as: "line" },
     ],
-    start: { head: [100, 22], neck: [100, 36], hip: [100, 74], legs: [[[101, 98], [100, 120]]], arms: [[[116, 46], [140, 46]]] },
-    end: { head: [100, 10], neck: [100, 24], hip: [100, 62], legs: [[[101, 86], [104, 110]]], arms: [[[118, 36], [140, 46]]] },
+    start: { head: [100, 18], neck: [100, 32], hip: [100, 70], legs: [[[101, 94], [102, 116]]], arms: [[[116, 42], [140, 46]]] },
+    end: { head: [100, 8], neck: [100, 22], hip: [100, 60], legs: [[[101, 84], [104, 106]]], arms: [[[118, 34], [140, 46]]] },
     moves: [[[64, 112], [56, 82], [64, 52]]],
+  },
+
+  // Treino B
+  voador: {
+    cue: "Sentada, costas no encosto, antebraços nas almofadas. Fecha os braços na frente do peito e abre devagar.",
+    machine: [
+      { path: "M40 128 H160", as: "floor" },
+      { rect: [76, 30, 48, 66, 10], as: "mach" },
+      { rect: [70, 94, 60, 10, 4], as: "mach" },
+      { path: "M100 104 V128", as: "line" },
+    ],
+    start: {
+      head: [100, 42], bun: [100, 31], neck: [100, 56], hip: [100, 94],
+      legs: [[[88, 104], [86, 126]], [[112, 104], [114, 126]]],
+      arms: [[[74, 62], [50, 60]], [[126, 62], [150, 60]]],
+      props: [{ rect: [44, 52, 8, 16, 3], as: "mach" }, { rect: [148, 52, 8, 16, 3], as: "mach" }],
+    },
+    end: {
+      head: [100, 42], bun: [100, 31], neck: [100, 56], hip: [100, 94],
+      legs: [[[88, 104], [86, 126]], [[112, 104], [114, 126]]],
+      arms: [[[80, 72], [96, 70]], [[120, 72], [104, 70]]],
+      props: [{ rect: [90, 62, 6, 16, 3], as: "mach" }, { rect: [104, 62, 6, 16, 3], as: "mach" }],
+    },
+    moves: [[[30, 46], [44, 38], [60, 44]], [[170, 46], [156, 38], [140, 44]]],
+  },
+  "supino-inclinado": {
+    cue: "Deitada no banco inclinado, barra na altura do peito. Empurra para cima até esticar os braços e desce devagar.",
+    machine: [
+      { path: "M30 128 H170", as: "floor" },
+      { path: "M44 58 L86 106", as: "pad" },
+      { rect: [84, 104, 30, 9, 4], as: "mach" },
+      { path: "M98 113 V128", as: "line" },
+      { path: "M56 84 L52 128", as: "line" },
+    ],
+    start: {
+      head: [50, 50], neck: [58, 62], hip: [92, 100], legs: [[[122, 96], [124, 126]]], arms: [[[62, 84], [76, 70]]],
+      props: [{ circle: [76, 68, 7], as: "weight" }],
+    },
+    end: {
+      head: [50, 50], neck: [58, 62], hip: [92, 100], legs: [[[122, 96], [124, 126]]], arms: [[[62, 42], [66, 22]]],
+      props: [{ circle: [66, 20, 7], as: "weight" }],
+    },
+    moves: [[[100, 70], [108, 46], [100, 22]]],
+  },
+  "desenvolvimento-maquina": {
+    cue: "Sentada, costas no encosto, pegada na altura dos ombros. Empurra para cima sem travar os cotovelos e desce devagar.",
+    machine: [
+      { path: "M40 128 H160", as: "floor" },
+      { rect: [76, 24, 48, 72, 10], as: "mach" },
+      { rect: [70, 94, 60, 10, 4], as: "mach" },
+      { path: "M100 104 V128", as: "line" },
+    ],
+    start: {
+      head: [100, 42], bun: [100, 31], neck: [100, 56], hip: [100, 94],
+      legs: [[[88, 104], [86, 126]], [[112, 104], [114, 126]]],
+      arms: [[[76, 60], [74, 38]], [[124, 60], [126, 38]]],
+      props: [{ rect: [66, 34, 14, 6, 3], as: "mach" }, { rect: [120, 34, 14, 6, 3], as: "mach" }],
+    },
+    end: {
+      head: [100, 42], bun: [100, 31], neck: [100, 56], hip: [100, 94],
+      legs: [[[88, 104], [86, 126]], [[112, 104], [114, 126]]],
+      arms: [[[80, 40], [84, 16]], [[120, 40], [116, 16]]],
+      props: [{ rect: [76, 12, 14, 6, 3], as: "mach" }, { rect: [110, 12, 14, 6, 3], as: "mach" }],
+    },
+    moves: [[[164, 80], [170, 50], [164, 20]]],
+  },
+  "remada-alta": {
+    cue: "Em pé, barra na frente das coxas. Puxa até a altura do peito subindo os cotovelos para os lados e desce devagar.",
+    machine: [{ path: "M40 128 H160", as: "floor" }],
+    start: {
+      head: [100, 22], bun: [100, 11], neck: [100, 36], hip: [100, 76],
+      legs: [[[94, 102], [92, 126]], [[106, 102], [108, 126]]],
+      arms: [[[90, 60], [94, 84]], [[110, 60], [106, 84]]],
+      props: [{ rect: [76, 84, 48, 5, 2], as: "weight" }, { rect: [70, 79, 7, 15, 2], as: "weight" }, { rect: [123, 79, 7, 15, 2], as: "weight" }],
+    },
+    end: {
+      head: [100, 22], bun: [100, 11], neck: [100, 36], hip: [100, 76],
+      legs: [[[94, 102], [92, 126]], [[106, 102], [108, 126]]],
+      arms: [[[76, 40], [94, 50]], [[124, 40], [106, 50]]],
+      props: [{ rect: [76, 50, 48, 5, 2], as: "weight" }, { rect: [70, 45, 7, 15, 2], as: "weight" }, { rect: [123, 45, 7, 15, 2], as: "weight" }],
+    },
+    moves: [[[156, 96], [164, 70], [156, 44]]],
+  },
+  "triceps-testa": {
+    cue: "Deitada no banco, braços esticados para cima. Dobra só os cotovelos levando a barra até a testa e estica de volta.",
+    machine: [
+      { path: "M20 128 H180", as: "floor" },
+      { rect: [24, 84, 116, 10, 4], as: "mach" },
+      { path: "M40 94 V128 M124 94 V128", as: "line" },
+    ],
+    start: {
+      head: [36, 72], bun: [26, 74], neck: [50, 78], hip: [104, 78],
+      legs: [[[128, 58], [140, 78]]], arms: [[[52, 50], [54, 26]]],
+      props: [{ circle: [54, 22, 6], as: "weight" }],
+    },
+    end: {
+      head: [36, 72], bun: [26, 74], neck: [50, 78], hip: [104, 78],
+      legs: [[[128, 58], [140, 78]]], arms: [[[52, 50], [36, 56]]],
+      props: [{ circle: [32, 56, 6], as: "weight" }],
+    },
+    moves: [[[68, 16], [40, 10], [20, 40]]],
+  },
+  "triceps-pulley": {
+    cue: "Em pé, de frente para o cabo, cotovelos colados no corpo. Empurra a barra para baixo até esticar e volta devagar.",
+    machine: [
+      { path: "M50 128 H175", as: "floor" },
+      { path: "M156 10 V128", as: "line" },
+      { circle: [150, 14, 4], as: "mach" },
+    ],
+    start: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[104, 58], [122, 48]]],
+      props: [{ path: "M150 14 L122 48", as: "line" }],
+    },
+    end: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[104, 58], [114, 78]]],
+      props: [{ path: "M150 14 L114 78", as: "line" }],
+    },
+    moves: [[[132, 52], [140, 70], [128, 88]]],
+  },
+  "triceps-frances": {
+    cue: "Sentada, halter atrás da cabeça, cotovelos apontando para cima. Estica os braços para cima e volta devagar.",
+    machine: [
+      { path: "M40 128 H170", as: "floor" },
+      { rect: [72, 96, 44, 10, 4], as: "mach" },
+      { path: "M94 106 V128", as: "line" },
+    ],
+    start: {
+      head: [95, 40], neck: [94, 54], hip: [92, 92], legs: [[[124, 94], [126, 126]]], arms: [[[104, 26], [82, 34]]],
+      props: [{ circle: [78, 34, 6], as: "weight" }],
+    },
+    end: {
+      head: [95, 40], neck: [94, 54], hip: [92, 92], legs: [[[124, 94], [126, 126]]], arms: [[[104, 26], [104, 10]]],
+      props: [{ circle: [104, 8, 6], as: "weight" }],
+    },
+    moves: [[[66, 30], [70, 8], [88, 4]]],
+  },
+  "abdominal-reto": {
+    cue: "Deitada, joelhos dobrados e pés no chão. Sobe o tronco tirando os ombros do chão e desce devagar.",
+    machine: [
+      { path: "M10 128 H190", as: "floor" },
+      { rect: [16, 118, 160, 6, 3], as: "mach" },
+    ],
+    start: {
+      head: [42, 108], bun: [30, 110], neck: [56, 112], hip: [104, 112],
+      legs: [[[128, 88], [146, 114]]], arms: [[[68, 100], [58, 98]]],
+    },
+    end: {
+      head: [54, 78], bun: [44, 74], neck: [64, 88], hip: [104, 112],
+      legs: [[[128, 88], [146, 114]]], arms: [[[76, 80], [66, 74]]],
+    },
+    moves: [[[28, 96], [32, 70], [52, 56]]],
+  },
+  "abdominal-inferior": {
+    cue: "Deitada, mãos ao lado do corpo. Sobe as pernas esticadas até apontarem para o teto e desce sem encostar no chão.",
+    machine: [
+      { path: "M10 128 H190", as: "floor" },
+      { rect: [16, 118, 160, 6, 3], as: "mach" },
+    ],
+    start: {
+      head: [42, 108], bun: [30, 110], neck: [56, 112], hip: [104, 112],
+      legs: [[[138, 108], [172, 104]]], arms: [[[74, 116], [92, 116]]],
+    },
+    end: {
+      head: [42, 108], bun: [30, 110], neck: [56, 112], hip: [104, 112],
+      legs: [[[108, 78], [112, 44]]], arms: [[[74, 116], [92, 116]]],
+    },
+    moves: [[[180, 90], [172, 48], [132, 32]]],
+  },
+
+  // Treino D (abdominal reto and inferior are shared with B)
+  "puxador-frente": {
+    cue: "Sentada, coxas presas no apoio, pegada aberta. Puxa a barra até a altura do peito e sobe devagar.",
+    machine: [
+      { path: "M30 128 H170", as: "floor" },
+      { rect: [74, 98, 52, 9, 4], as: "mach" },
+      { path: "M100 107 V128", as: "line" },
+    ],
+    start: {
+      head: [100, 48], bun: [100, 37], neck: [100, 62], hip: [100, 98],
+      legs: [[[88, 106], [86, 126]], [[112, 106], [114, 126]]],
+      arms: [[[80, 44], [64, 22]], [[120, 44], [136, 22]]],
+      props: [{ path: "M100 0 V20", as: "line" }, { rect: [40, 20, 120, 5, 2], as: "weight" }],
+    },
+    end: {
+      head: [100, 48], bun: [100, 37], neck: [100, 62], hip: [100, 98],
+      legs: [[[88, 106], [86, 126]], [[112, 106], [114, 126]]],
+      arms: [[[76, 78], [66, 60]], [[124, 78], [134, 60]]],
+      props: [{ path: "M100 0 V58", as: "line" }, { rect: [40, 58, 120, 5, 2], as: "weight" }],
+    },
+    moves: [[[176, 20], [182, 50], [176, 80]]],
+  },
+  "remada-baixa": {
+    cue: "Sentada, pés no apoio e joelhos levemente dobrados. Puxa o triângulo até a barriga, peito aberto, e estica devagar.",
+    machine: [
+      { path: "M20 128 H185", as: "floor" },
+      { rect: [40, 100, 70, 9, 4], as: "mach" },
+      { path: "M75 109 V128", as: "line" },
+      { path: "M152 84 L156 122", as: "pad" },
+      { circle: [164, 100, 4], as: "mach" },
+    ],
+    start: {
+      head: [82, 42], neck: [80, 56], hip: [76, 96], legs: [[[112, 82], [146, 104]]], arms: [[[104, 70], [128, 82]]],
+      props: [{ path: "M164 100 L128 82", as: "line" }],
+    },
+    end: {
+      head: [82, 42], neck: [80, 56], hip: [76, 96], legs: [[[112, 82], [146, 104]]], arms: [[[66, 76], [92, 82]]],
+      props: [{ path: "M164 100 L92 82", as: "line" }],
+    },
+    moves: [[[136, 60], [116, 50], [94, 58]]],
+  },
+  "pull-down": {
+    cue: "Em pé, braços quase esticados na barra do cabo alto. Leva a barra até as coxas em arco e volta devagar.",
+    machine: [
+      { path: "M50 128 H175", as: "floor" },
+      { path: "M158 6 V128", as: "line" },
+      { circle: [152, 10, 4], as: "mach" },
+    ],
+    start: {
+      head: [104, 22], neck: [100, 36], hip: [92, 74], legs: [[[96, 100], [94, 126]]], arms: [[[116, 24], [130, 14]]],
+      props: [{ path: "M152 10 L130 14", as: "line" }],
+    },
+    end: {
+      head: [104, 22], neck: [100, 36], hip: [92, 74], legs: [[[96, 100], [94, 126]]], arms: [[[104, 58], [106, 80]]],
+      props: [{ path: "M152 10 L106 80", as: "line" }],
+    },
+    moves: [[[140, 36], [140, 70], [120, 92]]],
+  },
+  "remada-articulada": {
+    cue: "Sentada, peito apoiado na almofada. Puxa as alças trazendo os cotovelos para trás e estica os braços devagar.",
+    machine: [
+      { path: "M30 128 H175", as: "floor" },
+      { rect: [52, 98, 40, 9, 4], as: "mach" },
+      { path: "M70 107 V128", as: "line" },
+      { path: "M104 50 L104 86", as: "pad" },
+      { path: "M104 86 L110 128", as: "line" },
+      { circle: [140, 20, 4], as: "mach" },
+    ],
+    start: {
+      head: [90, 45], neck: [84, 58], hip: [70, 98], legs: [[[104, 104], [104, 126]]], arms: [[[108, 64], [132, 70]]],
+      props: [{ path: "M140 20 L133 64", as: "line" }, { rect: [129, 62, 6, 16, 3], as: "mach" }],
+    },
+    end: {
+      head: [90, 45], neck: [84, 58], hip: [70, 98], legs: [[[104, 104], [104, 126]]], arms: [[[64, 64], [88, 70]]],
+      props: [{ path: "M140 20 L89 64", as: "line" }, { rect: [85, 62, 6, 16, 3], as: "mach" }],
+    },
+    moves: [[[150, 92], [124, 100], [96, 92]]],
+  },
+  "rosca-martelo": {
+    cue: "Em pé, halteres ao lado do corpo, palmas viradas uma para a outra. Sobe dobrando os cotovelos e desce devagar.",
+    machine: [{ path: "M50 128 H160", as: "floor" }],
+    start: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[102, 58], [104, 82]]],
+      props: [{ rect: [100, 74, 8, 18, 3], as: "weight" }],
+    },
+    end: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[102, 58], [114, 38]]],
+      props: [{ rect: [110, 30, 8, 18, 3], as: "weight" }],
+    },
+    moves: [[[124, 86], [142, 66], [126, 36]]],
+  },
+  "elevacao-lateral": {
+    cue: "Em pé, halteres ao lado do corpo. Sobe os braços pelas laterais até a altura dos ombros e desce devagar.",
+    machine: [{ path: "M30 128 H170", as: "floor" }],
+    start: {
+      head: [100, 22], bun: [100, 11], neck: [100, 36], hip: [100, 76],
+      legs: [[[94, 102], [92, 126]], [[106, 102], [108, 126]]],
+      arms: [[[88, 58], [84, 82]], [[112, 58], [116, 82]]],
+      props: [{ rect: [79, 80, 10, 6, 2], as: "weight" }, { rect: [111, 80, 10, 6, 2], as: "weight" }],
+    },
+    end: {
+      head: [100, 22], bun: [100, 11], neck: [100, 36], hip: [100, 76],
+      legs: [[[94, 102], [92, 126]], [[106, 102], [108, 126]]],
+      arms: [[[76, 40], [52, 42]], [[124, 40], [148, 42]]],
+      props: [{ rect: [47, 39, 10, 6, 2], as: "weight" }, { rect: [143, 39, 10, 6, 2], as: "weight" }],
+    },
+    moves: [[[64, 96], [42, 84], [36, 56]], [[136, 96], [158, 84], [164, 56]]],
+  },
+  "elevacao-frontal": {
+    cue: "Em pé, halteres na frente das coxas. Sobe os braços esticados à frente até a altura dos ombros e desce devagar.",
+    machine: [{ path: "M50 128 H175", as: "floor" }],
+    start: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[102, 58], [104, 82]]],
+      props: [{ circle: [104, 86, 5], as: "weight" }],
+    },
+    end: {
+      head: [101, 20], neck: [100, 34], hip: [100, 74], legs: [[[102, 100], [100, 126]]], arms: [[[124, 38], [148, 40]]],
+      props: [{ circle: [152, 40, 5], as: "weight" }],
+    },
+    moves: [[[126, 94], [152, 80], [164, 54]]],
   },
 };
 

@@ -577,4 +577,21 @@ describe("como faz", () => {
       else delete GUIDES["abdominal-reto"];
     }
   });
+
+  it("como faz: shared exercise, one guide", async () => {
+    expect(Object.keys(GUIDES).filter((k) => k === "abdominal-reto")).toHaveLength(1);
+    expect(Object.keys(GUIDES).filter((k) => k === "abdominal-inferior")).toHaveLength(1);
+    setToday(MON);
+    const user = userEvent.setup();
+    render(<App />);
+    const seen: { cue: string; svg: string }[] = [];
+    for (const w of ["B", "D"] as const) {
+      await pick(user, w);
+      await user.click(nameButton("Abdominal reto"));
+      const region = screen.getByRole("region", { name: "Como faz Abdominal reto" });
+      seen.push({ cue: region.querySelector("p")!.textContent!, svg: within(region).getByRole("img").outerHTML });
+    }
+    expect(seen[0].cue).toBe(GUIDES["abdominal-reto"].cue);
+    expect(seen[1]).toEqual(seen[0]);
+  });
 });

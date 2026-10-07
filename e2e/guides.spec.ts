@@ -1,4 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const TOKENS = {
   light: { "--fig": "#7a2a36", "--mach": "#b98a92", "--pad": "#f3c3cb" },
@@ -130,5 +132,43 @@ for (const scheme of ["light", "dark"] as const) {
       [pelvic.locator("rect.mach").first(), "stroke", c["--mach"]],
     ];
     for (const [part, prop, hex] of more) await expect(part, `${prop} ${hex}`).toHaveCSS(prop, rgb(hex));
+  });
+}
+
+// C37: every property mockup v4's drawing rules declare, compared as computed values against the mockup
+// page itself, element by element, so the cascade (`.mach` then `.mach.line`) is resolved by Chromium on both sides.
+const MOCKUP_FILE = resolve("tests/fixtures/mockup-v4.html");
+const MOCKUP = readFileSync(MOCKUP_FILE, "utf8");
+const DRAWING_RULES = MOCKUP.slice(MOCKUP.indexOf("/* drawing parts */"), MOCKUP.indexOf("\n.foot {"));
+const DRAWING_PROPS = [...new Set([...DRAWING_RULES.matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]))].sort();
+
+const styles = (svg: Locator, props: string[]) =>
+  svg.evaluate(
+    (root, props) => [root, ...root.querySelectorAll("*")].map((el) => {
+      const cs = getComputedStyle(el);
+      return `${el.tagName} ${props.map((p) => `${p}=${cs.getPropertyValue(p)}`).join(" ")}`;
+    }),
+    props,
+  );
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`drawing styles match the mockup - ${scheme}`, async ({ page, context }) => {
+    expect(DRAWING_PROPS).toEqual(["fill", "opacity", "stroke", "stroke-dasharray", "stroke-linecap", "stroke-linejoin", "stroke-width"]);
+    const mockup = await context.newPage();
+    for (const p of [page, mockup]) await p.emulateMedia({ colorScheme: scheme });
+    await mockup.goto(`file://${MOCKUP_FILE}`);
+    await page.goto("/");
+    await page.getByRole("group", { name: "Escolher treino" }).getByRole("button", { name: "Treino C" }).click();
+
+    const names = await page.getByTestId("ex-name").allTextContents();
+    expect(names).toHaveLength(6);
+    for (const name of names) {
+      const img = (p: Page) => p.getByRole("img", { name: `Desenho do exercício ${name}` });
+      for (const p of [page, mockup]) {
+        if (!(await img(p).isVisible())) await p.getByRole("button", { name: new RegExp(`^${name} `) }).click();
+        await expect(img(p)).toBeVisible();
+      }
+      expect(await styles(img(page), DRAWING_PROPS), name).toEqual(await styles(img(mockup), DRAWING_PROPS));
+    }
   });
 }

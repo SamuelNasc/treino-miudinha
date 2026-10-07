@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/exercise-guides/plan.md`
 
-36 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
+37 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
 
 All proofs run under `vitest.config.ts` (jsdom, `TZ=America/Sao_Paulo`). The binding mockup is
 saved verbatim as `tests/fixtures/mockup-v4.html` (fetched from the artifact, not retyped), and
@@ -135,6 +135,9 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "geometry matche
 **C36** - In Chromium, with Hack and then Elevação pélvica open, each drawing part has mockup v4's computed colour, under `colorScheme: "light"` and `"dark"`: arrow stroke and arrowhead fill `--leaf` (`#3f9a4a` / `#6cc677`), torso stroke `--berry` (`#e8304a` / `#ff4a64`), bun fill `--cherry` (`#b3122e` / `#ff5c75`), head fill and limb stroke `--fig`, pad stroke `--pad`, machine line, floor and machine-shape stroke and weight fill `--mach`, machine-shape fill `--surface` (`#ffffff` / `#2a1016`). Added 2026-10-07 after the verifier found 9 of the 11 part colours unproven (AC 4, AC 5) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every drawing part in its colour"`
 
+**C37** - In Chromium, for each of Treino C's six guides, under `colorScheme: "light"` and `"dark"`, every element of the app's drawing has the same computed value as the matching element of the mockup v4 page (`tests/fixtures/mockup-v4.html`, opened in the same browser) for every property the mockup's drawing-part rules declare: `fill`, `opacity`, `stroke`, `stroke-dasharray`, `stroke-linecap`, `stroke-linejoin`, `stroke-width`. The property list is read from the fixture. Added 2026-10-07 after the verifier found `fill: none` unproven, to close the whole class of drawing-style properties (AC 2-5, door 1) — done
+Proof: `pnpm test:e2e e2e/guides.spec.ts -g "drawing styles match the mockup"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -155,6 +158,7 @@ Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every drawing part in its colour"`
 | rendered geometry from the mockup renderer (6) | leg polyline C35 · arm polyline C35 · torso C35 · head and bun radii C35 · order inside a pose C35 · arrowhead C35 | - |
 | expanded row arrangement (4) | region inside the `li`, after the weight field C16 · drawing above cue C16 · below the row's controls C17 · full-row width C17 | - |
 | colour schemes (2) | light C5, C14, C36 · dark C5, C32, C36 | - |
+| drawing style properties, mockup v4 (7) | fill C37 · opacity C37, C14 · stroke C37, C36 · stroke-dasharray C37 · stroke-linecap C37 · stroke-linejoin C37 · stroke-width C37 | - |
 | drawing part colours, mockup v4 (11) | arrow C36 · arrowhead C36 · torso C36 · bun C36 · head C5, C36 · limb C36 · pad C36 · machine line C5, C36 · floor C36 · weight C36 · machine shape fill and stroke C36 | - |
 | one-way doors (3) | door 1 C7, C10, C12, C13 · door 2 C8, C29 · door 3 C31 | - |
 | Relations entities (2) | `Exercicio` → `ExerciseGuide` C27 · shared id, one guide C29 | - |
@@ -162,7 +166,7 @@ Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every drawing part in its colour"`
 
 - Startup config: the guides need none - they are a bundled module the component imports. The two test runners are two assemblies of the same app: Vitest renders `App` in jsdom, Playwright loads the dev server's `index.html`. C31 keeps them from collecting each other's files
 - Claims naming a screen output: C15, C16, C18-C25, C29 - each proof renders `App`
-- Claims about applied style, layout or colour scheme: C5, C14, C16 (second proof), C17, C32, C36 - each proof runs in Chromium, none reads CSS as text
+- Claims about applied style, layout or colour scheme: C5, C14, C16 (second proof), C17, C32, C36, C37 - each proof runs in Chromium, none reads CSS as text
 - No other check claims more than the cases its proof exercises
 
 Out of reach of a selector, enumerated per screen. The Verifier compares these against the mockup
@@ -170,8 +174,8 @@ with the Playwright MCP, on screenshots in light and dark mode:
 
 - Hoje, expanded row: the padding and gaps around the region, the blush figure background and its
   18px radius, the cue's 15px size, the legend swatch colours and size, the chevron's rotation
-- the drawing: stroke widths (leg 9, arm 6, torso 15, machine 3, arrow 3 dashed 5 4) and whether
-  each pose is recognisable (head and bun radii moved to C35). Recognition is Samuel's and hers (open question 1)
+- the drawing: whether each pose is recognisable (head and bun radii moved to C35, stroke widths
+  and dashes to C37). Recognition is Samuel's and hers (open question 1)
 
 ## Test policy
 
@@ -191,7 +195,7 @@ Evidence:
 - `src/components/GuideDrawing.tsx`: dispatches over 3 shape kinds and 5 `as` values (7 combinations), plus the default-bun branch -> decides, reached through Hoje -> C12, C13 at its own layer and C16 at the screen
 - `WorkoutCard` open state: open, close, switch, reset on workout and day -> decides, reached across the screen boundary -> C15-C25 through `App`, as the existing Hoje rules are
 - `src/domain/guides.ts` `GUIDES`: data, no conditional -> C7, C27, C30 assert it as data
-- applied CSS, layout and colour scheme: no decision in code, but jsdom cannot observe them -> Playwright in Chromium (door 3): C5, C14, C17, C32
+- applied CSS, layout and colour scheme: no decision in code, but jsdom cannot observe them -> Playwright in Chromium (door 3): C5, C14, C17, C32, C36, C37
 - closest analogue in the repo: `src/domain/store.ts` `parseWeight`, proven at its own layer in `store.test.ts` (C23 of gym-app) and through `App`
 
 Cost: 6 proofs at their own layer across 2 new test files, plus 1 Playwright spec with 5 tests. Without these rows, the shape dispatch

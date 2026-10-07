@@ -2,6 +2,7 @@ import { act, cleanup, render, screen, waitFor, within } from "@testing-library/
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import App from "./App";
+import { GUIDES } from "./domain/guides";
 import { PLAN, type WorkoutId } from "./domain/plan";
 import { STORAGE_KEY, type TreinoRecord } from "./domain/store";
 
@@ -410,5 +411,170 @@ describe("Backup", () => {
     expect(screen.getByText(warning)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Marcar Extensão" }));
     expect(screen.getByText("1/6")).toBeInTheDocument();
+  });
+});
+
+describe("como faz", () => {
+  const pick = (user: ReturnType<typeof userEvent.setup>, id: WorkoutId) =>
+    user.click(within(screen.getByRole("group", { name: "Escolher treino" })).getByRole("button", { name: `Treino ${id}` }));
+  const nameButton = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name} `) });
+  const regions = () => screen.queryAllByRole("region", { name: /^Como faz / });
+  const row = (name: string) => screen.getByRole("button", { name: `Marcar ${name}` }).closest("li")!;
+
+  async function openTreinoC() {
+    setToday(MON);
+    const user = userEvent.setup();
+    render(<App />);
+    await pick(user, "C");
+    return user;
+  }
+
+  it("como faz: all closed on first view", async () => {
+    await openTreinoC();
+    expect(regions()).toEqual([]);
+    for (const ex of PLAN.C.exercises) {
+      const li = row(ex.name);
+      const sets = within(li).getByTestId("ex-sets");
+      const peek = within(li).getByText("como faz");
+      const line = sets.parentElement!;
+      expect(line).toHaveClass("sets");
+      expect(line.contains(peek)).toBe(true);
+      expect(sets.compareDocumentPosition(peek) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(line.textContent).toMatch(new RegExp(`^${ex.sets}\\s*como faz$`));
+    }
+  });
+
+  it("como faz: opens inside the row", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    const li = row("Hack");
+    const region = within(li).getByRole("region", { name: "Como faz Hack" });
+    const weight = within(li).getByRole("textbox", { name: "Carga de Hack em kg" });
+    expect(weight.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(weight.closest("label")!.contains(region)).toBe(false);
+
+    const parts = [...region.children];
+    expect(parts.map((p) => p.tagName)).toEqual(["FIGURE", "P"]);
+    const [figure, cue] = parts;
+    expect(within(figure as HTMLElement).getByRole("img", { name: "Desenho do exercício Hack" })).toBeInTheDocument();
+    expect(figure.querySelector("figcaption")!.textContent).toMatch(/^começo\s*fim$/);
+    expect(cue).toHaveTextContent(GUIDES.hack.cue);
+    expect(within(nameButton("Hack")).getByText("fechar")).toBeInTheDocument();
+    expect(within(nameButton("Hack")).queryByText("como faz")).not.toBeInTheDocument();
+  });
+
+  it("como faz: one open at a time", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    await user.click(nameButton("Sumô"));
+    expect(regions().map((r) => r.getAttribute("aria-label"))).toEqual(["Como faz Sumô"]);
+    expect(within(nameButton("Hack")).getByText("como faz")).toBeInTheDocument();
+  });
+
+  it("como faz: tap again closes", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    await user.click(nameButton("Hack"));
+    expect(regions()).toEqual([]);
+    expect(within(nameButton("Hack")).getByText("como faz")).toBeInTheDocument();
+  });
+
+  it("como faz: checking keeps it open", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    await user.click(screen.getByRole("button", { name: "Marcar Hack" }));
+    expect(screen.getByRole("button", { name: "Marcar Hack" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("1/6")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Como faz Hack" })).toBeInTheDocument();
+  });
+
+  it("como faz: opening writes nothing", async () => {
+    const user = await openTreinoC();
+    const before = localStorage.getItem(STORAGE_KEY);
+    await user.click(nameButton("Hack"));
+    await user.click(nameButton("Hack"));
+    expect(screen.getByRole("button", { name: "Marcar Hack" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("0/6")).toBeInTheDocument();
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(before);
+  });
+
+  it("como faz: switching workout closes", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    await pick(user, "A");
+    expect(regions()).toEqual([]);
+    await pick(user, "C");
+    expect(regions()).toEqual([]);
+  });
+
+  it("como faz: reload closes", async () => {
+    const user = await openTreinoC();
+    await user.click(nameButton("Hack"));
+    cleanup();
+    render(<App />);
+    await pick(user, "C");
+    expect(regions()).toEqual([]);
+  });
+
+  it("como faz: new day closes", async () => {
+    // Thursday, after A and B: the rotation shows Treino C on Thursday and again on Friday.
+    setToday(THU);
+    seed({ completions: [c(MON, "A"), c("2026-10-06", "B")] }, THU);
+    const user = userEvent.setup();
+    render(<App />);
+    expect(screen.getByRole("heading", { name: "Treino C" })).toBeInTheDocument();
+    await user.click(nameButton("Hack"));
+    expect(regions()).toHaveLength(1);
+    vi.setSystemTime(new Date(2026, 9, 9, 9, 0));
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(screen.getByRole("heading", { name: "Treino C" })).toBeInTheDocument();
+    expect(regions()).toEqual([]);
+  });
+
+  it("como faz: no guide, no toggle", async () => {
+    const saved = GUIDES.extensao;
+    delete GUIDES.extensao;
+    try {
+      setToday(MON);
+      render(<App />);
+      const li = row("Extensão");
+      expect(within(li).queryByText(/como faz/)).not.toBeInTheDocument();
+      const named = screen.getAllByRole("button").filter((b) => b.textContent?.includes("Extensão") || b.getAttribute("aria-label")?.includes("Extensão"));
+      expect(named.map((b) => b.getAttribute("aria-label") ?? b.textContent)).toEqual(["Marcar Extensão"]);
+      expect(within(li).getByTestId("ex-name")).toHaveTextContent(/^Extensão$/);
+      expect(within(li).getByTestId("ex-sets")).toHaveTextContent(/^4×10$/);
+    } finally {
+      if (saved) GUIDES.extensao = saved;
+    }
+  });
+
+  it("como faz: name button reports expanded", async () => {
+    const saved = GUIDES["abdominal-reto"];
+    GUIDES["abdominal-reto"] ??= GUIDES.hack;
+    try {
+      const user = await openTreinoC();
+      const hack = nameButton("Hack");
+      expect(hack.tagName).toBe("BUTTON");
+      expect(hack).toHaveAttribute("aria-expanded", "false");
+      await user.click(hack);
+      expect(nameButton("Hack")).toHaveAttribute("aria-expanded", "true");
+      expect(nameButton("Hack").getAttribute("aria-controls")).toBe(screen.getByRole("region", { name: "Como faz Hack" }).id);
+
+      const ids: string[] = [];
+      for (const w of ["B", "D"] as const) {
+        await pick(user, w);
+        await user.click(nameButton("Abdominal reto"));
+        const region = screen.getByRole("region", { name: "Como faz Abdominal reto" });
+        expect(nameButton("Abdominal reto").getAttribute("aria-controls")).toBe(region.id);
+        expect(document.querySelectorAll(`[id="${region.id}"]`)).toHaveLength(1);
+        ids.push(region.id);
+      }
+      expect(new Set(ids).size).toBe(2);
+    } finally {
+      if (saved) GUIDES["abdominal-reto"] = saved;
+      else delete GUIDES["abdominal-reto"];
+    }
   });
 });

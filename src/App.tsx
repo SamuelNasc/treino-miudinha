@@ -98,6 +98,7 @@ export default function App() {
 
         {shown ? (
           <WorkoutCard
+            key={`${today}-${shown}`}
             workout={PLAN[shown]}
             checked={record.today.workout === shown ? record.today.checked : []}
             weights={record.weights}

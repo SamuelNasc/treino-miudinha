@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { GUIDES } from "../domain/guides";
 import { PLAN, WORKOUT_IDS, type Workout, type WorkoutId } from "../domain/plan";
 import { parseWeight } from "../domain/store";
+import { Guide } from "./GuideDrawing";
 import { Berry } from "./Sprite";
 
 export function Picker({ shown, next, onPick }: { shown: WorkoutId | null; next: WorkoutId; onPick: (id: WorkoutId) => void }) {
@@ -24,7 +26,9 @@ interface WorkoutCardProps {
   onWeight: (exerciseId: string, value: number | undefined) => void;
 }
 
+/** Which guide is open is screen state only: App remounts the card when the workout or the day changes. */
 export function WorkoutCard({ workout, checked, weights, onToggle, onWeight }: WorkoutCardProps) {
+  const [open, setOpen] = useState<string | null>(null);
   const done = workout.exercises.filter((e) => checked.includes(e.id)).length;
   return (
     <section className="card" aria-live="polite">
@@ -45,6 +49,9 @@ export function WorkoutCard({ workout, checked, weights, onToggle, onWeight }: W
       <ul className="list" aria-label="Exercícios">
         {workout.exercises.map((e) => {
           const on = checked.includes(e.id);
+          const guide = GUIDES[e.id];
+          const isOpen = open === e.id;
+          const howId = `how-${workout.id}-${e.id}`;
           return (
             <li key={e.id} className={on ? "ex on" : "ex"}>
               <button className="check" type="button" aria-pressed={on} aria-label={`Marcar ${e.name}`} onClick={() => onToggle(e.id)}>
@@ -52,13 +59,29 @@ export function WorkoutCard({ workout, checked, weights, onToggle, onWeight }: W
                   <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <div className="name">
-                <strong data-testid="ex-name">{e.name}</strong>
-                <span className="sets" data-testid="ex-sets">
-                  {e.sets}
-                </span>
-              </div>
+              {guide ? (
+                <button className="name" type="button" aria-expanded={isOpen} aria-controls={howId} onClick={() => setOpen(isOpen ? null : e.id)}>
+                  <strong data-testid="ex-name">{e.name}</strong>{" "}
+                  <span className="sets">
+                    <span data-testid="ex-sets">{e.sets}</span>{" "}
+                    <span className="peek">
+                      {isOpen ? "fechar" : "como faz"}
+                      <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </span>
+                </button>
+              ) : (
+                <div className="name">
+                  <strong data-testid="ex-name">{e.name}</strong>
+                  <span className="sets" data-testid="ex-sets">
+                    {e.sets}
+                  </span>
+                </div>
+              )}
               <WeightField name={e.name} value={weights[e.id]} onCommit={(v) => onWeight(e.id, v)} />
+              {guide && isOpen && <Guide guide={guide} name={e.name} id={howId} />}
             </li>
           );
         })}

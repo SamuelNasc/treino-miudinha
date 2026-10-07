@@ -30,7 +30,7 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "one arrow per m
 **C4** - For every guide in `GUIDES`, no element of the rendered drawing has a `fill`, `stroke`, `color` or `style` value matching a hex colour, `rgb(`/`hsl(` or a CSS named colour (AC 4) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "no literal colour"`
 
-**C5** - With Hack open in Chromium, the computed `--fig`, `--mach` and `--pad` on `:root` are `#7a2a36`, `#b98a92`, `#f3c3cb` under `colorScheme: "light"` and `#ffc9d1`, `#9a6670`, `#5a2632` under `colorScheme: "dark"`. In each scheme, the end pose's head has computed `fill` equal to `--fig` and the machine outline has computed `stroke` equal to `--mach` (AC 5)
+**C5** - With Hack open in Chromium, the computed `--fig`, `--mach` and `--pad` on `:root` are `#7a2a36`, `#b98a92`, `#f3c3cb` under `colorScheme: "light"` and `#ffc9d1`, `#9a6670`, `#5a2632` under `colorScheme: "dark"`. In each scheme, the end pose's head has computed `fill` equal to `--fig` and the machine outline has computed `stroke` equal to `--mach` (AC 5) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "drawing tokens in light and dark"`
 
 **C6** - The drawing has `role="img"` and the accessible name `Desenho do exercício Hack` for `hack`. The cue is a `p` element after the figure, whose text equals the guide's `cue` (AC 6) — done
@@ -59,50 +59,50 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "each shape kind
 **C13** - A pose with no `bun` draws its bun circle at `head + (-7, -6)`. A pose with `bun` draws it at that point. Each pose draws one head, one bun, one torso, and one leg polyline and one arm polyline per entry (door 1) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "pose parts and default bun"`
 
-**C14** - With Hack open in Chromium, the start-pose group has computed `opacity` 0.28 and the end-pose group 1. The `Exportar backup` button and the `Importar backup` control, which already use class `ghost`, have computed `opacity` 1 (AC 2)
+**C14** - With Hack open in Chromium, the start-pose group has computed `opacity` 0.28 and the end-pose group 1. The `Exportar backup` button and the `Importar backup` control, which already use class `ghost`, have computed `opacity` 1 (AC 2) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "only the start pose is faded"`
 
 ### S2 - Como faz · ~5 files · ~43 KB · ~11k
 
-**C15** - On first view of Treino C, no guide region is in the document, and each of the 6 rows shows "como faz" inside its sets line, after the sets text (AC 12)
+**C15** - On first view of Treino C, no guide region is in the document, and each of the 6 rows shows "como faz" inside its sets line, after the sets text (AC 12) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: all closed on first view"`
 
-**C16** - Tapping "Hack" makes its row contain, in this order after the weight field, one region holding a `figure` with the drawing and a caption reading "começo" then "fim", then the cue paragraph. The toggle reads "fechar" (AC 13)
+**C16** - Tapping "Hack" makes its row contain, in this order after the weight field, one region holding a `figure` with the drawing and a caption reading "começo" then "fim", then the cue paragraph. The toggle reads "fechar" (AC 13) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: opens inside the row"`
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "guide opens inside the row"` - in Chromium, the drawing's bounding box is above the cue's, and the caption's "começo" is left of "fim"
 
-**C17** - At a 390×844 viewport in Chromium, with Hack open, the guide region's top is at or below the bottom of Hack's check button, name button and weight field. Its left edge is within 1 px of the check button's left edge and its right edge within 1 px of the weight field's right edge (AC 13)
+**C17** - At a 390×844 viewport in Chromium, with Hack open, the guide region's top is at or below the bottom of Hack's check button, name button and weight field. Its left edge is within 1 px of the check button's left edge and its right edge within 1 px of the weight field's right edge (AC 13) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "guide spans the row below"`
 
-**C18** - With Hack open, tapping "Sumô" leaves exactly one guide region in the document, Sumô's. Hack's toggle reads "como faz" (AC 14)
+**C18** - With Hack open, tapping "Sumô" leaves exactly one guide region in the document, Sumô's. Hack's toggle reads "como faz" (AC 14) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: one open at a time"`
 
-**C19** - Tapping the open "Hack" name again removes its region, and the toggle reads "como faz" (AC 15)
+**C19** - Tapping the open "Hack" name again removes its region, and the toggle reads "como faz" (AC 15) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: tap again closes"`
 
-**C20** - With Hack open, tapping "Marcar Hack" sets its `aria-pressed="true"`, the count reads "1/6", and Hack's guide region is still in the document (AC 16)
+**C20** - With Hack open, tapping "Marcar Hack" sets its `aria-pressed="true"`, the count reads "1/6", and Hack's guide region is still in the document (AC 16) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: checking keeps it open"`
 
-**C21** - Opening and then closing Hack leaves "Marcar Hack" at `aria-pressed="false"`, the count at "0/6", and `localStorage["treino:v1"]` byte-identical to before the first tap (AC 17)
+**C21** - Opening and then closing Hack leaves "Marcar Hack" at `aria-pressed="false"`, the count at "0/6", and `localStorage["treino:v1"]` byte-identical to before the first tap (AC 17) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: opening writes nothing"`
 
-**C22** - With Hack open, picking Treino A shows no guide region. Picking Treino C again also shows none (AC 18)
+**C22** - With Hack open, picking Treino A shows no guide region. Picking Treino C again also shows none (AC 18) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: switching workout closes"`
 
-**C23** - With Hack open, unmounting and re-rendering `App` shows no guide region. With Hack open, advancing the clock to the next day and firing `visibilitychange` shows no guide region, even when the same workout is still shown (AC 19)
+**C23** - With Hack open, unmounting and re-rendering `App` shows no guide region. With Hack open, advancing the clock to the next day and firing `visibilitychange` shows no guide region, even when the same workout is still shown (AC 19) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: reload closes"`
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: new day closes"`
 
-**C24** - With `GUIDES` mocked to lack `extensao`, Treino A's Extensão row has no "como faz" text, and no `button` whose name contains "Extensão" other than "Marcar Extensão". Its `ex-name` and `ex-sets` text is unchanged (AC 20)
+**C24** - With `GUIDES` mocked to lack `extensao`, Treino A's Extensão row has no "como faz" text, and no `button` whose name contains "Extensão" other than "Marcar Extensão". Its `ex-name` and `ex-sets` text is unchanged (AC 20) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: no guide, no toggle"`
 
-**C25** - The name of a row with a guide is a `button` with `aria-expanded="false"`, which becomes `"true"` when opened. Its `aria-controls` equals the `id` of the guide region, and that id is unique when `abdominal-reto` appears twice across B and D (AC 21)
+**C25** - The name of a row with a guide is a `button` with `aria-expanded="false"`, which becomes `"true"` when opened. Its `aria-controls` equals the `id` of the guide region, and that id is unique when `abdominal-reto` appears twice across B and D (AC 21) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: name button reports expanded"`
 
-**C26** - The existing Hoje tests still find rows by `ex-name`/`ex-sets` and checks by `Marcar <name>`. The whole of `src/App.test.tsx` that existed before this feature passes unchanged (Impact: screen `Hoje`)
+**C26** - The existing Hoje tests still find rows by `ex-name`/`ex-sets` and checks by `Marcar <name>`. The whole of `src/App.test.tsx` that existed before this feature passes unchanged (Impact: screen `Hoje`) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Hoje"`
 
-**C31** - `pnpm test:e2e` runs `e2e/**/*.spec.ts` in exactly one project, `chromium`, against the Vite dev server that `webServer` starts, and `pnpm test` (Vitest) does not collect any file under `e2e/` (door 3)
+**C31** - `pnpm test:e2e` runs `e2e/**/*.spec.ts` in exactly one project, `chromium`, against the Vite dev server that `webServer` starts, and `pnpm test` (Vitest) does not collect any file under `e2e/` (door 3) — done
 Proof: `pnpm test:e2e --list` - lists only `[chromium]` tests from `e2e/`
 Proof: `pnpm vitest list --filesOnly` - lists no file under `e2e/`
 

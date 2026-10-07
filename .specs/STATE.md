@@ -9,9 +9,9 @@
 ## Handoff
 
 **Feature**: exercise-guides
-**Where**: plan approved, checks.md written (30 checks, profile ui) - no code
+**Where**: S1 (223d4bc) and S2 (f329173) built - 27 of 32 checks done, Vitest 61/61 and Playwright 6/6 green. Treino C's six guides are live in the toggle; A, B and D rows show no toggle yet (AC 20)
 **In progress**: none
-**Next step**: build S1 - save the mockup v4 HTML to `tests/fixtures/mockup-v4.html`, then write the tests for C1-C14
-**Blockers**: none
-**Uncommitted**: `.specs/features/exercise-guides/plan.md`, `.specs/features/exercise-guides/checks.md`, `.specs/STATE.md`
-**Branch**: main
+**Next step**: S3 batch A - draw the 6 Treino A guides in `src/domain/guides.ts`, render a contact sheet in the mockup artifact for Samuel and her to approve, then B, then D. Then C27, C29, C30, C32 and the Verifier over 93bbddc..HEAD
+**Blockers**: open question 1 - each batch is pushed only after she recognises its drawings
+**Uncommitted**: none
+**Branch**: main (not pushed)

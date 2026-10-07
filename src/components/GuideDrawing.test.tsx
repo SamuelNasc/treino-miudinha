@@ -99,6 +99,24 @@ describe("GuideDrawing", () => {
     expect(end.querySelector('rect[x="150"]')).toHaveAttribute("class", "weight");
   });
 
+  it("every guide renders", () => {
+    for (const [id, guide] of Object.entries(GUIDES)) {
+      const name = nameOf(id);
+      const { container, unmount } = render(<GuideDrawing guide={guide} name={name} />);
+      const svg = screen.getByRole("img", { name: `Desenho do exercício ${name}` });
+      expect(container.querySelectorAll("svg"), id).toHaveLength(1);
+      expect(svg, id).toHaveAttribute("viewBox", "0 0 200 140");
+      expect(svg.querySelectorAll("path.move"), id).toHaveLength(guide.moves.length);
+      expect(svg.querySelectorAll("polygon.move-head"), id).toHaveLength(guide.moves.length);
+      for (const el of [svg, ...svg.querySelectorAll("*")]) {
+        for (const attr of ["fill", "stroke", "color", "style"]) {
+          expect(el.getAttribute(attr) ?? "", `${id} <${el.tagName}> ${attr}`).not.toMatch(COLOUR);
+        }
+      }
+      unmount();
+    }
+  });
+
   it("pose parts and default bun", () => {
     const svg = draw({
       ...base,

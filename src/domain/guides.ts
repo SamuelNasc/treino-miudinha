@@ -118,6 +118,106 @@ export const GUIDES: Record<string, ExerciseGuide> = {
     },
     moves: [[[54, 108], [44, 108], [32, 108]], [[146, 108], [156, 108], [168, 108]]],
   },
+
+  // Treino A - drawn for the 2026-10 review, not from the mockup.
+  extensao: {
+    cue: "Sentada, rolo na frente do tornozelo. Estica as pernas até ficarem retas e desce devagar.",
+    machine: [
+      { path: "M40 128 H180", as: "floor" },
+      { path: "M58 30 L66 82", as: "pad" },
+      { rect: [60, 84, 62, 10, 4], as: "mach" },
+      { path: "M90 94 V128", as: "line" },
+      { circle: [126, 82, 4], as: "mach" },
+    ],
+    start: { head: [68, 27], neck: [72, 41], hip: [92, 80], legs: [[[126, 80], [124, 118]]], arms: [[[80, 62], [98, 82]]], props: [{ circle: [132, 113, 6], as: "mach" }] },
+    end: { head: [68, 27], neck: [72, 41], hip: [92, 80], legs: [[[126, 80], [164, 78]]], arms: [[[80, 62], [98, 82]]], props: [{ circle: [160, 70, 6], as: "mach" }] },
+    moves: [[[148, 124], [178, 118], [182, 84]]],
+  },
+  agachamento: {
+    cue: "Barra apoiada nas costas, pés na largura dos ombros. Desce como quem senta, tronco firme, e sobe.",
+    machine: [{ path: "M40 128 H170", as: "floor" }],
+    start: {
+      head: [100, 22], bun: [100, 11], neck: [100, 38], hip: [100, 76],
+      legs: [[[90, 102], [88, 126]], [[110, 102], [112, 126]]],
+      arms: [[[82, 48], [72, 36]], [[118, 48], [128, 36]]],
+      props: [{ rect: [56, 34, 88, 5, 2], as: "weight" }, { rect: [50, 26, 8, 21, 2], as: "weight" }, { rect: [142, 26, 8, 21, 2], as: "weight" }],
+    },
+    end: {
+      head: [100, 40], bun: [100, 29], neck: [100, 56], hip: [100, 94],
+      legs: [[[74, 100], [86, 126]], [[126, 100], [114, 126]]],
+      arms: [[[82, 66], [72, 54]], [[118, 66], [128, 54]]],
+      props: [{ rect: [56, 52, 88, 5, 2], as: "weight" }, { rect: [50, 44, 8, 21, 2], as: "weight" }, { rect: [142, 44, 8, 21, 2], as: "weight" }],
+    },
+    moves: [[[176, 30], [182, 62], [176, 96]]],
+  },
+  "leg-press-45": {
+    cue: "Costas e quadril no encosto, pés no meio da plataforma. Desce até o joelho fazer 90° e empurra.",
+    machine: [
+      { path: "M20 128 H185", as: "floor" },
+      { path: "M38 56 L76 104", as: "pad" },
+      { rect: [70, 104, 30, 9, 4], as: "mach" },
+      { path: "M84 113 V128", as: "line" },
+      { path: "M112 88 L170 30", as: "line" },
+      { path: "M150 128 V50", as: "line" },
+    ],
+    start: {
+      head: [40, 52], neck: [48, 64], hip: [80, 100], legs: [[[96, 64], [124, 76]]], arms: [[[58, 86], [76, 100]]],
+      props: [{ path: "M117 63 L137 83", as: "pad" }],
+    },
+    end: {
+      head: [40, 52], neck: [48, 64], hip: [80, 100], legs: [[[112, 70], [148, 52]]], arms: [[[58, 86], [76, 100]]],
+      props: [{ path: "M141 39 L161 59", as: "pad" }],
+    },
+    moves: [[[150, 102], [172, 88], [184, 64]]],
+  },
+  afundo: {
+    cue: "Um pé à frente, outro atrás. Desce o joelho de trás rumo ao chão, tronco reto, e sobe com a perna da frente.",
+    machine: [{ path: "M40 128 H160", as: "floor" }],
+    start: {
+      head: [101, 18], neck: [100, 32], hip: [100, 72],
+      legs: [[[114, 98], [124, 126]], [[86, 98], [64, 124]]],
+      arms: [[[88, 50], [96, 70]]],
+    },
+    end: {
+      head: [101, 38], neck: [100, 52], hip: [100, 92],
+      legs: [[[130, 94], [124, 126]], [[90, 120], [64, 124]]],
+      arms: [[[88, 70], [96, 90]]],
+    },
+    moves: [[[40, 36], [32, 64], [40, 94]]],
+  },
+  aducao: {
+    cue: "Sentada, almofadas por dentro dos joelhos. Fecha as pernas apertando para dentro e abre devagar.",
+    machine: [
+      { path: "M50 128 H150", as: "floor" },
+      { rect: [76, 26, 48, 50, 10], as: "mach" },
+      { rect: [66, 74, 68, 12, 5], as: "mach" },
+      { path: "M100 86 V128", as: "line" },
+    ],
+    start: {
+      head: [100, 24], bun: [100, 13], neck: [100, 38], hip: [100, 74],
+      legs: [[[72, 90], [66, 122]], [[128, 90], [134, 122]]],
+      arms: [[[84, 56], [74, 76]], [[116, 56], [126, 76]]],
+      props: [{ rect: [77, 82, 7, 18, 3], as: "mach" }, { rect: [116, 82, 7, 18, 3], as: "mach" }],
+    },
+    end: {
+      head: [100, 24], bun: [100, 13], neck: [100, 38], hip: [100, 74],
+      legs: [[[90, 92], [90, 124]], [[110, 92], [110, 124]]],
+      arms: [[[84, 56], [74, 76]], [[116, 56], [126, 76]]],
+      props: [{ rect: [94, 84, 5, 18, 2], as: "mach" }, { rect: [101, 84, 5, 18, 2], as: "mach" }],
+    },
+    moves: [[[30, 108], [42, 108], [56, 108]], [[170, 108], [158, 108], [144, 108]]],
+  },
+  gemeos: {
+    cue: "Pontas dos pés na beirada do degrau, calcanhar para fora. Sobe na ponta dos pés bem alto e desce devagar.",
+    machine: [
+      { path: "M50 128 H170", as: "floor" },
+      { rect: [100, 116, 40, 12, 3], as: "mach" },
+      { path: "M146 30 V116", as: "line" },
+    ],
+    start: { head: [100, 22], neck: [100, 36], hip: [100, 74], legs: [[[101, 98], [100, 120]]], arms: [[[116, 46], [140, 46]]] },
+    end: { head: [100, 10], neck: [100, 24], hip: [100, 62], legs: [[[101, 86], [104, 110]]], arms: [[[118, 36], [140, 46]]] },
+    moves: [[[64, 112], [56, 82], [64, 52]]],
+  },
 };
 
 const W = 200;

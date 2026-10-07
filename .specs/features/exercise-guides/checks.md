@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/exercise-guides/plan.md`
 
-32 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
+34 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
 
 All proofs run under `vitest.config.ts` (jsdom, `TZ=America/Sao_Paulo`). The binding mockup is
 saved verbatim as `tests/fixtures/mockup-v4.html` (fetched from the artifact, not retyped), and
@@ -62,6 +62,9 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "pose parts and 
 **C14** - With Hack open in Chromium, the start-pose group has computed `opacity` 0.28 and the end-pose group 1. The `Exportar backup` button and the `Importar backup` control, which already use class `ghost`, have computed `opacity` 1 (AC 2) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "only the start pose is faded"`
 
+**C33** - The drawing's `svg` paints in the mockup's order: every `machine` shape, then the start-pose group, then the end-pose group, then the arrows. No machine shape comes after a pose group, and no arrow comes before the end-pose group. Added 2026-10-07 after the verifier found the order unproven (AC 2, AC 3, door 1) — done
+Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "paints machine, start, end, arrows"`
+
 ### S2 - Como faz · ~5 files · ~43 KB · ~11k
 
 **C15** - On first view of Treino C, no guide region is in the document, and each of the 6 rows shows "como faz" inside its sets line, after the sets text (AC 12) — done
@@ -102,6 +105,9 @@ Proof: `pnpm vitest run src/App.test.tsx -t "como faz: name button reports expan
 **C26** - The existing Hoje tests still find rows by `ex-name`/`ex-sets` and checks by `Marcar <name>`. The whole of `src/App.test.tsx` that existed before this feature passes unchanged (Impact: screen `Hoje`) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Hoje"`
 
+**C34** - A row with a guide shows a chevron `svg` with `aria-hidden="true"` inside its "como faz" text, in both the closed and the open state. The open guide's caption has two swatches: the one before "começo" has class `k-ghost`, the one before "fim" does not. Added 2026-10-07 after the verifier found both unproven (AC 12, AC 13) — done
+Proof: `pnpm vitest run src/App.test.tsx -t "como faz: chevron and legend swatches"`
+
 **C31** - `pnpm test:e2e` runs `e2e/**/*.spec.ts` in exactly one project, `chromium`, against the Vite dev server that `webServer` starts, and `pnpm test` (Vitest) does not collect any file under `e2e/` (door 3) — done
 Proof: `pnpm test:e2e --list` - lists only `[chromium]` tests from `e2e/`
 Proof: `pnpm vitest list --filesOnly` - lists no file under `e2e/`
@@ -138,6 +144,8 @@ Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every guide in dark mode"
 | como faz states, design table (7) | first view C15 · tap closed C16 · tap open C19 · check while open C20 · switch workout C22 · no guide C24 · keyboard C25 | - |
 | guide closes on (5) | tap again C19 · open another C18 · picker switch C22 · reload C23 · new day C23 | - |
 | expanded row parts, mockup order (5) | drawing C16 · caption "começo" C16 · caption "fim" C16 · cue C16 · toggle "fechar" C16 | - |
+| row details drawn by the mockup (3) | chevron C34 · faded swatch C34 · solid swatch C34 | - |
+| drawing paint order (4) | machine C33 · start pose C33, C2 · end pose C33, C2 · arrows C33 | - |
 | expanded row arrangement (4) | region inside the `li`, after the weight field C16 · drawing above cue C16 · below the row's controls C17 · full-row width C17 | - |
 | colour schemes (2) | light C5, C14 · dark C5, C32 | - |
 | one-way doors (3) | door 1 C7, C10, C12, C13 · door 2 C8, C29 · door 3 C31 | - |

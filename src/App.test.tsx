@@ -578,6 +578,24 @@ describe("como faz", () => {
     }
   });
 
+  it("como faz: chevron and legend swatches", async () => {
+    const user = await openTreinoC();
+    const peekChevron = () => {
+      const peek = within(nameButton("Hack")).getByText(/^(como faz|fechar)$/);
+      const svg = peek.querySelector("svg");
+      expect(svg).not.toBeNull();
+      expect(svg).toHaveAttribute("aria-hidden", "true");
+    };
+    peekChevron();
+    await user.click(nameButton("Hack"));
+    peekChevron();
+    const caption = screen.getByRole("region", { name: "Como faz Hack" }).querySelector("figcaption")!;
+    const swatch = (label: string) => within(caption as HTMLElement).getByText(label).querySelector("i");
+    expect(swatch("começo")).toHaveClass("k-ghost");
+    expect(swatch("fim")).not.toBeNull();
+    expect(swatch("fim")).not.toHaveClass("k-ghost");
+  });
+
   it("como faz: shared exercise, one guide", async () => {
     expect(Object.keys(GUIDES).filter((k) => k === "abdominal-reto")).toHaveLength(1);
     expect(Object.keys(GUIDES).filter((k) => k === "abdominal-inferior")).toHaveLength(1);

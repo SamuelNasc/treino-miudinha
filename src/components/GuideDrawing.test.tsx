@@ -125,6 +125,19 @@ describe("GuideDrawing", () => {
     }
   });
 
+  it("paints machine, start, end, arrows", () => {
+    for (const [id, guide] of Object.entries(GUIDES)) {
+      const { container, unmount } = render(<GuideDrawing guide={guide} name={nameOf(id)} />);
+      const kids = [...container.querySelector("svg")!.children];
+      const kind = (el: Element) =>
+        el.tagName === "g" ? (el.classList.contains("ghost") ? "start" : "end") : el.classList.contains("move") || el.classList.contains("move-head") ? "arrow" : "machine";
+      const order = kids.map(kind);
+      const expected = [...Array(guide.machine.length).fill("machine"), "start", "end", ...Array(guide.moves.length * 2).fill("arrow")];
+      expect(order, id).toEqual(expected);
+      unmount();
+    }
+  });
+
   it("pose parts and default bun", () => {
     const svg = draw({
       ...base,

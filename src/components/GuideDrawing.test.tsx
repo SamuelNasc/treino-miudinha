@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { GUIDES, type ExerciseGuide } from "../domain/guides";
+import { GUIDES, type ExerciseGuide, type Pose, type Shape } from "../domain/guides";
 import { PLAN } from "../domain/plan";
 import { Guide, GuideDrawing } from "./GuideDrawing";
 
@@ -138,6 +139,17 @@ describe("GuideDrawing", () => {
     }
   });
 
+  it("geometry matches the mockup renderer", () => {
+    for (const [id, guide] of Object.entries(GUIDES)) {
+      const name = nameOf(id);
+      const { container, unmount } = render(<GuideDrawing guide={guide} name={name} />);
+      const ours = flatten(container.querySelector("svg")!);
+      const doc = new DOMParser().parseFromString(mockupDrawing(guide, name), "image/svg+xml");
+      expect(ours, id).toEqual(flatten(doc.documentElement));
+      unmount();
+    }
+  });
+
   it("pose parts and default bun", () => {
     const svg = draw({
       ...base,
@@ -158,3 +170,36 @@ describe("GuideDrawing", () => {
     expect(at(end.querySelector("circle.bun")!)).toEqual(["66", "8"]);
   });
 });
+
+// --- the mockup v4 renderer, run from the saved fixture on our guide data (C35) ---
+
+const MOCKUP = readFileSync("tests/fixtures/mockup-v4.html", "utf8");
+const RENDERER = MOCKUP.slice(MOCKUP.indexOf("const pt = "), MOCKUP.indexOf("\n}\n", MOCKUP.indexOf("function drawing(name)")) + 2);
+
+function mockupDrawing(guide: ExerciseGuide, name: string): string {
+  const svg = (sh: Shape): string => {
+    if ("rect" in sh) {
+      const [x, y, w, h, r] = sh.rect;
+      return `<rect class="${sh.as}" x="${x}" y="${y}" width="${w}" height="${h}"${r ? ` rx="${r}"` : ""}/>`;
+    }
+    if ("circle" in sh) return `<circle class="${sh.as}" cx="${sh.circle[0]}" cy="${sh.circle[1]}" r="${sh.circle[2]}"/>`;
+    return `<path class="mach ${sh.as}" d="${sh.path}"/>`;
+  };
+  const [floor, ...mach] = guide.machine;
+  if (!("path" in floor) || floor.as !== "floor") throw new Error(`${name}: the mockup grammar draws the floor first`);
+  const pose = (p: Pose) => ({ h: p.head, bun: p.bun, n: p.neck, p: p.hip, legs: p.legs, arms: p.arms, x: (p.props ?? []).map(svg).join("") });
+  const DRAW = { [name]: { floor: floor.path, mach: mach.map(svg).join(""), a: pose(guide.start), b: pose(guide.end), moves: guide.moves } };
+  return new Function("DRAW", "name", `${RENDERER}\nreturn drawing(name);`)(DRAW, name);
+}
+
+/** Every element in paint order, with its attributes; numbers rounded so float formatting can't differ. */
+function flatten(root: Element): string[] {
+  const num = (v: string) => v.replace(/-?\d+(\.\d+)?(e-?\d+)?/g, (n) => String(Math.round(Number(n) * 1000) / 1000));
+  return [root, ...root.querySelectorAll("*")].map((el) => {
+    const attrs = [...el.attributes]
+      .filter((a) => !a.name.startsWith("xmlns") && !(a.name === "class" && a.value === ""))
+      .map((a) => `${a.name}=${num(a.value.trim().replace(/\s+/g, " "))}`)
+      .sort();
+    return `${el.tagName.toLowerCase()} ${attrs.join(" ")}`;
+  });
+}

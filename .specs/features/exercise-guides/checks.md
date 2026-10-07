@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/exercise-guides/plan.md`
 
-34 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
+35 checks in 3 slices · 3 one-way doors · 1 open, of which 0 block (1 blocks go-live)
 
 All proofs run under `vitest.config.ts` (jsdom, `TZ=America/Sao_Paulo`). The binding mockup is
 saved verbatim as `tests/fixtures/mockup-v4.html` (fetched from the artifact, not retyped), and
@@ -103,7 +103,7 @@ Proof: `pnpm vitest run src/App.test.tsx -t "como faz: no guide, no toggle"`
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: name button reports expanded"`
 
 **C26** - The existing Hoje tests still find rows by `ex-name`/`ex-sets` and checks by `Marcar <name>`. The whole of `src/App.test.tsx` that existed before this feature passes unchanged (Impact: screen `Hoje`) — done
-Proof: `pnpm vitest run src/App.test.tsx -t "Hoje"`
+Proof: `pnpm vitest run src/App.test.tsx` - the whole file; changed 2026-10-07 from `-t "Hoje"`, which ran only 10 of the 24 pre-existing tests
 
 **C34** - A row with a guide shows a chevron `svg` with `aria-hidden="true"` inside its "como faz" text, in both the closed and the open state. The open guide's caption has two swatches: the one before "começo" has class `k-ghost`, the one before "fim" does not. Added 2026-10-07 after the verifier found both unproven (AC 12, AC 13) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "como faz: chevron and legend swatches"`
@@ -129,6 +129,9 @@ Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "every guide ren
 **C32** - In Chromium under `colorScheme: "dark"`, opening every exercise of Treino A, B, C and D in turn shows a drawing whose end-pose head has computed `fill` `#ffc9d1` and a visible, non-zero bounding box, for all 28 ids (AC 5, AC 22) — done
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every guide in dark mode"
 
+**C35** - For every guide in `GUIDES`, the rendered drawing equals, element by element and attribute by attribute (numbers to 3 decimals), the SVG that mockup v4's own `pose()`, `arrow()` and `drawing()` functions produce from the same data, run from `tests/fixtures/mockup-v4.html`. That fixes the limb points (hip→knee→foot, neck→elbow→hand), the torso ends, head radius 9 and bun radius 5, the paint order inside a pose, and the arrowhead geometry. Added 2026-10-07 after the verifier found the rendered geometry unproven (AC 1-3, door 1) — done
+Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "geometry matches the mockup renderer"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -146,6 +149,7 @@ Proof: `pnpm test:e2e e2e/guides.spec.ts -g "every guide in dark mode"
 | expanded row parts, mockup order (5) | drawing C16 · caption "começo" C16 · caption "fim" C16 · cue C16 · toggle "fechar" C16 | - |
 | row details drawn by the mockup (3) | chevron C34 · faded swatch C34 · solid swatch C34 | - |
 | drawing paint order (4) | machine C33 · start pose C33, C2 · end pose C33, C2 · arrows C33 | - |
+| rendered geometry from the mockup renderer (6) | leg polyline C35 · arm polyline C35 · torso C35 · head and bun radii C35 · order inside a pose C35 · arrowhead C35 | - |
 | expanded row arrangement (4) | region inside the `li`, after the weight field C16 · drawing above cue C16 · below the row's controls C17 · full-row width C17 | - |
 | colour schemes (2) | light C5, C14 · dark C5, C32 | - |
 | one-way doors (3) | door 1 C7, C10, C12, C13 · door 2 C8, C29 · door 3 C31 | - |
@@ -162,8 +166,8 @@ with the Playwright MCP, on screenshots in light and dark mode:
 
 - Hoje, expanded row: the padding and gaps around the region, the blush figure background and its
   18px radius, the cue's 15px size, the legend swatch colours and size, the chevron's rotation
-- the drawing: stroke widths (leg 9, arm 6, torso 15, machine 3, arrow 3 dashed 5 4), head and bun
-  radii, whether each pose is recognisable. Recognition is Samuel's and hers (open question 1)
+- the drawing: stroke widths (leg 9, arm 6, torso 15, machine 3, arrow 3 dashed 5 4) and whether
+  each pose is recognisable (head and bun radii moved to C35). Recognition is Samuel's and hers (open question 1)
 
 ## Test policy
 

@@ -18,45 +18,45 @@ specs live in `e2e/` and select by role and text, like the Vitest suite.
 
 ### S1 - ExerciseGuide · ~8 files · ~59 KB · ~15k
 
-**C1** - A guide's drawing is one `svg` with `viewBox="0 0 200 140"` (AC 1)
+**C1** - A guide's drawing is one `svg` with `viewBox="0 0 200 140"` (AC 1) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "frame is 200x140"`
 
-**C2** - The start pose is drawn in a `g.ghost` and the end pose in a `g` without that class. The start pose comes before the end pose in the document (AC 2)
+**C2** - The start pose is drawn in a `g.ghost` and the end pose in a `g` without that class. The start pose comes before the end pose in the document (AC 2) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "start pose faded, end pose solid"`
 
-**C3** - A drawing has exactly one `path.move` and one `polygon.move-head` per entry of `moves`. For `abducao` that is 2 and 2, for `hack` 1 and 1 (AC 3)
+**C3** - A drawing has exactly one `path.move` and one `polygon.move-head` per entry of `moves`. For `abducao` that is 2 and 2, for `hack` 1 and 1 (AC 3) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "one arrow per move"`
 
-**C4** - For every guide in `GUIDES`, no element of the rendered drawing has a `fill`, `stroke`, `color` or `style` value matching a hex colour, `rgb(`/`hsl(` or a CSS named colour (AC 4)
+**C4** - For every guide in `GUIDES`, no element of the rendered drawing has a `fill`, `stroke`, `color` or `style` value matching a hex colour, `rgb(`/`hsl(` or a CSS named colour (AC 4) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "no literal colour"`
 
 **C5** - With Hack open in Chromium, the computed `--fig`, `--mach` and `--pad` on `:root` are `#7a2a36`, `#b98a92`, `#f3c3cb` under `colorScheme: "light"` and `#ffc9d1`, `#9a6670`, `#5a2632` under `colorScheme: "dark"`. In each scheme, the end pose's head has computed `fill` equal to `--fig` and the machine outline has computed `stroke` equal to `--mach` (AC 5)
 Proof: `pnpm test:e2e e2e/guides.spec.ts -g "drawing tokens in light and dark"`
 
-**C6** - The drawing has `role="img"` and the accessible name `Desenho do exercício Hack` for `hack`. The cue is a `p` element after the figure, whose text equals the guide's `cue` (AC 6)
+**C6** - The drawing has `role="img"` and the accessible name `Desenho do exercício Hack` for `hack`. The cue is a `p` element after the figure, whose text equals the guide's `cue` (AC 6) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "named image and cue text"`
 
-**C7** - For each of `flexora-cadeira`, `flexora-mesa`, `sumo`, `hack`, `elevacao-pelvica` and `abducao`, the guide's `cue`, the start and end pose points (`head`, `bun`, `neck`, `hip`, `legs`, `arms`), `moves`, props (mockup `x`) and machine shapes (mockup `mach` and `floor`) equal the mockup v4 `DRAW` entry for that exercise, read from `tests/fixtures/mockup-v4.html` (AC 7, door 1)
+**C7** - For each of `flexora-cadeira`, `flexora-mesa`, `sumo`, `hack`, `elevacao-pelvica` and `abducao`, the guide's `cue`, the start and end pose points (`head`, `bun`, `neck`, `hip`, `legs`, `arms`), `moves`, props (mockup `x`) and machine shapes (mockup `mach` and `floor`) equal the mockup v4 `DRAW` entry for that exercise, read from `tests/fixtures/mockup-v4.html` (AC 7, door 1) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "treino C matches mockup v4"`
 
-**C8** - `guideProblems` returns a problem naming `remada-curvada` for a guide keyed `remada-curvada`, and returns `[]` for `GUIDES` against `PLAN` (AC 8, door 2)
+**C8** - `guideProblems` returns a problem naming `remada-curvada` for a guide keyed `remada-curvada`, and returns `[]` for `GUIDES` against `PLAN` (AC 8, door 2) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "guide id not in plan fails"`
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "real guides have no problems"`
 
-**C9** - `guideProblems` names the exercise id for a cue of 0 characters, of 121 characters, and with a `\n`. It accepts cues of 1 and of 120 characters. Every cue in `GUIDES` is 1-120 characters with no line break (AC 9)
+**C9** - `guideProblems` names the exercise id for a cue of 0 characters, of 121 characters, and with a `\n`. It accepts cues of 1 and of 120 characters. Every cue in `GUIDES` is 1-120 characters with no line break (AC 9) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "cue is one line of 1-120"`
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "real guides have no problems"`
 
-**C10** - `guideProblems` names the exercise id for a pose point with x = 201, a move point with y = -1, a rect whose x + w = 201, and a circle whose cy + r = 141. It accepts a point at (0, 0) and one at (200, 140) (AC 10)
+**C10** - `guideProblems` names the exercise id for a pose point with x = 201, a move point with y = -1, a rect whose x + w = 201, and a circle whose cy + r = 141. It accepts a point at (0, 0) and one at (200, 140) (AC 10) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "points outside the frame fail"`
 
-**C11** - `guideProblems` names the exercise id for a guide with `moves: []`, a start pose with `legs: []`, and an end pose with `arms: []` (AC 11)
+**C11** - `guideProblems` names the exercise id for a guide with `moves: []`, a start pose with `legs: []`, and an end pose with `arms: []` (AC 11) — done
 Proof: `pnpm vitest run src/domain/guides.test.ts -t "missing move, leg or arm fails"`
 
-**C12** - The renderer draws each `Shape` kind with its class: `rect` and `circle` with `as: "mach"` get class `mach`, with `as: "weight"` class `weight`. `path` with `as: "line"` gets `mach line`, `pad` gets `mach pad`, `floor` gets `floor`. Props are drawn inside their pose's group (door 1)
+**C12** - The renderer draws each `Shape` kind with its class: `rect` and `circle` with `as: "mach"` get class `mach`, with `as: "weight"` class `weight`. `path` with `as: "line"` gets `mach line`, `pad` gets `mach pad`, `floor` gets `floor`. Props are drawn inside their pose's group (door 1) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "each shape kind gets its class"`
 
-**C13** - A pose with no `bun` draws its bun circle at `head + (-7, -6)`. A pose with `bun` draws it at that point. Each pose draws one head, one bun, one torso, and one leg polyline and one arm polyline per entry (door 1)
+**C13** - A pose with no `bun` draws its bun circle at `head + (-7, -6)`. A pose with `bun` draws it at that point. Each pose draws one head, one bun, one torso, and one leg polyline and one arm polyline per entry (door 1) — done
 Proof: `pnpm vitest run src/components/GuideDrawing.test.tsx -t "pose parts and default bun"`
 
 **C14** - With Hack open in Chromium, the start-pose group has computed `opacity` 0.28 and the end-pose group 1. The `Exportar backup` button and the `Importar backup` control, which already use class `ghost`, have computed `opacity` 1 (AC 2)

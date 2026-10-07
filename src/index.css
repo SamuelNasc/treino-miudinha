@@ -13,6 +13,9 @@
   --leaf: #3f9a4a;
   --unripe: #f4d7c2;
   --on-accent: #ffffff;
+  --fig: #7a2a36;
+  --mach: #b98a92;
+  --pad: #f3c3cb;
   --shadow: 0 6px 20px rgba(179, 18, 46, 0.1);
   --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
   --body: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -31,6 +34,9 @@
     --leaf: #6cc677;
     --unripe: #5a3a33;
     --on-accent: #1c0a0e;
+    --fig: #ffc9d1;
+    --mach: #9a6670;
+    --pad: #5a2632;
     --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     color-scheme: dark;
   }
@@ -100,18 +106,47 @@
   .ripen svg.ripe { transform: scale(1.12); }
 
   .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-  .ex { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+  .ex { display: grid; grid-template-columns: auto 1fr auto; gap: 0 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
   .check { width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid var(--line); background: transparent; display: grid; place-items: center; padding: 0; transition: background 0.2s, border-color 0.2s; }
   .check svg { width: 22px; height: 22px; opacity: 0; transform: scale(0.5); transition: 0.2s; }
   .ex.on .check { background: var(--berry); border-color: var(--berry); }
   .ex.on .check svg { opacity: 1; transform: none; }
   .ex .name { min-width: 0; }
+  button.name { padding: 4px 0; text-align: left; border-radius: 10px; }
   .ex .name strong { display: block; font-weight: 500; }
   .ex.on .name strong { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--berry); }
-  .ex .sets { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ex .sets { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .peek { display: inline-flex; align-items: center; gap: 2px; color: var(--cherry); font-weight: 500; }
+  .peek svg { width: 14px; height: 14px; transition: transform 0.2s; }
+  .name[aria-expanded="true"] .peek svg { transform: rotate(180deg); }
   .kg { display: flex; align-items: center; gap: 4px; background: var(--blush); border-radius: 12px; padding: 4px 8px; min-height: 48px; }
   .kg input { width: 48px; border: 0; background: transparent; font: inherit; font-size: 16px; font-weight: 700; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; outline: none; }
   .kg span { font-size: 12px; color: var(--muted); }
+
+  .how { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; }
+  .draw { margin: 0; background: var(--blush); border-radius: 18px; padding: 8px 8px 6px; display: flex; flex-direction: column; gap: 2px; }
+  .draw svg { width: 100%; max-width: 100%; height: auto; display: block; }
+  .draw figcaption { display: flex; justify-content: center; gap: 14px; font-size: 12px; color: var(--muted); }
+  .key { display: inline-flex; align-items: center; gap: 5px; }
+  .key i { width: 14px; height: 6px; border-radius: 3px; background: var(--berry); }
+  .key i.k-ghost { opacity: 0.3; }
+  .cue { margin: 0; font-size: 15px; line-height: 1.4; }
+
+  /* Drawing parts (exercise-guides door 1). `.ghost` is taken by the backup buttons, so the faded pose is scoped to the drawing. */
+  .draw .mach { fill: var(--surface); stroke: var(--mach); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .draw .mach.line { fill: none; }
+  .draw .mach.pad { fill: none; stroke: var(--pad); stroke-width: 12; }
+  .draw .floor { stroke: var(--mach); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; fill: none; }
+  .draw .weight { fill: var(--mach); }
+  .draw .limb { fill: none; stroke: var(--fig); stroke-linecap: round; stroke-linejoin: round; }
+  .draw .leg { stroke-width: 9; }
+  .draw .arm { stroke-width: 6; }
+  .draw .torso { fill: none; stroke: var(--berry); stroke-width: 15; stroke-linecap: round; }
+  .draw .head { fill: var(--fig); }
+  .draw .bun { fill: var(--cherry); }
+  .draw g.ghost { opacity: 0.28; }
+  .draw .move { fill: none; stroke: var(--leaf); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 5 4; }
+  .draw .move-head { fill: var(--leaf); }
 
   .state-card { align-items: center; text-align: center; padding: 24px 18px; gap: 8px; }
   .state-card h2 { font-size: 26px; color: var(--cherry); }

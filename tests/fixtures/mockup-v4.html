@@ -1,0 +1,474 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Treino Miudinha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+/* Layout: one phone column — streak + week, workout picker, a row of strawberries that ripen as exercises get checked, then the list. Tapping an exercise name opens its drawing and one cue line. Timer floats at the bottom. */
+:root {
+  --bg: #fff5f6;
+  --surface: #ffffff;
+  --ink: #3a1118;
+  --muted: #8d5a63;
+  --line: #f6d3d9;
+  --cherry: #b3122e;
+  --berry: #e8304a;
+  --blush: #ffe1e6;
+  --leaf: #3f9a4a;
+  --unripe: #f4d7c2;
+  --on-accent: #ffffff;
+  --fig: #7a2a36;
+  --mach: #b98a92;
+  --pad: #f3c3cb;
+  --shadow: 0 6px 20px rgba(179, 18, 46, .10);
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c0a0e; --surface: #2a1016; --ink: #ffe9ec; --muted: #d59aa4; --line: #45202a;
+    --cherry: #ff5c75; --berry: #ff4a64; --blush: #3a141c; --leaf: #6cc677; --unripe: #5a3a33;
+    --fig: #ffc9d1; --mach: #9a6670; --pad: #5a2632;
+    --on-accent: #1c0a0e; --shadow: 0 6px 20px rgba(0,0,0,.35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c0a0e; --surface: #2a1016; --ink: #ffe9ec; --muted: #d59aa4; --line: #45202a;
+  --cherry: #ff5c75; --berry: #ff4a64; --blush: #3a141c; --leaf: #6cc677; --unripe: #5a3a33;
+  --fig: #ffc9d1; --mach: #9a6670; --pad: #5a2632;
+  --on-accent: #1c0a0e; --shadow: 0 6px 20px rgba(0,0,0,.35); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  background-image: radial-gradient(var(--line) 1.2px, transparent 1.3px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.45;
+}
+.app { max-width: 460px; margin: 0 auto; padding: 18px 16px 120px; display: flex; flex-direction: column; gap: 18px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--berry); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand h1 { font-size: 26px; color: var(--cherry); letter-spacing: .2px; line-height: 1.1; }
+.brand h1 .sub { color: var(--berry); font-weight: 500; }
+.date { color: var(--muted); font-size: 14px; text-transform: capitalize; }
+.demo { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px dashed var(--line); border-radius: 999px; padding: 3px 9px; }
+
+.streak { background: var(--cherry); color: var(--on-accent); border-radius: 22px; padding: 16px 18px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; box-shadow: var(--shadow); }
+.streak .big { font-family: var(--display); font-size: 40px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.streak .label { font-size: 14px; opacity: .9; }
+.streak .week { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.25); font-size: 14px; }
+.cherries { display: flex; gap: 2px; }
+.cherries svg { width: 26px; height: 26px; }
+
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.day .dot { width: 100%; aspect-ratio: 1; max-width: 42px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 600; font-size: 15px; background: var(--surface); border: 2px solid var(--line); color: var(--muted); }
+.day.done .dot { background: var(--berry); border-color: var(--berry); color: var(--on-accent); }
+.day.today .dot { border-color: var(--cherry); border-style: dashed; color: var(--cherry); }
+.day.future { opacity: .5; }
+
+.picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.pick { border: 2px solid var(--line); background: var(--surface); border-radius: 16px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 0; min-height: 56px; }
+.pick b { font-family: var(--display); font-size: 22px; line-height: 1.1; }
+.pick small { font-size: 11px; color: var(--muted); }
+.pick[aria-pressed="true"] { border-color: var(--cherry); background: var(--blush); color: var(--cherry); }
+
+.card { background: var(--surface); border-radius: 24px; box-shadow: var(--shadow); padding: 18px 16px 8px; display: flex; flex-direction: column; gap: 14px; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card-head h2 { font-size: 26px; }
+.card-head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.count { font-family: var(--display); font-size: 22px; color: var(--cherry); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ripen { display: flex; flex-wrap: wrap; gap: 4px; }
+.ripen svg { width: 30px; height: 30px; transition: transform .3s; }
+.ripen svg.ripe { transform: scale(1.12); }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ex { display: grid; grid-template-columns: auto 1fr auto; gap: 0 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.check { width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid var(--line); background: transparent; display: grid; place-items: center; padding: 0; transition: background .2s, border-color .2s; }
+.check svg { width: 22px; height: 22px; opacity: 0; transform: scale(.5); transition: .2s; }
+.ex.on .check { background: var(--berry); border-color: var(--berry); }
+.ex.on .check svg { opacity: 1; transform: none; }
+.ex .name { min-width: 0; border: 0; background: none; padding: 4px 0; text-align: left; border-radius: 10px; }
+.ex .name strong { display: block; font-weight: 500; }
+.ex.on .name strong { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--berry); }
+.ex .sets { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.peek { display: inline-flex; align-items: center; gap: 2px; color: var(--cherry); font-weight: 500; }
+.peek svg { width: 14px; height: 14px; transition: transform .2s; }
+.name[aria-expanded="true"] .peek svg { transform: rotate(180deg); }
+.kg { display: flex; align-items: center; gap: 4px; background: var(--blush); border-radius: 12px; padding: 4px 8px; }
+.kg input { width: 44px; border: 0; background: transparent; font: inherit; font-weight: 700; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+.kg span { font-size: 12px; color: var(--muted); }
+
+.how { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; }
+.draw { margin: 0; background: var(--blush); border-radius: 18px; padding: 8px 8px 6px; display: flex; flex-direction: column; gap: 2px; }
+.draw svg { width: 100%; max-width: 100%; height: auto; display: block; }
+.draw figcaption { display: flex; justify-content: center; gap: 14px; font-size: 12px; color: var(--muted); }
+.key { display: inline-flex; align-items: center; gap: 5px; }
+.key i { width: 14px; height: 6px; border-radius: 3px; background: var(--berry); }
+.key i.k-ghost { opacity: .3; }
+.cue { margin: 0; font-size: 15px; line-height: 1.4; }
+.soon { margin: 0; font-size: 14px; color: var(--muted); background: var(--blush); border-radius: 14px; padding: 12px 14px; }
+
+/* drawing parts */
+.mach { fill: var(--surface); stroke: var(--mach); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.mach.line { fill: none; }
+.mach.pad { fill: none; stroke: var(--pad); stroke-width: 12; }
+.floor { stroke: var(--mach); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; fill: none; }
+.weight { fill: var(--mach); }
+.limb { fill: none; stroke: var(--fig); stroke-linecap: round; stroke-linejoin: round; }
+.leg { stroke-width: 9; }
+.arm { stroke-width: 6; }
+.torso { fill: none; stroke: var(--berry); stroke-width: 15; stroke-linecap: round; }
+.head { fill: var(--fig); }
+.bun { fill: var(--cherry); }
+.ghost { opacity: .28; }
+.move { fill: none; stroke: var(--leaf); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 5 4; }
+.move-head { fill: var(--leaf); }
+
+.foot { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.ghost-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
+
+.timer { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 6px; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(58,17,24,.35); }
+.timer button { border: 0; background: transparent; color: inherit; border-radius: 999px; padding: 10px 14px; }
+.timer .go { background: var(--berry); color: var(--on-accent); font-family: var(--display); font-weight: 600; font-size: 17px; min-width: 150px; font-variant-numeric: tabular-nums; }
+.timer .go.running { background: var(--leaf); }
+.timer .go.done { background: var(--cherry); animation: pulse .8s ease-in-out infinite alternate; }
+.timer .len[aria-pressed="true"] { background: rgba(255,255,255,.18); }
+@keyframes pulse { to { transform: scale(1.05); } }
+
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--surface); border: 1.5px solid var(--line); box-shadow: var(--shadow); border-radius: 14px; padding: 10px 16px; font-size: 14px; max-width: calc(100% - 32px); }
+
+.party { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); display: grid; place-items: center; padding: 16px; overflow: hidden; z-index: 5; }
+.party-card { position: relative; z-index: 2; background: var(--surface); border-radius: 28px; padding: 28px 24px; text-align: center; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 340px; }
+.party-card svg.hero { width: 96px; height: 96px; }
+.party-card h2 { font-size: 30px; color: var(--cherry); }
+.party-card p { margin: 0; color: var(--muted); }
+.cta { border: 0; background: var(--cherry); color: var(--on-accent); border-radius: 999px; padding: 12px 22px; font-family: var(--display); font-weight: 600; font-size: 17px; margin-top: 6px; }
+.fall { position: absolute; top: -40px; width: 28px; height: 28px; animation: fall linear forwards; z-index: 1; }
+@keyframes fall { to { transform: translateY(110vh) rotate(260deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .fall { display: none; }
+  .timer .go.done { animation: none; }
+  * { transition: none !important; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="berry" viewBox="0 0 32 32">
+      <path class="body" d="M16 9c6 0 11 2.5 11 7.5C27 23 20.5 29 16 30 11.5 29 5 23 5 16.5 5 11.5 10 9 16 9z"/>
+      <g fill="#fff6c8" opacity=".9">
+        <ellipse cx="11" cy="15" rx=".9" ry="1.3"/><ellipse cx="16" cy="14" rx=".9" ry="1.3"/><ellipse cx="21" cy="15" rx=".9" ry="1.3"/>
+        <ellipse cx="13" cy="20" rx=".9" ry="1.3"/><ellipse cx="19" cy="20" rx=".9" ry="1.3"/><ellipse cx="16" cy="25" rx=".9" ry="1.3"/>
+      </g>
+      <path fill="var(--leaf)" d="M16 4.5c.8 1.8.9 3 .6 4.5 2-1.4 4.6-1.6 7-.6-2 1.6-4.3 2.4-7 2.3 1 1.4 1.2 2.6.6 3.7-1.3-.7-2.4-1.6-3.1-3-1.4 1-3 1.5-5.4 1.2 1.4-1.6 3-2.6 4.7-3.1-1.9-.6-3.2-1.7-4-3.3 2.2-.2 3.9.2 5.3 1.2.1-1.2.5-2.1 1.3-2.9z"/>
+    </symbol>
+    <symbol id="cherry" viewBox="0 0 32 32">
+      <path d="M17 3c-1 6-5 10-8 15M17 3c1.5 6 4.5 9.5 7 13" fill="none" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 3c3-1.5 6-1 8 1-3 1.2-5.5 1-8-1z" fill="var(--leaf)"/>
+      <circle class="c1" cx="9" cy="22" r="6.5"/><circle class="c2" cx="23.5" cy="21" r="6.5"/>
+      <circle cx="7" cy="20" r="1.6" fill="#fff" opacity=".55"/><circle cx="21.5" cy="19" r="1.6" fill="#fff" opacity=".55"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="34" height="34" aria-hidden="true"><use href="#cherry" fill="var(--berry)"/></svg>
+      <div>
+        <h1>Treino <span class="sub">Miudinha</span></h1>
+        <div class="date" id="today"></div>
+      </div>
+    </div>
+    <span class="demo">exemplo</span>
+  </header>
+
+  <section class="streak" aria-label="Sequência">
+    <div>
+      <div class="big">3 semanas</div>
+      <div class="label">seguidas treinando 3+ vezes</div>
+    </div>
+    <svg width="58" height="58" aria-hidden="true"><use href="#berry" style="fill:#fff"/></svg>
+    <div class="week">
+      <span id="weekText">Esta semana: 2/4</span>
+      <span class="cherries" id="weekCherries"></span>
+    </div>
+  </section>
+
+  <section class="strip" id="strip" aria-label="Semana"></section>
+
+  <section aria-label="Escolher treino">
+    <div class="picker" id="picker"></div>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="card-head">
+      <div>
+        <h2 id="wTitle"></h2>
+        <p id="wFocus"></p>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="ripen" id="ripen" aria-hidden="true"></div>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <div class="foot">
+    <button class="ghost-btn" id="export" type="button">Exportar backup</button>
+    <button class="ghost-btn" id="import" type="button">Importar backup</button>
+  </div>
+</div>
+
+<div class="timer" role="group" aria-label="Descanso">
+  <button class="len" type="button" data-s="60" aria-pressed="false">60s</button>
+  <button class="go" id="go" type="button">Descanso · 1:30</button>
+  <button class="len" type="button" data-s="90" aria-pressed="true">90s</button>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="party" id="party" hidden>
+  <div class="party-card">
+    <svg class="hero" aria-hidden="true"><use href="#berry" style="fill:var(--berry)"/></svg>
+    <h2>Treino concluído!</h2>
+    <p id="partyText"></p>
+    <button class="cta" id="close" type="button">Fechar</button>
+  </div>
+</div>
+
+<script>
+const PLAN = {
+  A: { focus: "Perna · quadríceps", ex: [["Extensão","4×10",30],["Agachamento","4×12",20],["Leg press 45°","4×12",80],["Afundo","3×10",8],["Adução","3×15",35],["Gêmeos","3×15",40]] },
+  B: { focus: "Peito · ombro · tríceps", ex: [["Voador","4×10",25],["Supino inclinado","4×10",14],["Desenvolvimento máquina","3×12",20],["Remada alta","3×12",12],["Tríceps testa","3×10–12",8],["Tríceps pulley","3×10–12",15],["Tríceps francês","3×10–12",6],["Abdominal reto","4×12",null],["Abdominal inferior","4×12",null]] },
+  C: { focus: "Perna · posterior e glúteo", ex: [["Flexora cadeira","4×10",25],["Flexora mesa","4×10",20],["Sumô","3×15",16],["Hack","3×10",40],["Elevação pélvica","4×10",30],["Abdução","3×15",35]] },
+  D: { focus: "Costas · bíceps · ombro", ex: [["Puxador frente","3×10–12",30],["Remada baixa","3×10–12",25],["Pull down","3×10–12",15],["Remada articulada","3×10–12",20],["Rosca martelo","3×12",6],["Elevação lateral","3×12",4],["Elevação frontal","3×12",4],["Abdominal reto","4×12",null],["Abdominal inferior","4×12",null]] }
+};
+
+/* Drawings: machine once, the start pose faded, the end pose solid, a green arrow for the movement.
+   Pose = head h, neck n, hip p, legs [[knee, foot]], arms [[elbow, hand]], optional bun position and extras. */
+const DRAW = {
+  "Flexora cadeira": {
+    cue: "Sentada, rolo atrás do tornozelo. Puxa o calcanhar para baixo e para trás, volta devagar.",
+    mach: `<path class="mach pad" d="M58 30 L66 82"/><rect class="mach" x="60" y="84" width="62" height="10" rx="4"/>
+           <path class="mach line" d="M90 94 V128"/><rect class="mach" x="100" y="66" width="30" height="9" rx="4"/><circle class="mach" cx="126" cy="82" r="4"/>`,
+    floor: "M40 128 H180",
+    a: { h: [68, 27], n: [72, 41], p: [92, 80], legs: [[[126, 80], [166, 84]]], arms: [[[80, 62], [98, 82]]], x: `<circle class="mach" cx="166" cy="93" r="6"/>` },
+    b: { h: [68, 27], n: [72, 41], p: [92, 80], legs: [[[126, 80], [120, 118]]], arms: [[[80, 62], [98, 82]]], x: `<circle class="mach" cx="111" cy="117" r="6"/>` },
+    moves: [[[180, 96], [176, 124], [136, 128]]]
+  },
+  "Flexora mesa": {
+    cue: "Deitada de bruços, rolo no tornozelo. Dobra o joelho trazendo o calcanhar em direção ao bumbum.",
+    mach: `<rect class="mach" x="28" y="90" width="122" height="10" rx="4"/><path class="mach line" d="M44 100 V128 M134 100 V128"/>`,
+    floor: "M20 128 H190",
+    a: { h: [36, 76], bun: [30, 68], n: [50, 82], p: [108, 82], legs: [[[142, 82], [178, 84]]], arms: [[[44, 96], [34, 106]]], x: `<circle class="mach" cx="178" cy="75" r="6"/>` },
+    b: { h: [36, 76], bun: [30, 68], n: [50, 82], p: [108, 82], legs: [[[142, 82], [158, 50]]], arms: [[[44, 96], [34, 106]]], x: `<circle class="mach" cx="150" cy="50" r="6"/>` },
+    moves: [[[188, 74], [190, 44], [166, 34]]]
+  },
+  "Sumô": {
+    cue: "Pés bem afastados com as pontas para fora, halter no meio. Desce com o tronco reto e os joelhos abrindo.",
+    mach: "",
+    floor: "M40 128 H160",
+    a: { h: [100, 22], bun: [100, 11], n: [100, 36], p: [100, 74], legs: [[[86, 100], [76, 126]], [[114, 100], [124, 126]]],
+         arms: [[[88, 58], [100, 88]], [[112, 58], [100, 88]]], x: `<rect class="weight" x="89" y="88" width="22" height="6" rx="2"/><rect class="weight" x="97" y="94" width="6" height="12"/><rect class="weight" x="89" y="106" width="22" height="6" rx="2"/>` },
+    b: { h: [100, 40], bun: [100, 29], n: [100, 54], p: [100, 90], legs: [[[68, 94], [72, 126]], [[132, 94], [128, 126]]],
+         arms: [[[88, 74], [100, 100]], [[112, 74], [100, 100]]], x: `<rect class="weight" x="89" y="100" width="22" height="6" rx="2"/><rect class="weight" x="97" y="106" width="6" height="12"/><rect class="weight" x="89" y="118" width="22" height="6" rx="2"/>` },
+    moves: [[[154, 36], [156, 66], [154, 100]]]
+  },
+  "Hack": {
+    cue: "Costas no encosto inclinado, ombros sob as almofadas. Desce até o joelho fazer 90° e empurra a plataforma.",
+    mach: `<path class="mach pad" d="M50 8 L112 112"/><path class="mach line" d="M128 122 L162 98"/><path class="mach line" d="M112 112 L118 128"/>`,
+    floor: "M40 128 H175",
+    a: { h: [64, 19], bun: [56, 14], n: [72, 31], p: [100, 70], legs: [[[126, 86], [144, 110]]], arms: [[[84, 36], [80, 24]]] },
+    b: { h: [81, 43], bun: [73, 38], n: [89, 55], p: [117, 95], legs: [[[146, 80], [144, 110]]], arms: [[[101, 60], [97, 48]]] },
+    moves: [[[34, 44], [46, 72], [64, 102]]]
+  },
+  "Elevação pélvica": {
+    cue: "Costas apoiadas no banco, barra no quadril. Sobe o quadril até alinhar com o tronco e aperta o glúteo lá em cima.",
+    mach: `<rect class="mach" x="14" y="78" width="44" height="12" rx="4"/><path class="mach line" d="M22 90 V128 M50 90 V128"/>`,
+    floor: "M10 128 H185",
+    a: { h: [46, 72], bun: [38, 66], n: [60, 80], p: [88, 114], legs: [[[118, 96], [132, 126]]], arms: [[[72, 100], [88, 106]]],
+         x: `<circle class="weight" cx="88" cy="101" r="8"/>` },
+    b: { h: [46, 72], bun: [38, 66], n: [60, 80], p: [98, 80], legs: [[[132, 88], [132, 126]]], arms: [[[78, 90], [98, 72]]],
+         x: `<circle class="weight" cx="98" cy="67" r="8"/>` },
+    moves: [[[166, 114], [170, 96], [166, 74]]]
+  },
+  "Abdução": {
+    cue: "Sentada, almofadas por fora dos joelhos. Abre as pernas empurrando para fora e volta devagar.",
+    mach: `<rect class="mach" x="76" y="26" width="48" height="50" rx="10"/><rect class="mach" x="66" y="74" width="68" height="12" rx="5"/><path class="mach line" d="M100 86 V128"/>`,
+    floor: "M50 128 H150",
+    a: { h: [100, 24], bun: [100, 13], n: [100, 38], p: [100, 74], legs: [[[90, 92], [90, 124]], [[110, 92], [110, 124]]],
+         arms: [[[84, 56], [74, 76]], [[116, 56], [126, 76]]], x: `<rect class="mach" x="76" y="84" width="7" height="18" rx="3"/><rect class="mach" x="117" y="84" width="7" height="18" rx="3"/>` },
+    b: { h: [100, 24], bun: [100, 13], n: [100, 38], p: [100, 74], legs: [[[72, 90], [66, 122]], [[128, 90], [134, 122]]],
+         arms: [[[84, 56], [74, 76]], [[116, 56], [126, 76]]], x: `<rect class="mach" x="58" y="82" width="7" height="18" rx="3"/><rect class="mach" x="135" y="82" width="7" height="18" rx="3"/>` },
+    moves: [[[54, 108], [44, 108], [32, 108]], [[146, 108], [156, 108], [168, 108]]]
+  }
+};
+
+const pt = ([x, y]) => `${x},${y}`;
+function pose(P, ghost) {
+  const legs = P.legs.map(([k, f]) => `<polyline class="limb leg" points="${pt(P.p)} ${pt(k)} ${pt(f)}"/>`).join("");
+  const arms = P.arms.map(([e, h]) => `<polyline class="limb arm" points="${pt(P.n)} ${pt(e)} ${pt(h)}"/>`).join("");
+  const bun = P.bun || [P.h[0] - 7, P.h[1] - 6];
+  return `<g class="${ghost ? "ghost" : ""}">${legs}
+    <line class="torso" x1="${P.n[0]}" y1="${P.n[1]}" x2="${P.p[0]}" y2="${P.p[1]}"/>
+    ${arms}<circle class="bun" cx="${bun[0]}" cy="${bun[1]}" r="5"/><circle class="head" cx="${P.h[0]}" cy="${P.h[1]}" r="9"/>${P.x || ""}</g>`;
+}
+function arrow([s, c, e]) {
+  const dx = e[0] - c[0], dy = e[1] - c[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+  const bx = e[0] - ux * 9, by = e[1] - uy * 9;
+  return `<path class="move" d="M${pt(s)} Q${pt(c)} ${pt([bx, by])}"/>
+    <polygon class="move-head" points="${pt(e)} ${bx - uy * 5},${by + ux * 5} ${bx + uy * 5},${by - ux * 5}"/>`;
+}
+function drawing(name) {
+  const d = DRAW[name];
+  return `<svg viewBox="0 0 200 140" role="img" aria-label="Desenho do exercício ${name}">
+    <path class="floor" d="${d.floor}"/>${d.mach}${pose(d.a, true)}${pose(d.b, false)}${d.moves.map(arrow).join("")}</svg>`;
+}
+
+const ORDER = ["A","B","C","D"];
+const NEXT = "C"; // example: A and B done this week
+let current = NEXT;
+let open = "C-3"; // Hack starts open in the example
+const checked = { A: new Set(), B: new Set(), C: new Set([0, 1]), D: new Set() };
+const $ = id => document.getElementById(id);
+
+const now = new Date();
+$("today").textContent = now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "short" });
+
+function cherries(n) {
+  return Array.from({ length: 4 }, (_, i) =>
+    `<svg aria-hidden="true"><use href="#cherry" fill="${i < n ? "#fff" : "rgba(255,255,255,.3)"}"/></svg>`).join("");
+}
+$("weekCherries").innerHTML = cherries(2);
+
+const labels = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+const todayIdx = (now.getDay() + 6) % 7;
+const demoDone = { 0: "A", 1: "B" };
+$("strip").innerHTML = labels.map((l, i) => {
+  const done = demoDone[i] && i < todayIdx;
+  const cls = ["day", done ? "done" : "", i === todayIdx ? "today" : "", i > todayIdx ? "future" : ""].join(" ");
+  return `<div class="${cls}"><span class="dot">${done ? demoDone[i] : (i === todayIdx ? "•" : "")}</span>${l}</div>`;
+}).join("");
+
+function renderPicker() {
+  $("picker").innerHTML = ORDER.map(k =>
+    `<button class="pick" type="button" data-k="${k}" aria-pressed="${k === current}"><b>${k}</b><small>${k === NEXT ? "próximo" : PLAN[k].focus.split(" · ")[0]}</small></button>`).join("");
+}
+
+const chevron = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function how(name, id) {
+  if (!DRAW[name]) return `<div class="how" id="${id}"><p class="soon">No app de verdade, todo exercício terá o desenho e uma dica. Neste exemplo, abra os exercícios do Treino C.</p></div>`;
+  return `<div class="how" id="${id}">
+    <figure class="draw">${drawing(name)}
+      <figcaption><span class="key"><i class="k-ghost"></i>começo</span><span class="key"><i></i>fim</span></figcaption>
+    </figure>
+    <p class="cue">${DRAW[name].cue}</p>
+  </div>`;
+}
+
+function render() {
+  const w = PLAN[current], set = checked[current];
+  $("wTitle").textContent = "Treino " + current;
+  $("wFocus").textContent = w.focus;
+  $("count").textContent = `${set.size}/${w.ex.length}`;
+  $("ripen").innerHTML = w.ex.map((_, i) =>
+    `<svg class="${i < set.size ? "ripe" : ""}"><use href="#berry" style="fill:${i < set.size ? "var(--berry)" : "var(--unripe)"}"/></svg>`).join("");
+  $("list").innerHTML = w.ex.map(([name, sets, kg], i) => {
+    const key = `${current}-${i}`, isOpen = open === key;
+    return `
+    <li class="ex ${set.has(i) ? "on" : ""}">
+      <button class="check" type="button" data-i="${i}" aria-pressed="${set.has(i)}" aria-label="Marcar ${name}">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="name" type="button" data-open="${key}" aria-expanded="${isOpen}" aria-controls="how-${key}">
+        <strong>${name}</strong>
+        <span class="sets">${sets} <span class="peek">${isOpen ? "fechar" : "como faz"}${chevron}</span></span>
+      </button>
+      <label class="kg"><input id="kg-${key}" inputmode="decimal" value="${kg ?? ""}" placeholder="–" aria-label="Carga de ${name} em kg"><span>kg</span></label>
+      ${isOpen ? how(name, "how-" + key) : ""}
+    </li>`;
+  }).join("");
+  renderPicker();
+}
+
+$("picker").addEventListener("click", e => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  current = b.dataset.k; render();
+});
+
+$("list").addEventListener("click", e => {
+  const n = e.target.closest(".name");
+  if (n) { open = open === n.dataset.open ? null : n.dataset.open; render(); return; }
+  const b = e.target.closest(".check"); if (!b) return;
+  const i = +b.dataset.i, set = checked[current];
+  set.has(i) ? set.delete(i) : set.add(i);
+  render();
+  if (set.size === PLAN[current].ex.length) celebrate();
+});
+
+function celebrate() {
+  const nxt = ORDER[(ORDER.indexOf(current) + 1) % 4];
+  $("partyText").textContent = `Treino ${current} feito. Próximo: Treino ${nxt}.`;
+  $("party").hidden = false;
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (let k = 0; k < 22; k++) {
+      const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      s.setAttribute("class", "fall");
+      s.innerHTML = `<use href="#${k % 3 ? "berry" : "cherry"}" style="fill:var(--berry)"/>`;
+      s.style.left = Math.random() * 100 + "vw";
+      s.style.animationDuration = 1.8 + Math.random() * 1.6 + "s";
+      s.style.animationDelay = Math.random() * .6 + "s";
+      $("party").appendChild(s);
+    }
+  }
+}
+$("close").addEventListener("click", () => {
+  $("party").hidden = true;
+  $("party").querySelectorAll(".fall").forEach(n => n.remove());
+});
+
+let rest = 90, endAt = 0, tick = null;
+const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+function idle() { $("go").className = "go"; $("go").textContent = `Descanso · ${fmt(rest)}`; }
+document.querySelectorAll(".len").forEach(b => b.addEventListener("click", () => {
+  rest = +b.dataset.s;
+  document.querySelectorAll(".len").forEach(x => x.setAttribute("aria-pressed", x === b));
+  if (!tick) idle();
+}));
+$("go").addEventListener("click", () => {
+  if (tick || $("go").classList.contains("done")) { clearInterval(tick); tick = null; idle(); return; }
+  endAt = Date.now() + rest * 1000;
+  const step = () => {
+    const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+    if (left === 0) {
+      clearInterval(tick); tick = null;
+      $("go").className = "go done"; $("go").textContent = "Bora! Próxima série";
+      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+      return;
+    }
+    $("go").className = "go running"; $("go").textContent = `${fmt(left)} · parar`;
+  };
+  step(); tick = setInterval(step, 250);
+});
+
+let toastT;
+function toast(msg) {
+  $("toast").textContent = msg; $("toast").hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => $("toast").hidden = true, 2200);
+}
+$("export").addEventListener("click", () => toast("No app real, baixa treino-backup.json"));
+$("import").addEventListener("click", () => toast("No app real, escolhe o arquivo de backup"));
+
+render();
+</script>
+
+</body></html>

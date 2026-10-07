@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 2,
+  "next_id": 6,
   "lessons": [
     {
       "id": "L-001",
@@ -22,6 +22,78 @@
       ],
       "created": "2026-10-06T17:39:40Z",
       "last_seen": "2026-10-06T17:39:40Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::derive the asserted style properties from the binding source s rules and compare computed values against it instead of enumerating properties by hand",
+      "text": "Derive the asserted style properties from the binding source's rules and compare computed values against it, instead of enumerating properties by hand",
+      "signal": "surviving_mutant",
+      "scope": "ui-styles",
+      "status": "candidate",
+      "features": [
+        "exercise-guides"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C37 - round 4 F10/F11 (fill: none removed from .limb, .move) (ui-styles)"
+      ],
+      "created": "2026-10-07T18:15:42Z",
+      "last_seen": "2026-10-07T18:15:42Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::compare rendered output against the reference renderer s output on the same data not only element counts and classes",
+      "text": "Compare rendered output against the reference renderer's output on the same data, not only element counts and classes",
+      "signal": "surviving_mutant",
+      "scope": "rendering",
+      "status": "candidate",
+      "features": [
+        "exercise-guides"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C35 - round 2 F1 (arms drawn from hip instead of neck) (rendering)"
+      ],
+      "created": "2026-10-07T18:15:42Z",
+      "last_seen": "2026-10-07T18:15:42Z"
+    },
+    {
+      "id": "L-004",
+      "key": "spec_precision_gap::make a proof s test selector cover the whole claim a name filter that runs a subset proves only that subset",
+      "text": "Make a proof's test selector cover the whole claim; a name filter that runs a subset proves only that subset",
+      "signal": "spec_precision_gap",
+      "scope": "tests",
+      "status": "candidate",
+      "features": [
+        "exercise-guides"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C26 - round 2 (proof -t Hoje ran 10 of 24 tests) (tests)"
+      ],
+      "created": "2026-10-07T18:15:42Z",
+      "last_seen": "2026-10-07T18:15:42Z"
+    },
+    {
+      "id": "L-005",
+      "key": "surviving_mutant::match a value class against its full specification list not a hand picked subset",
+      "text": "Match a value class against its full specification list, not a hand-picked subset",
+      "signal": "surviving_mutant",
+      "scope": "ui-styles",
+      "status": "candidate",
+      "features": [
+        "exercise-guides"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C4/C30 - round 1 (fill=palevioletred passed) (ui-styles)"
+      ],
+      "created": "2026-10-07T18:15:42Z",
+      "last_seen": "2026-10-07T18:15:42Z"
     }
   ]
 }

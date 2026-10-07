@@ -9,9 +9,9 @@
 ## Handoff
 
 **Feature**: exercise-guides
-**Where**: S1 (223d4bc) and S2 (f329173) built - 27 of 32 checks done, Vitest 61/61 and Playwright 6/6 green. Treino C's six guides are live in the toggle; A, B and D rows show no toggle yet (AC 20)
+**Where**: built and verified - 37 of 37 checks, verification PASS (round 5, scoped, at 6f8e9da; validate_verification exit 0). All 28 guides drawn. Vitest 68/68, Playwright 11/11
 **In progress**: none
-**Next step**: S3 batch A - draw the 6 Treino A guides in `src/domain/guides.ts`, render a contact sheet in the mockup artifact for Samuel and her to approve, then B, then D. Then C27, C29, C30, C32 and the Verifier over 93bbddc..HEAD
-**Blockers**: open question 1 - each batch is pushed only after she recognises its drawings
+**Next step**: push to main (deploys to Vercel) once Samuel gives the go-ahead. Samuel approved the 22 A/B/D drawings on 2026-10-07 ("they look ok"); her recognition at the gym (open question 1) is still the plan's go-live bar - review sheet https://claude.ai/artifact/WnHqiKnvGDyYi3Edyab3kq. 2026-10-21 review: ask her which drawings she didn't recognise
+**Blockers**: explicit go-ahead to push
 **Uncommitted**: none
 **Branch**: main (not pushed)

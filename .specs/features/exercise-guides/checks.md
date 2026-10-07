@@ -198,7 +198,7 @@ Evidence:
 - applied CSS, layout and colour scheme: no decision in code, but jsdom cannot observe them -> Playwright in Chromium (door 3): C5, C14, C17, C32, C36, C37
 - closest analogue in the repo: `src/domain/store.ts` `parseWeight`, proven at its own layer in `store.test.ts` (C23 of gym-app) and through `App`
 
-Cost: 6 proofs at their own layer across 2 new test files, plus 1 Playwright spec with 5 tests. Without these rows, the shape dispatch
+Cost: 6 proofs at their own layer across 2 new test files, plus 1 Playwright spec with 10 tests. Without these rows, the shape dispatch
 and the 11 rejection rules would be proven only by real data that happens to be valid, and they
 could never fail.
 

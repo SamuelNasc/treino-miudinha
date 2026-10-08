@@ -44,6 +44,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: verification.md C4/C30 - round 1 (fill=palevioletred passed) (ui-styles)
 - last seen: 2026-10-07T18:15:42Z
 
+### L-006 - Prove each validation rule with an input that only that rule rejects, not one a later check also rejects
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `validation` · harmful: 0
+- features: registrar-medicao
+- evidence: verification.md C10 - F1 regex loosened at src/domain/measures.ts:38 (validation)
+- last seen: 2026-10-08T22:46:30Z
+
+### L-007 - Give every row arrangement the binding mockup draws a layout check, not only the unusual ones
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `ui-layout` · harmful: 0
+- features: registrar-medicao
+- evidence: verification.md Binding sources - mockup v6 single-row, date-row, header and cue-below arrangement uncovered (C24 covers only D/E and Save) (ui-layout)
+- last seen: 2026-10-08T22:46:30Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

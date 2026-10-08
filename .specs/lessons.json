@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 6,
+  "next_id": 8,
   "lessons": [
     {
       "id": "L-001",
@@ -94,6 +94,42 @@
       ],
       "created": "2026-10-07T18:15:42Z",
       "last_seen": "2026-10-07T18:15:42Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::prove each validation rule with an input that only that rule rejects not one a later check also rejects",
+      "text": "Prove each validation rule with an input that only that rule rejects, not one a later check also rejects",
+      "signal": "surviving_mutant",
+      "scope": "validation",
+      "status": "candidate",
+      "features": [
+        "registrar-medicao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C10 - F1 regex loosened at src/domain/measures.ts:38 (validation)"
+      ],
+      "created": "2026-10-08T22:46:30Z",
+      "last_seen": "2026-10-08T22:46:30Z"
+    },
+    {
+      "id": "L-007",
+      "key": "spec_precision_gap::give every row arrangement the binding mockup draws a layout check not only the unusual ones",
+      "text": "Give every row arrangement the binding mockup draws a layout check, not only the unusual ones",
+      "signal": "spec_precision_gap",
+      "scope": "ui-layout",
+      "status": "candidate",
+      "features": [
+        "registrar-medicao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md Binding sources - mockup v6 single-row, date-row, header and cue-below arrangement uncovered (C24 covers only D/E and Save) (ui-layout)"
+      ],
+      "created": "2026-10-08T22:46:30Z",
+      "last_seen": "2026-10-08T22:46:30Z"
     }
   ]
 }

@@ -85,3 +85,34 @@ test("setting arrangement at 360", async ({ page }) => {
   const s = await box(section);
   expect(s.y).toBeGreaterThanOrEqual(form.y + form.height);
 });
+
+test("card text stacks at 360", async ({ page }) => {
+  await page.goto("/");
+  const title = await box(card(page).getByText("Hora da primeira medição"));
+  const detail = await box(card(page).getByText("Ela vira o seu ponto de partida."));
+  expect(title.y + title.height).toBeLessThanOrEqual(detail.y);
+  expect(Math.abs(title.x - detail.x)).toBeLessThanOrEqual(1);
+  await expect(card(page).getByRole("button")).toHaveText(["Medir agora", "Hoje não"]);
+});
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`card border width and icon colour - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto("/");
+    await expect(card(page)).toHaveCSS("border-top-width", "2px");
+    await expect(card(page).locator("svg")).toHaveCSS("color", rgb(BERRY[scheme]));
+  });
+
+  test(`pressed interval text - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await medidas(page);
+    for (const name of ["7 dias", "14 dias", "30 dias", "Não lembrar"]) {
+      await expect(intervals(page).getByRole("button", { name }), name).toHaveCSS("border-top-width", "2px");
+    }
+    const pressed = intervals(page).getByRole("button", { name: "7 dias" });
+    await expect(pressed).toHaveAttribute("aria-pressed", "true");
+    await expect(pressed).toHaveCSS("color", rgb(CHERRY[scheme]));
+    await expect(pressed).toHaveCSS("font-weight", "500");
+    await expect(intervals(page).getByRole("button", { name: "14 dias" })).toHaveCSS("font-weight", "400");
+  });
+}

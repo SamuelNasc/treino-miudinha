@@ -17,7 +17,6 @@ export function addDays(date: string, days: number): string {
   return localDate(d);
 }
 
-/** 0 = Monday ... 6 = Sunday */
 /** Calendar days from `from` to `to`; negative when `to` is earlier. */
 export function daysBetween(from: string, to: string): number {
   const utc = (date: string) => {
@@ -27,6 +26,7 @@ export function daysBetween(from: string, to: string): number {
   return Math.round((utc(to) - utc(from)) / 86_400_000);
 }
 
+/** 0 = Monday ... 6 = Sunday */
 export function weekdayIndex(date: string): number {
   return (parse(date).getDay() + 6) % 7;
 }

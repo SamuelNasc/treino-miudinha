@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/lembrete/plan.md`
 
-23 checks in 2 slices · 0 one-way doors · 0 open
+26 checks in 2 slices · 0 one-way doors · 0 open
 
 The due rule is proven at its own layer, table-driven, in `src/domain/measurements.test.ts`
 (`describe("reminder due")`). Behaviour proofs render `App` in jsdom (`src/App.test.tsx`, new
@@ -65,6 +65,12 @@ Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card arrangement at 3
 **C15** - The card's computed `border-top-style` is `dashed` and its `border-top-color` is `#e8304a` in the light scheme and `#ff4a64` in the dark scheme (AC 14) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card border colour"`
 
+**C24** - At 360×740 with no Measurement, as mockup v6 stacks them: "Hora da primeira medição"'s bottom ≤ the top of "Ela vira o seu ponto de partida.", and their left edges are within 1px; the card holds exactly 2 buttons, "Medir agora" then "Hoje não" (AC 1, AC 13). Added after round 1 of verification: the title-above-detail arrangement and the button count had no check — done
+Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card text stacks at 360"`
+
+**C25** - The card's computed `border-top-width` is `2px`, and its icon's computed `color` is `#e8304a` in the light scheme and `#ff4a64` in the dark scheme (AC 14). Added after round 1 of verification: a 1px border survived C15, and the icon colour was neither checked nor listed out of reach — done
+Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card border width and icon colour"`
+
 ### S2 - The reminder setting on Medidas · 4 files · ~75 KB · ~19k
 
 **C16** - On Medidas, a heading "Lembrete" comes after the heading "Nova medição" in document order, and its section holds a group "Lembrar a cada" whose buttons are, in order, "7 dias", "14 dias", "30 dias", "Não lembrar". Table-driven over the stored `reminder`: absent → "7 dias"; `everyDays` 7 → "7 dias"; 14 → "14 dias"; 30 → "30 dias"; `null` → "Não lembrar" - that button alone has `aria-pressed="true"` and the other three `"false"` (AC 15) — done
@@ -91,6 +97,9 @@ Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "setting arrangement a
 **C23** - At 360×740 the pressed interval button has computed `border-color` `#b3122e` in the light scheme and `#ff5c75` in the dark scheme, and an unpressed one `#f6d3d9` / `#45202a` (AC 15) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "pressed interval colour"`
 
+**C26** - At 360×740 every interval button's computed `border-top-width` is `2px`; the pressed one's `color` is `#b3122e` in the light scheme and `#ff5c75` in the dark scheme with `font-weight` `500`, and an unpressed one's `font-weight` is `400` (AC 15). Added after round 1 of verification: these mockup v6 values were neither checked nor listed out of reach — done
+Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "pressed interval text"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -107,10 +116,10 @@ Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "pressed interval colo
 | hint states (3) | off C19 · card would show C19 · otherwise C19 (both not due and snoozed) | - |
 | reminder writes (2) | snooze C8, C20 · interval C17, C20 | - |
 | untouched record fields (5) | `completions` C20 · `today` C20 · `weights` C20 · `restSeconds` C20 · `measurements` C20 | - |
-| colour schemes (2) | light C15, C23 · dark C15, C23 | - |
-| mockup v6 elements (13) | card above streak C2, C14 · icon left of text C14 · title "Hora da primeira medição"/"Hora de medir" C2, C3 · detail line C2, C3 · "Medir agora" C2, C10 · "Hoje não" C2, C8 · buttons in one row under the text C14 · dashed `--berry` border C15 · toast "Tudo bem, lembro amanhã" C8 · heading "Lembrete" C16, C22 · four pills in order C16, C22 · pressed pill colour C23 · hint under the pills C19, C22 | - |
+| colour schemes (2) | light C15, C23, C25, C26 · dark C15, C23, C25, C26 | - |
+| mockup v6 elements (17) | card above streak C2, C14 · icon left of text C14 · title above detail C24 · exactly two card buttons C24 · 2px card border and `--berry` icon C25 · 2px pills with `--cherry` 500 pressed text C26 · title "Hora da primeira medição"/"Hora de medir" C2, C3 · detail line C2, C3 · "Medir agora" C2, C10 · "Hoje não" C2, C8 · buttons in one row under the text C14 · dashed `--berry` border C15 · toast "Tudo bem, lembro amanhã" C8 · heading "Lembrete" C16, C22 · four pills in order C16, C22 · pressed pill colour C23 · hint under the pills C19, C22 | - |
 
-- Claims naming layout or colour: C14, C15, C22, C23 - each proof runs in Chromium at 360×740
+- Claims naming layout or colour: C14, C15, C22, C23, C24, C25, C26 - each proof runs in Chromium at 360×740
 - No other check claims more than the cases its proof exercises
 - Out of reach, enumerated for this slice: the card's padding, radius and background, the icon's drawing, the title's font family, size and `--cherry` colour, the detail line's size and colour, the "Medir agora" and "Hoje não" fill and padding, the pills' padding, radius, font size and pressed background, the hint's size and colour, and whether "Não lembrar" wraps to a second row at 360
 
@@ -132,7 +141,7 @@ Evidence:
 - the hint: off, would show, otherwise -> 2 branch points, decides
 - closest analogue: `lastTapeDate` and `saveMeasurement` are proven table-driven in `src/domain/measurements.test.ts`; streak and week count in `progress.test.ts` and again through `App`
 
-Cost: 1 domain proof, 17 `App` proofs, 4 Playwright proofs across 3 test files.
+Cost: 1 domain proof, 17 `App` proofs, 7 Playwright proofs across 3 test files.
 
 ## Swept
 
@@ -154,3 +163,4 @@ Cost: 1 domain proof, 17 `App` proofs, 4 Playwright proofs across 3 test files.
 - **Boundary:** C1-C23 closed in `feat(lembrete): remind her to measure on hoje and set the interval on medidas` (one builder, no handoff)
 - **Settled mid-build:** none
 - **Abandoned:** none
+- **Round 1 fix:** C24-C26 added (tests only) for the verifier's surviving probes on the card's title/detail stacking and border width and for unchecked mockup v6 style values; the misplaced `weekdayIndex` doc comment in `dates.ts` moved back

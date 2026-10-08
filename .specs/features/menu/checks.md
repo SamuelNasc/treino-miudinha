@@ -15,52 +15,52 @@ Playwright for what jsdom cannot see. Binding source: mockup v6
 
 ### S1 - Hoje / Medidas bar at the bottom · 6 files · ~55 KB · ~14k
 
-**C1** - The navigation region named "Menu" holds exactly two buttons, named "Hoje" then "Medidas" in that order (AC 1)
+**C1** - The navigation region named "Menu" holds exactly two buttons, named "Hoje" then "Medidas" in that order (AC 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "menu has Hoje then Medidas"`
 
-**C2** - At 360×740 the "Menu" region's box has left 0, width 360 and bottom 740, and still has bottom 740 after Hoje is scrolled to its end (AC 1)
+**C2** - At 360×740 the "Menu" region's box has left 0, width 360 and bottom 740, and still has bottom 740 after Hoje is scrolled to its end (AC 1) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "bar is fixed to the bottom"`
 
-**C3** - As mockup v6 draws it: the two buttons sit in one row (same top, ±1px) with equal widths (±1px); each holds one `aria-hidden` `svg` whose box ends above its label text; the "Hoje" icon is the check path `M5 12.5l4.5 4.5L19 7.5` and the "Medidas" icon is the tape (a `rect` plus tick `path`) (AC 1)
+**C3** - As mockup v6 draws it: the two buttons sit in one row (same top, ±1px) with equal widths (±1px); each holds one `aria-hidden` `svg` whose box ends above its label text; the "Hoje" icon is the check path `M5 12.5l4.5 4.5L19 7.5` and the "Medidas" icon is the tape (a `rect` plus tick `path`) (AC 1) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "two equal buttons, icon above label"`
 
-**C4** - Opening the app shows Hoje with "Hoje" at `aria-current="page"` and "Medidas" without `aria-current`; after switching to Medidas, unmounting and rendering `App` again, it is still Hoje (AC 2)
+**C4** - Opening the app shows Hoje with "Hoje" at `aria-current="page"` and "Medidas" without `aria-current`; after switching to Medidas, unmounting and rendering `App` again, it is still Hoje (AC 2) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "app always opens on Hoje"`
 
-**C5** - After tapping "Medidas", none of these is visible: region "Sequência", list "Semana", group "Escolher treino", the day's card, button "Exportar backup"; the region "Medidas" is visible; "Medidas" has `aria-current="page"` and "Hoje" has none. Table-driven over the day's card in 3 states: workout (Monday, "Treino A"), rest (Wednesday, "Hoje é descanso"), done (Monday with A completed, "Feito por hoje!") (AC 3)
+**C5** - After tapping "Medidas", none of these is visible: region "Sequência", list "Semana", group "Escolher treino", the day's card, button "Exportar backup"; the region "Medidas" is visible; "Medidas" has `aria-current="page"` and "Hoje" has none. Table-driven over the day's card in 3 states: workout (Monday, "Treino A"), rest (Wednesday, "Hoje é descanso"), done (Monday with A completed, "Feito por hoje!") (AC 3) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Medidas hides Hoje"`
 
-**C6** - With Treino C picked, "Flexora cadeira" and "Flexora mesa" checked and the "Como faz Hack" guide open, switching to Medidas and back shows heading "Treino C", both checks `aria-pressed="true"` and the region "Como faz Hack" (AC 4, door 1)
+**C6** - With Treino C picked, "Flexora cadeira" and "Flexora mesa" checked and the "Como faz Hack" guide open, switching to Medidas and back shows heading "Treino C", both checks `aria-pressed="true"` and the region "Como faz Hack" (AC 4, door 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "coming back shows the same workout"`
 
-**C7** - The rest timer started at 1:30 and advanced 10 s reads `1:20` on Medidas; advanced 5 s more on Medidas, it reads `1:15` there and still `1:15` back on Hoje; the "Descanso" group is present on both destinations (AC 5)
+**C7** - The rest timer started at 1:30 and advanced 10 s reads `1:20` on Medidas; advanced 5 s more on Medidas, it reads `1:15` there and still `1:15` back on Hoje; the "Descanso" group is present on both destinations (AC 5) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "rest timer keeps running across destinations"`
 
-**C8** - On Medidas, the heading "Treino Miudinha" and the date are visible, and with `localStorage.setItem` throwing, the text "Seus dados não estão sendo salvos neste navegador" is visible (AC 6)
+**C8** - On Medidas, the heading "Treino Miudinha" and the date are visible, and with `localStorage.setItem` throwing, the text "Seus dados não estão sendo salvos neste navegador" is visible (AC 6) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "header and warning show on Medidas"`
 
-**C9** - `window.scrollTo` is called with `(0, 0)` on the switch to Medidas and again on the switch back to Hoje, and not when tapping the destination already shown (AC 7)
+**C9** - `window.scrollTo` is called with `(0, 0)` on the switch to Medidas and again on the switch back to Hoje, and not when tapping the destination already shown (AC 7) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "switching scrolls to the top"`
 
-**C10** - At 360×740, on Hoje and on Medidas: the "Descanso" group's bottom ≤ the "Menu" region's top; with the toast "Arquivo inválido" shown, the toast's bottom ≤ the "Descanso" group's top (so it also clears the menu) (AC 8)
+**C10** - At 360×740, on Hoje and on Medidas: the "Descanso" group's bottom ≤ the "Menu" region's top; with the toast "Arquivo inválido" shown, the toast's bottom ≤ the "Descanso" group's top (so it also clears the menu) (AC 8) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "timer and toast sit above the bar"`
 
-**C11** - At 360×740, with Hoje scrolled to its end, the "Importar backup" label's bottom ≤ the "Descanso" group's top (AC 9)
+**C11** - At 360×740, with Hoje scrolled to its end, the "Importar backup" label's bottom ≤ the "Descanso" group's top (AC 9) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "backup is not hidden behind the bar"`
 
-**C12** - At 360×740 each menu button's box height is ≥ 48px (AC 10)
+**C12** - At 360×740 each menu button's box height is ≥ 48px (AC 10) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "menu buttons are tall enough"`
 
-**C13** - In the light scheme the active button has background `#ffe1e6` and colour `#b3122e`, the inactive one colour `#8d5a63`; in the dark scheme `#3a141c`, `#ff5c75` and `#d59aa4`; the bar's background is `--surface` (`#ffffff` / `#2a1016`). Checked with Hoje active and with Medidas active (AC 11)
+**C13** - In the light scheme the active button has background `#ffe1e6` and colour `#b3122e`, the inactive one colour `#8d5a63`; in the dark scheme `#3a141c`, `#ff5c75` and `#d59aa4`; the bar's background is `--surface` (`#ffffff` / `#2a1016`). Checked with Hoje active and with Medidas active (AC 11) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "active and inactive colours"`
 
-**C14** - With the workout-complete celebration open after checking every Treino A exercise, the element at the centre of the "Medidas" button is inside the celebration overlay, and the menu buttons are not reached by that point (AC 12)
+**C14** - With the workout-complete celebration open after checking every Treino A exercise, the element at the centre of the "Medidas" button is inside the celebration overlay, and the menu buttons are not reached by that point (AC 12) — done
 Proof: `pnpm exec playwright test e2e/menu.spec.ts -g "celebration covers the bar"`
 
-**C15** - The "Medidas" region's text content is exactly "Em breve você registra suas medidas aqui." and it holds no heading (AC 13, AC 3)
+**C15** - The "Medidas" region's text content is exactly "Em breve você registra suas medidas aqui." and it holds no heading (AC 13, AC 3) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Medidas placeholder"`
 
-**C16** - Switching to Medidas and back leaves `location.href` and `history.length` unchanged, and the stored `treino:v1` record equal to what it was before the switches (door 1)
+**C16** - Switching to Medidas and back leaves `location.href` and `history.length` unchanged, and the stored `treino:v1` record equal to what it was before the switches (door 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "switching changes no URL and stores nothing"`
 
 ## Coverage
@@ -118,3 +118,7 @@ Cost: 9 `App` proofs and 7 Playwright proofs across 2 test files.
 ## Handoff
 
 - S1 ≈ existing `App.tsx` 5 KB, `index.css` 11.6 KB, `App.test.tsx` 29.6 KB, `RestTimer.tsx` 2 KB, `Celebration.tsx` 1.4 KB + new `Menu.tsx` and `e2e/menu.spec.ts` ≈ 6 KB → ~56 KB / 4 ≈ 14k, one domain - one builder, under the 150k budget
+
+- **Boundary:** C1-C16 closed in `feat(menu): add the hoje/medidas bar at the bottom` (one builder, no handoff)
+- **Settled mid-build:** none
+- **Abandoned:** none

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Backup } from "./components/Backup";
 import { Celebration } from "./components/Celebration";
+import { Menu, type Page } from "./components/Menu";
 import { StreakCard, WeekStrip } from "./components/Progress";
 import { RestTimer } from "./components/RestTimer";
 import { Cherry, Sprite } from "./components/Sprite";
@@ -18,6 +19,7 @@ export default function App() {
   const [override, setOverride] = useState<WorkoutId | null>(null);
   const [celebrating, setCelebrating] = useState<WorkoutId | null>(null);
   const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
+  const [page, setPage] = useState<Page>("hoje");
 
   // A home-screen app can be resumed the next morning without a reload.
   useEffect(() => {
@@ -64,6 +66,12 @@ export default function App() {
       return { ...r, weights };
     });
 
+  const goTo = (to: Page) => {
+    if (to === page) return;
+    setPage(to);
+    window.scrollTo(0, 0);
+  };
+
   const dateLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "short" });
 
   return (
@@ -88,37 +96,45 @@ export default function App() {
           </p>
         )}
 
-        <StreakCard
-          weeks={streak(record.completions, today)}
-          thisWeek={weekCount(record.completions, today)}
-          empty={record.completions.length === 0}
-        />
-        <WeekStrip days={weekStrip(record.completions, today)} />
-        <Picker shown={shown} next={next} onPick={setOverride} />
+        <Menu page={page} onPage={goTo} />
 
-        {shown ? (
-          <WorkoutCard
-            key={`${today}-${shown}`}
-            workout={PLAN[shown]}
-            checked={record.today.workout === shown ? record.today.checked : []}
-            weights={record.weights}
-            onToggle={(id) => toggle(shown, id)}
-            onWeight={setWeight}
+        <div className="page" hidden={page !== "hoje"}>
+          <StreakCard
+            weeks={streak(record.completions, today)}
+            thisWeek={weekCount(record.completions, today)}
+            empty={record.completions.length === 0}
           />
-        ) : doneToday.length ? (
-          <DoneCard done={doneToday} next={next} />
-        ) : (
-          <RestCard next={next} onTrain={() => setOverride(next)} />
-        )}
+          <WeekStrip days={weekStrip(record.completions, today)} />
+          <Picker shown={shown} next={next} onPick={setOverride} />
 
-        <Backup
-          record={record}
-          onImport={(r) => {
-            setRecord(rollOver(r, today));
-            setOverride(null);
-          }}
-          onMessage={(text) => setToast({ text, id: Date.now() })}
-        />
+          {shown ? (
+            <WorkoutCard
+              key={`${today}-${shown}`}
+              workout={PLAN[shown]}
+              checked={record.today.workout === shown ? record.today.checked : []}
+              weights={record.weights}
+              onToggle={(id) => toggle(shown, id)}
+              onWeight={setWeight}
+            />
+          ) : doneToday.length ? (
+            <DoneCard done={doneToday} next={next} />
+          ) : (
+            <RestCard next={next} onTrain={() => setOverride(next)} />
+          )}
+
+          <Backup
+            record={record}
+            onImport={(r) => {
+              setRecord(rollOver(r, today));
+              setOverride(null);
+            }}
+            onMessage={(text) => setToast({ text, id: Date.now() })}
+          />
+        </div>
+
+        <section className="page" aria-label="Medidas" hidden={page !== "medidas"}>
+          <p className="soon">Em breve você registra suas medidas aqui.</p>
+        </section>
       </main>
 
       <RestTimer seconds={record.restSeconds} onSeconds={(s) => setRecord((r) => ({ ...r, restSeconds: s }))} />

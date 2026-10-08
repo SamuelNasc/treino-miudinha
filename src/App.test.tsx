@@ -676,3 +676,153 @@ describe("Medidas no registro", () => {
     expect(reminderOf(stored())).toEqual({ everyDays: 7, snoozedOn: null });
   });
 });
+
+describe("Menu", () => {
+  const menu = () => within(screen.getByRole("navigation", { name: "Menu" }));
+  const go = (user: ReturnType<typeof userEvent.setup>, name: "Hoje" | "Medidas") => user.click(menu().getByRole("button", { name }));
+
+  it("menu has Hoje then Medidas", () => {
+    setToday(MON);
+    render(<App />);
+    expect(menu().getAllByRole("button").map((b) => b.textContent)).toEqual(["Hoje", "Medidas"]);
+  });
+
+  it("app always opens on Hoje", async () => {
+    setToday(MON);
+    const user = userEvent.setup();
+    render(<App />);
+    expect(menu().getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-current", "page");
+    expect(menu().getByRole("button", { name: "Medidas" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("heading", { name: "Treino A" })).toBeVisible();
+
+    await go(user, "Medidas");
+    cleanup();
+    render(<App />);
+    expect(menu().getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-current", "page");
+    expect(menu().getByRole("button", { name: "Medidas" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("heading", { name: "Treino A" })).toBeVisible();
+  });
+
+  it("Medidas hides Hoje", async () => {
+    const cases: [string, string, Partial<TreinoRecord>][] = [
+      [MON, "Treino A", {}],
+      [WED, "Hoje é descanso", {}],
+      [MON, "Feito por hoje!", { completions: [c(MON, "A")] }],
+    ];
+    for (const [date, card, record] of cases) {
+      setToday(date);
+      seed(record, date);
+      const user = userEvent.setup();
+      render(<App />);
+      expect(screen.getByRole("heading", { name: card })).toBeVisible();
+      await go(user, "Medidas");
+
+      const hidden = { hidden: true };
+      expect(screen.getByRole("region", { name: "Sequência", ...hidden })).not.toBeVisible();
+      expect(screen.getByRole("list", { name: "Semana", ...hidden })).not.toBeVisible();
+      expect(screen.getByRole("group", { name: "Escolher treino", ...hidden })).not.toBeVisible();
+      expect(screen.getByRole("heading", { name: card, ...hidden })).not.toBeVisible();
+      expect(screen.getByRole("button", { name: "Exportar backup", ...hidden })).not.toBeVisible();
+      expect(screen.getByRole("region", { name: "Medidas" })).toBeVisible();
+      expect(menu().getByRole("button", { name: "Medidas" })).toHaveAttribute("aria-current", "page");
+      expect(menu().getByRole("button", { name: "Hoje" })).not.toHaveAttribute("aria-current");
+      cleanup();
+      localStorage.clear();
+      vi.useRealTimers();
+    }
+  });
+
+  it("coming back shows the same workout", async () => {
+    setToday(MON);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Treino C" }));
+    await user.click(screen.getByRole("button", { name: "Marcar Flexora cadeira" }));
+    await user.click(screen.getByRole("button", { name: "Marcar Flexora mesa" }));
+    await user.click(screen.getByRole("button", { name: /^Hack / }));
+    expect(screen.getByRole("region", { name: "Como faz Hack" })).toBeVisible();
+
+    await go(user, "Medidas");
+    await go(user, "Hoje");
+    expect(screen.getByRole("heading", { name: "Treino C" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Marcar Flexora cadeira" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Marcar Flexora mesa" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("region", { name: "Como faz Hack" })).toBeVisible();
+  });
+
+  it("rest timer keeps running across destinations", async () => {
+    setToday(MON, true);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<App />);
+    const timer = () => within(screen.getByRole("group", { name: "Descanso" }));
+    await user.click(timer().getByRole("button", { name: "Descanso · 1:30" }));
+    act(() => vi.advanceTimersByTime(10_000));
+
+    await go(user, "Medidas");
+    expect(timer().getByRole("button", { name: "1:20 · parar" })).toBeVisible();
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(timer().getByRole("button", { name: "1:15 · parar" })).toBeVisible();
+
+    await go(user, "Hoje");
+    expect(timer().getByRole("button", { name: "1:15 · parar" })).toBeVisible();
+  });
+
+  it("header and warning show on Medidas", async () => {
+    setToday(MON);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await go(user, "Medidas");
+    expect(screen.getByRole("heading", { name: "Treino Miudinha" })).toBeVisible();
+    expect(screen.getByText(/segunda-feira/)).toBeVisible();
+    expect(screen.getByText("Seus dados não estão sendo salvos neste navegador")).toBeVisible();
+  });
+
+  it("switching scrolls to the top", async () => {
+    setToday(MON);
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const user = userEvent.setup();
+    render(<App />);
+    scrollTo.mockClear();
+
+    await go(user, "Hoje");
+    expect(scrollTo).not.toHaveBeenCalled();
+    await go(user, "Medidas");
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
+    await go(user, "Medidas");
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    await go(user, "Hoje");
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
+  });
+
+  it("Medidas placeholder", async () => {
+    setToday(MON);
+    const user = userEvent.setup();
+    render(<App />);
+    await go(user, "Medidas");
+    const page = screen.getByRole("region", { name: "Medidas" });
+    expect(page.textContent).toBe("Em breve você registra suas medidas aqui.");
+    expect(within(page).queryByRole("heading")).toBeNull();
+  });
+
+  it("switching changes no URL and stores nothing", async () => {
+    setToday(MON);
+    seed({ completions: THREE_WEEKS.slice(0, 3), weights: { extensao: 30 } }, MON);
+    const user = userEvent.setup();
+    render(<App />);
+    const before = localStorage.getItem(STORAGE_KEY);
+    const href = location.href;
+    const length = history.length;
+
+    await go(user, "Medidas");
+    await go(user, "Hoje");
+    await go(user, "Medidas");
+    expect(location.href).toBe(href);
+    expect(history.length).toBe(length);
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(before);
+  });
+});

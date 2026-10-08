@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/lembrete/plan.md`
 
-27 checks in 2 slices · 0 one-way doors · 0 open
+28 checks in 2 slices · 0 one-way doors · 0 open
 
 The due rule is proven at its own layer, table-driven, in `src/domain/measurements.test.ts`
 (`describe("reminder due")`). Behaviour proofs render `App` in jsdom (`src/App.test.tsx`, new
@@ -71,6 +71,9 @@ Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card text stacks at 3
 **C25** - The card's computed `border-top-width` is `2px`, and its icon's computed `color` is `#e8304a` in the light scheme and `#ff4a64` in the dark scheme (AC 14). Added after round 1 of verification: a 1px border survived C15, and the icon colour was neither checked nor listed out of reach — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card border width and icon colour"`
 
+**C28** - At 360×740 with no Measurement, as mockup v6 spans the button row across the card: "Medir agora"'s left edge is within 1px of the card icon's left edge, and the title "Hora da primeira medição" fits on one line (its height is less than 1.5 times its computed `line-height`) (AC 13). Added after round 3 of verification: a button row confined to the text column squeezed the title onto four lines and survived every proof — done
+Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "button row spans the card"`
+
 ### S2 - The reminder setting on Medidas · 4 files · ~75 KB · ~19k
 
 **C16** - On Medidas, a heading "Lembrete" comes after the heading "Nova medição" in document order, and its section holds a group "Lembrar a cada" whose buttons are, in order, "7 dias", "14 dias", "30 dias", "Não lembrar". Table-driven over the stored `reminder`: absent → "7 dias"; `everyDays` 7 → "7 dias"; 14 → "14 dias"; 30 → "30 dias"; `null` → "Não lembrar" - that button alone has `aria-pressed="true"` and the other three `"false"` (AC 15) — done
@@ -120,11 +123,11 @@ Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card and pill styles"
 | reminder writes (2) | snooze C8, C20 · interval C17, C20 | - |
 | untouched record fields (5) | `completions` C20 · `today` C20 · `weights` C20 · `restSeconds` C20 · `measurements` C20 | - |
 | colour schemes (2) | light C15, C23, C25, C26 · dark C15, C23, C25, C26 | - |
-| mockup v6 elements (20) | title weight and colour C27 · 38px icon C27 · button and pill fills and text colours C27 · card above streak C2, C14 · icon left of text C14 · title above detail C24 · exactly two card buttons C24 · 2px card border and `--berry` icon C25 · 2px pills with `--cherry` 500 pressed text C26 · title "Hora da primeira medição"/"Hora de medir" C2, C3 · detail line C2, C3 · "Medir agora" C2, C10 · "Hoje não" C2, C8 · buttons in one row under the text C14 · dashed `--berry` border C15 · toast "Tudo bem, lembro amanhã" C8 · heading "Lembrete" C16, C22 · four pills in order C16, C22 · pressed pill colour C23 · hint under the pills C19, C22 | - |
+| mockup v6 elements (21) | button row spanning the card C28 · title weight and colour C27 · 38px icon C27 · button and pill fills and text colours C27 · card above streak C2, C14 · icon left of text C14 · title above detail C24 · exactly two card buttons C24 · 2px card border and `--berry` icon C25 · 2px pills with `--cherry` 500 pressed text C26 · title "Hora da primeira medição"/"Hora de medir" C2, C3 · detail line C2, C3 · "Medir agora" C2, C10 · "Hoje não" C2, C8 · buttons in one row under the text C14 · dashed `--berry` border C15 · toast "Tudo bem, lembro amanhã" C8 · heading "Lembrete" C16, C22 · four pills in order C16, C22 · pressed pill colour C23 · hint under the pills C19, C22 | - |
 
-- Claims naming layout or colour: C14, C15, C22, C23, C24, C25, C26, C27 - each proof runs in Chromium at 360×740
+- Claims naming layout or colour: C14, C15, C22, C23, C24, C25, C26, C27, C28 - each proof runs in Chromium at 360×740
 - No other check claims more than the cases its proof exercises
-- Out of reach, enumerated per screen against mockup v6. Hoje card: the card's padding (14px 16px), radius (22px), background (`--surface`) and grid gap (10px 12px); the icon's drawing; the title's font family and size (19px); the detail line's size (14px) and colour (`--muted`); the button row's gap (8px) and wrapping; "Medir agora"'s padding (9px 18px), margin (0), radius, font family and weight and text colour; "Hoje não"'s border, padding (8px 16px), radius, font size and background. Medidas Lembrete: the section heading's size; the pill row's gap (6px) and whether "Não lembrar" wraps to a second row at 360; the pills' padding (6px 14px), radius and font size (14px); the hint's size and colour
+- Out of reach, enumerated per screen against mockup v6. Hoje card: the card's padding (14px 16px), radius (22px), background (`--surface`) and grid gap (10px 12px); the icon's drawing; the title's font family and size (19px); the detail line's size (14px) and colour (`--muted`); the text column's `min-width: 0`; the button row's gap (8px) and wrapping; "Medir agora"'s padding (9px 18px), margin (0), border (none), radius, font family and weight and text colour; "Hoje não"'s border, padding (8px 16px), radius, font size and background. Medidas Lembrete: the section heading's size; the pill row's gap (6px) and whether "Não lembrar" wraps to a second row at 360; the pills' padding (6px 14px), radius and font size (14px); the hint's size and colour
 
 ## Test policy
 
@@ -144,7 +147,7 @@ Evidence:
 - the hint: off, would show, otherwise -> 2 branch points, decides
 - closest analogue: `lastTapeDate` and `saveMeasurement` are proven table-driven in `src/domain/measurements.test.ts`; streak and week count in `progress.test.ts` and again through `App`
 
-Cost: 1 domain proof, 17 `App` proofs, 8 Playwright proofs across 3 test files.
+Cost: 1 domain proof, 17 `App` proofs, 9 Playwright proofs across 3 test files.
 
 ## Swept
 
@@ -168,3 +171,4 @@ Cost: 1 domain proof, 17 `App` proofs, 8 Playwright proofs across 3 test files.
 - **Abandoned:** none
 - **Round 1 fix:** C24-C26 added (tests only) for the verifier's surviving probes on the card's title/detail stacking and border width and for unchecked mockup v6 style values; the misplaced `weekdayIndex` doc comment in `dates.ts` moved back
 - **Round 2 fix:** C27 added (tests only) for the verifier's surviving probes on the title weight, icon size and unpressed pill colour and the remaining unchecked mockup v6 colours; every other mockup v6 value of the card and setting is now named in the out-of-reach list
+- **Round 3 fix:** C28 added (tests only) for the surviving probe on the button row's span; the text column's `min-width: 0` and "Medir agora"'s `border: 0` named out of reach. Samuel chose this fix and a scoped round 4, 2026-10-08

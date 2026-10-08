@@ -144,3 +144,13 @@ for (const scheme of ["light", "dark"] as const) {
     await expect(intervals(page).getByRole("button", { name: "7 dias" })).toHaveCSS("background-color", rgb(BLUSH[scheme]));
   });
 }
+
+test("button row spans the card", async ({ page }) => {
+  await page.goto("/");
+  const icon = await box(card(page).locator("svg"));
+  const measure = await box(card(page).getByRole("button", { name: "Medir agora" }));
+  expect(Math.abs(measure.x - icon.x)).toBeLessThanOrEqual(1);
+  const title = card(page).getByText("Hora da primeira medição");
+  const lineHeight = await title.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+  expect((await box(title)).height).toBeLessThan(lineHeight * 1.5);
+});

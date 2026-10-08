@@ -8,10 +8,10 @@
 
 ## Handoff
 
-**Feature**: measurement (slice 1 of 7 in `.design/body-measurements.md`)
-**Where**: built and verified - 20 of 20 checks, verification PASS (round 1, full, standard, 9e5a252..e0681b7; validate_verification exit 0). 5 faults injected, 5 killed. Vitest 89/89, Playwright 11/11
+**Feature**: menu (slice 2 of 7 in `.design/body-measurements.md`)
+**Where**: built and verified - 16 of 16 checks, verification PASS (round 1, full, ui, 193513a..HEAD; validate_verification exit 0). 5 faults injected, 5 killed. Vitest 98/98, Playwright 19/19
 **In progress**: none
-**Next step**: slice Menu (Hoje / Medidas bottom bar), then Registrar medição. Open for Samuel: plan assumption "a stored or imported Measurement dated after today is kept" is unconfirmed (verifier gap 1). Labels in `MEASURES` are unchecked until Registrar medição asserts them
+**Next step**: slice Registrar medição (replaces the Medidas placeholder). Open for Samuel: the measurement-slice assumption "a stored or imported Measurement dated after today is kept" is still unconfirmed. Verifier notes, no action needed: the tape icon check counts shapes only; tapping the active tab does not scroll to top, unlike the mockup demo
 **Blockers**: none
 **Uncommitted**: none
-**Branch**: main, not pushed (bc3fec0, e0681b7 and this record)
+**Branch**: main, not pushed (measurement and menu slices). Menu ships with Registrar medição at the earliest (Samuel, 2026-10-08)

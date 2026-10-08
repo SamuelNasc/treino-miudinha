@@ -20,79 +20,79 @@ Each measure row is a group named after the row ("Peso", "Busto", …, "Braço",
 
 ### S1 - Log or merge a Measurement from Medidas · 8 files · ~70 KB · ~18k
 
-**C1** - On Medidas, the region "Medidas" holds a heading "Nova medição" and a button "Abrir" with `aria-expanded="false"`; there is no textbox named "Peso em kg" and no text "Em breve você registra suas medidas aqui." (AC 1)
+**C1** - On Medidas, the region "Medidas" holds a heading "Nova medição" and a button "Abrir" with `aria-expanded="false"`; there is no textbox named "Peso em kg" and no text "Em breve você registra suas medidas aqui." (AC 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Nova medição starts closed"`
 
-**C2** - Tapping "Abrir" shows the textbox "Peso em kg" and turns the button into "Fechar" with `aria-expanded="true"`; tapping "Fechar" removes the textbox and turns it back into "Abrir" with `aria-expanded="false"` (AC 2)
+**C2** - Tapping "Abrir" shows the textbox "Peso em kg" and turns the button into "Fechar" with `aria-expanded="true"`; tapping "Fechar" removes the textbox and turns it back into "Abrir" with `aria-expanded="false"` (AC 2) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "Abrir and Fechar toggle the form"`
 
-**C3** - Opened on 2026-10-08, the date field labelled "Data" has value `2026-10-08` and `max` `2026-10-08` (AC 3)
+**C3** - Opened on 2026-10-08, the date field labelled "Data" has value `2026-10-08` and `max` `2026-10-08` (AC 3) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "form opens on today"`
 
-**C4** - The form's textboxes, in document order, are named exactly: "Peso em kg", "Busto em cm", "Cintura em cm", "Abdômen em cm", "Quadril em cm", "Braço D em cm", "Braço E em cm", "Coxa D em cm", "Coxa E em cm", "Panturrilha D em cm", "Panturrilha E em cm". The text "Tronco" comes after the Peso field and before the Busto field, "Braços e pernas" after Quadril and before Braço D. Each of the 8 row groups holds its textboxes and the unit text (`kg` for Peso, `cm` otherwise) once per field; the groups "Braço", "Coxa", "Panturrilha" hold exactly two textboxes, D then E, labelled with the side texts "D" and "E" (AC 4)
+**C4** - The form's textboxes, in document order, are named exactly: "Peso em kg", "Busto em cm", "Cintura em cm", "Abdômen em cm", "Quadril em cm", "Braço D em cm", "Braço E em cm", "Coxa D em cm", "Coxa E em cm", "Panturrilha D em cm", "Panturrilha E em cm". The text "Tronco" comes after the Peso field and before the Busto field, "Braços e pernas" after Quadril and before Braço D. Each of the 8 row groups holds its textboxes and the unit text (`kg` for Peso, `cm` otherwise) once per field; the groups "Braço", "Coxa", "Panturrilha" hold exactly two textboxes, D then E, labelled with the side texts "D" and "E" (AC 4) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "fields in order with units"`
 
-**C5** - With Measurements on 2026-09-24 `{ peso: 63.1, cintura: 72.4, quadril: 101.5 }` and 2026-10-01 `{ peso: 62.9 }` and none on 2026-10-08: every field is empty; placeholders are Peso `62,9`, Cintura `72,4`, Quadril `101,5`, every other field `–`. After setting the date to 2026-09-30, Peso's placeholder is `63,1` (an entry after the form's date is not used) (AC 5)
+**C5** - With Measurements on 2026-09-24 `{ peso: 63.1, cintura: 72.4, quadril: 101.5 }` and 2026-10-01 `{ peso: 62.9 }` and none on 2026-10-08: every field is empty; placeholders are Peso `62,9`, Cintura `72,4`, Quadril `101,5`, every other field `–`. After setting the date to 2026-09-30, Peso's placeholder is `63,1` (an entry after the form's date is not used) (AC 5) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "placeholders show the previous value"`
 
-**C6** - With a Measurement on 2026-10-08 `{ peso: 62.4, quadril: 101.5 }` and 2026-10-01 `{ cintura: 72 }`: Peso's value is `62,4`, Quadril's `101,5`, Cintura is empty with placeholder `72`, and the hint "Já tem medição nesse dia. O que você preencher atualiza ela." is shown. With no Measurement on the form's date, the hint is absent (AC 6)
+**C6** - With a Measurement on 2026-10-08 `{ peso: 62.4, quadril: 101.5 }` and 2026-10-01 `{ cintura: 72 }`: Peso's value is `62,4`, Quadril's `101,5`, Cintura is empty with placeholder `72`, and the hint "Já tem medição nesse dia. O que você preencher atualiza ela." is shown. With no Measurement on the form's date, the hint is absent (AC 6) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a day with a measurement loads its values"`
 
-**C7** - With a Measurement on 2026-10-01 `{ peso: 62.9 }`: after typing `70` into Cintura and setting the date to 2026-10-01, Cintura is empty and Peso's value is `62,9` (AC 7)
+**C7** - With a Measurement on 2026-10-01 `{ peso: 62.9 }`: after typing `70` into Cintura and setting the date to 2026-10-01, Cintura is empty and Peso's value is `62,9` (AC 7) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "changing the date reloads the fields"`
 
-**C8** - Setting the date field to empty, and to 2026-10-09, each leaves its value at `2026-10-08` (AC 8)
+**C8** - Setting the date field to empty, and to 2026-10-09, each leaves its value at `2026-10-08` (AC 8) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "an empty or future date resets to today"`
 
-**C9** - With every field empty, "Salvar medição" is disabled; after typing `62` into Peso it is enabled; after clearing Peso again it is disabled (AC 9)
+**C9** - With every field empty, "Salvar medição" is disabled; after typing `62` into Peso it is enabled; after clearing Peso again it is disabled (AC 9) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "save is disabled while every field is empty"`
 
-**C10** - The measure-text parser, table-driven: `62,9` → 62.9, `62.9` → 62.9, ` 74 ` → 74, `74` → 74, `101,5` → 101.5, `` and `   ` → empty; `62,95`, `62.`, `,5`, `abc`, `6 2`, `-5`, `62,9,1`, `1e2`, `62,a` → rejected. A number outside the measure's range is rejected: Peso `29,9` and `200,1` rejected, `30` and `200` accepted (AC 10, AC 11)
+**C10** - The measure-text parser, table-driven: `62,9` → 62.9, `62.9` → 62.9, ` 74 ` → 74, `74` → 74, `101,5` → 101.5, `` and `   ` → empty; `62,95`, `62.`, `,5`, `abc`, `6 2`, `-5`, `62,9,1`, `1e2`, `62,a` → rejected. A number outside the measure's range is rejected: Peso `29,9` and `200,1` rejected, `30` and `200` accepted (AC 10, AC 11) — done
 Proof: `pnpm vitest run src/domain/measures.test.ts -t "measure text"`
 
-**C11** - Typing `62,9` into Peso and saving stores `values.peso` as the number `62.9` in `treino:v1` (AC 10)
+**C11** - Typing `62,9` into Peso and saving stores `values.peso` as the number `62.9` in `treino:v1` (AC 10) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "comma decimal is stored as a number"`
 
-**C12** - Table-driven over Peso `abc`, Peso `680`, Peso `6`, Peso `62,95`: right after typing, the field has no `aria-invalid="true"` and the Peso group shows no "Confira este valor"; after leaving the field (tab), it has `aria-invalid="true"` and the Peso group shows "Confira este valor" exactly once (AC 11)
+**C12** - Table-driven over Peso `abc`, Peso `680`, Peso `6`, Peso `62,95`: right after typing, the field has no `aria-invalid="true"` and the Peso group shows no "Confira este valor"; after leaving the field (tab), it has `aria-invalid="true"` and the Peso group shows "Confira este valor" exactly once (AC 11) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a bad value is marked on leaving the field"`
 
-**C13** - With Braço D `5` and Braço E `500`, both left: both fields have `aria-invalid="true"` and the group "Braço" shows "Confira este valor" exactly once (AC 11)
+**C13** - With Braço D `5` and Braço E `500`, both left: both fields have `aria-invalid="true"` and the group "Braço" shows "Confira este valor" exactly once (AC 11) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "one message per D/E row"`
 
-**C14** - With Peso `62` typed and then Cintura `680` typed and not yet left, "Salvar medição" is disabled (AC 12)
+**C14** - With Peso `62` typed and then Cintura `680` typed and not yet left, "Salvar medição" is disabled (AC 12) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "save is disabled while a value is bad"`
 
-**C15** - With Braço D `5` and Braço E `500` marked: correcting D to `29` and leaving it removes D's `aria-invalid` while "Confira este valor" stays in "Braço"; emptying E and leaving it removes E's mark and the message. A marked Peso `680` corrected to `62` and left loses its mark and message (AC 13)
+**C15** - With Braço D `5` and Braço E `500` marked: correcting D to `29` and leaving it removes D's `aria-invalid` while "Confira este valor" stays in "Braço"; emptying E and leaving it removes E's mark and the message. A marked Peso `680` corrected to `62` and left loses its mark and message (AC 13) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "correcting a value clears its mark"`
 
-**C16** - With no Measurement stored, filling Peso `62,9` and Cintura `72` on 2026-10-08 and tapping "Salvar medição" stores `measurements` equal to `[{ date: "2026-10-08", values: { peso: 62.9, cintura: 72 } }]`, shows a status "Medição salva", and the button reads "Abrir" with no textbox "Peso em kg" (AC 14)
+**C16** - With no Measurement stored, filling Peso `62,9` and Cintura `72` on 2026-10-08 and tapping "Salvar medição" stores `measurements` equal to `[{ date: "2026-10-08", values: { peso: 62.9, cintura: 72 } }]`, shows a status "Medição salva", and the button reads "Abrir" with no textbox "Peso em kg" (AC 14) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "saving a new day stores it and closes the form"`
 
-**C17** - Filling only Peso `62,4` and saving stores a Measurement whose `values` is exactly `{ peso: 62.4 }` (AC 15)
+**C17** - Filling only Peso `62,4` and saving stores a Measurement whose `values` is exactly `{ peso: 62.4 }` (AC 15) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "weight only is saved"`
 
-**C18** - With a Measurement on 2026-10-08 `{ peso: 62.4, cintura: 72, quadril: 101.5 }` and on 2026-10-01 `{ peso: 63 }`: changing Peso to `62`, emptying Cintura and typing Busto `91`, then saving, stores exactly two entries, 2026-10-01 unchanged and 2026-10-08 with values `{ peso: 62, cintura: 72, quadril: 101.5, busto: 91 }` (AC 16)
+**C18** - With a Measurement on 2026-10-08 `{ peso: 62.4, cintura: 72, quadril: 101.5 }` and on 2026-10-01 `{ peso: 63 }`: changing Peso to `62`, emptying Cintura and typing Busto `91`, then saving, stores exactly two entries, 2026-10-01 unchanged and 2026-10-08 with values `{ peso: 62, cintura: 72, quadril: 101.5, busto: 91 }` (AC 16) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "saving onto a day with a measurement merges"`
 
-**C19** - After saving Peso `61` on 2026-10-01 (date changed), opening the form again shows date `2026-10-08` with Peso empty and placeholder `61`; after saving Peso `60` on 2026-10-08, opening again shows Peso's value `60` (AC 17)
+**C19** - After saving Peso `61` on 2026-10-01 (date changed), opening the form again shows date `2026-10-08` with Peso empty and placeholder `61`; after saving Peso `60` on 2026-10-08, opening again shows Peso's value `60` (AC 17) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "reopening after a save starts on today"`
 
-**C20** - The form holds exactly 7 buttons "onde medir", one each in the groups Busto, Cintura, Abdômen, Quadril, Braço, Coxa, Panturrilha, and none in Peso; each starts with `aria-expanded="false"`. Tapping Cintura's shows the text "Na parte mais fina, acima do umbigo. Fita reta, sem apertar." in the group "Cintura", and that button reads "fechar" with `aria-expanded="true"` (AC 18)
+**C20** - The form holds exactly 7 buttons "onde medir", one each in the groups Busto, Cintura, Abdômen, Quadril, Braço, Coxa, Panturrilha, and none in Peso; each starts with `aria-expanded="false"`. Tapping Cintura's shows the text "Na parte mais fina, acima do umbigo. Fita reta, sem apertar." in the group "Cintura", and that button reads "fechar" with `aria-expanded="true"` (AC 18) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "onde medir shows the cue"`
 
-**C21** - With values typed in Peso (`62`) and Coxa D (`56`): opening Cintura's cue and then Coxa's leaves only Coxa's cue shown and Cintura's button at "onde medir"; tapping "fechar" hides Coxa's cue; Peso still reads `62` and Coxa D `56` throughout (AC 19)
+**C21** - With values typed in Peso (`62`) and Coxa D (`56`): opening Cintura's cue and then Coxa's leaves only Coxa's cue shown and Cintura's button at "onde medir"; tapping "fechar" hides Coxa's cue; Peso still reads `62` and Coxa D `56` throughout (AC 19) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "one cue at a time and typed values stay"`
 
-**C22** - Table-driven over the 7 rows, each cue reads exactly: Busto "Na parte mais cheia do busto.", Cintura "Na parte mais fina, acima do umbigo.", Abdômen "Na linha do umbigo.", Quadril "Na parte mais larga do bumbum.", Braço "No meio do braço, relaxado.", Coxa "No meio da coxa, em pé.", Panturrilha "Na parte mais grossa da panturrilha.", each followed by " Fita reta, sem apertar." (AC 20)
+**C22** - Table-driven over the 7 rows, each cue reads exactly: Busto "Na parte mais cheia do busto.", Cintura "Na parte mais fina, acima do umbigo.", Abdômen "Na linha do umbigo.", Quadril "Na parte mais larga do bumbum.", Braço "No meio do braço, relaxado.", Coxa "No meio da coxa, em pé.", Panturrilha "Na parte mais grossa da panturrilha.", each followed by " Fita reta, sem apertar." (AC 20) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "every cue line"`
 
-**C23** - With the form open, date set to 2026-10-01 and Peso `62` typed, switching to Hoje and back to Medidas shows "Fechar", date `2026-10-01` and Peso `62` (AC 21)
+**C23** - With the form open, date set to 2026-10-01 and Peso `62` typed, switching to Hoje and back to Medidas shows "Fechar", date `2026-10-01` and Peso `62` (AC 21) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "form survives a page switch"`
 
-**C24** - At 360×740 with the form open: in each of Braço, Coxa, Panturrilha, D's box right edge ≤ E's box left edge and their tops differ by ≤ 1px; "Salvar medição"'s left and right edges are within 1px of the form's; with the page scrolled to its end, "Salvar medição"'s bottom ≤ the "Descanso" group's top (AC 22, AC 23)
+**C24** - At 360×740 with the form open: in each of Braço, Coxa, Panturrilha, D's box right edge ≤ E's box left edge and their tops differ by ≤ 1px; "Salvar medição"'s left and right edges are within 1px of the form's; with the page scrolled to its end, "Salvar medição"'s bottom ≤ the "Descanso" group's top (AC 22, AC 23) — done
 Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "form arrangement at 360"`
 
-**C25** - A field marked by AC 11 has a border colour `#e8304a` in the light scheme and `#ff4a64` in the dark scheme, and an unmarked field's border is transparent (AC 11)
+**C25** - A field marked by AC 11 has a border colour `#e8304a` in the light scheme and `#ff4a64` in the dark scheme, and an unmarked field's border is transparent (AC 11) — done
 Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "bad value border colour"`
 
 ## Coverage
@@ -154,3 +154,7 @@ Cost: 1 parser proof, 22 `App` proofs, 2 Playwright proofs across 3 test files.
 ## Handoff
 
 - S1 ≈ existing `App.tsx` 5.6 KB, `index.css` 12.7 KB, `App.test.tsx` 36 KB, `measures.ts` 1.6 KB, `measures.test.ts` 0.6 KB, `measurements.ts` 3.8 KB + new `MeasureForm.tsx` and `e2e/medidas.spec.ts` ≈ 10 KB → ~70 KB / 4 ≈ 18k, one domain - one builder, under the 150k budget
+
+- **Boundary:** C1-C25 closed in `feat(medidas): log and merge a measurement from the nova medição form` (one builder, no handoff)
+- **Settled mid-build:** none
+- **Abandoned:** none

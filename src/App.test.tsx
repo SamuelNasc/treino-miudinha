@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -799,16 +799,6 @@ describe("Menu", () => {
     expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
   });
 
-  it("Medidas placeholder", async () => {
-    setToday(MON);
-    const user = userEvent.setup();
-    render(<App />);
-    await go(user, "Medidas");
-    const page = screen.getByRole("region", { name: "Medidas" });
-    expect(page.textContent).toBe("Em breve você registra suas medidas aqui.");
-    expect(within(page).queryByRole("heading")).toBeNull();
-  });
-
   it("switching changes no URL and stores nothing", async () => {
     setToday(MON);
     seed({ completions: THREE_WEEKS.slice(0, 3), weights: { extensao: 30 } }, MON);
@@ -824,5 +814,336 @@ describe("Menu", () => {
     expect(location.href).toBe(href);
     expect(history.length).toBe(length);
     expect(localStorage.getItem(STORAGE_KEY)).toBe(before);
+  });
+});
+
+describe("Registrar medição", () => {
+  type User = ReturnType<typeof userEvent.setup>;
+  const FIELDS = [
+    "Peso em kg", "Busto em cm", "Cintura em cm", "Abdômen em cm", "Quadril em cm",
+    "Braço D em cm", "Braço E em cm", "Coxa D em cm", "Coxa E em cm", "Panturrilha D em cm", "Panturrilha E em cm",
+  ];
+  const ROWS = ["Peso", "Busto", "Cintura", "Abdômen", "Quadril", "Braço", "Coxa", "Panturrilha"];
+  const medidas = () => within(screen.getByRole("region", { name: "Medidas" }));
+  const row = (name: string) => within(screen.getByRole("group", { name }));
+  const field = (name: string) => screen.getByRole("textbox", { name }) as HTMLInputElement;
+  const dateField = () => screen.getByLabelText("Data") as HTMLInputElement;
+  const save = () => screen.getByRole("button", { name: "Salvar medição" });
+  const setDate = (value: string) => fireEvent.change(dateField(), { target: { value } });
+  const goTo = (user: User, name: "Hoje" | "Medidas") =>
+    user.click(within(screen.getByRole("navigation", { name: "Menu" })).getByRole("button", { name }));
+
+  async function openForm(user: User) {
+    await goTo(user, "Medidas");
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+  }
+
+  function start(measurements: TreinoRecord["measurements"] = undefined) {
+    setToday(THU);
+    if (measurements) seed({ measurements }, THU);
+    const user = userEvent.setup();
+    render(<App />);
+    return user;
+  }
+
+  it("Nova medição starts closed", async () => {
+    const user = start();
+    await goTo(user, "Medidas");
+    expect(medidas().getByRole("heading", { name: "Nova medição" })).toBeInTheDocument();
+    expect(medidas().getByRole("button", { name: "Abrir" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("textbox", { name: "Peso em kg" })).toBeNull();
+    expect(screen.queryByText("Em breve você registra suas medidas aqui.")).toBeNull();
+  });
+
+  it("Abrir and Fechar toggle the form", async () => {
+    const user = start();
+    await openForm(user);
+    expect(field("Peso em kg")).toBeVisible();
+    const fechar = medidas().getByRole("button", { name: "Fechar" });
+    expect(fechar).toHaveAttribute("aria-expanded", "true");
+    await user.click(fechar);
+    expect(screen.queryByRole("textbox", { name: "Peso em kg" })).toBeNull();
+    expect(medidas().getByRole("button", { name: "Abrir" })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("form opens on today", async () => {
+    const user = start();
+    await openForm(user);
+    expect(dateField().value).toBe("2026-10-08");
+    expect(dateField().max).toBe("2026-10-08");
+  });
+
+  it("fields in order with units", async () => {
+    const user = start();
+    await openForm(user);
+    const boxes = medidas().getAllByRole("textbox");
+    expect(boxes.map((b) => b.getAttribute("aria-label"))).toEqual(FIELDS);
+    const before = (a: Node, b: Node) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+    const tronco = medidas().getByText("Tronco");
+    const limbs = medidas().getByText("Braços e pernas");
+    expect(before(field("Peso em kg"), tronco) && before(tronco, field("Busto em cm"))).toBe(true);
+    expect(before(field("Quadril em cm"), limbs) && before(limbs, field("Braço D em cm"))).toBe(true);
+    for (const name of ROWS) {
+      const inRow = row(name).getAllByRole("textbox");
+      const unit = name === "Peso" ? "kg" : "cm";
+      expect(row(name).getAllByText(unit), name).toHaveLength(inRow.length);
+      expect(row(name).queryAllByText(unit === "kg" ? "cm" : "kg"), name).toHaveLength(0);
+    }
+    for (const name of ["Braço", "Coxa", "Panturrilha"]) {
+      const [d, e] = row(name).getAllByRole("textbox");
+      expect(row(name).getAllByRole("textbox")).toHaveLength(2);
+      expect(d).toHaveAccessibleName(`${name} D em cm`);
+      expect(e).toHaveAccessibleName(`${name} E em cm`);
+      expect(d.closest("label")).toHaveTextContent(/^D/);
+      expect(e.closest("label")).toHaveTextContent(/^E/);
+    }
+  });
+
+  it("placeholders show the previous value", async () => {
+    const user = start([
+      { date: "2026-09-24", values: { peso: 63.1, cintura: 72.4, quadril: 101.5 } },
+      { date: "2026-10-01", values: { peso: 62.9 } },
+    ]);
+    await openForm(user);
+    const expected: Record<string, string> = { "Peso em kg": "62,9", "Cintura em cm": "72,4", "Quadril em cm": "101,5" };
+    for (const name of FIELDS) {
+      expect(field(name).value, name).toBe("");
+      expect(field(name), name).toHaveAttribute("placeholder", expected[name] ?? "–");
+    }
+    setDate("2026-09-30");
+    expect(field("Peso em kg")).toHaveAttribute("placeholder", "63,1");
+  });
+
+  it("a day with a measurement loads its values", async () => {
+    const user = start([
+      { date: "2026-10-01", values: { cintura: 72 } },
+      { date: "2026-10-08", values: { peso: 62.4, quadril: 101.5 } },
+    ]);
+    await openForm(user);
+    expect(field("Peso em kg").value).toBe("62,4");
+    expect(field("Quadril em cm").value).toBe("101,5");
+    expect(field("Cintura em cm").value).toBe("");
+    expect(field("Cintura em cm")).toHaveAttribute("placeholder", "72");
+    const hint = "Já tem medição nesse dia. O que você preencher atualiza ela.";
+    expect(medidas().getByText(hint)).toBeVisible();
+    setDate("2026-10-02");
+    expect(medidas().queryByText(hint)).toBeNull();
+  });
+
+  it("changing the date reloads the fields", async () => {
+    const user = start([{ date: "2026-10-01", values: { peso: 62.9 } }]);
+    await openForm(user);
+    await user.type(field("Cintura em cm"), "70");
+    setDate("2026-10-01");
+    expect(field("Cintura em cm").value).toBe("");
+    expect(field("Peso em kg").value).toBe("62,9");
+  });
+
+  it("an empty or future date resets to today", async () => {
+    const user = start();
+    await openForm(user);
+    for (const value of ["", "2026-10-09"]) {
+      setDate(value);
+      expect(dateField().value, `"${value}"`).toBe("2026-10-08");
+    }
+  });
+
+  it("save is disabled while every field is empty", async () => {
+    const user = start();
+    await openForm(user);
+    expect(save()).toBeDisabled();
+    await user.type(field("Peso em kg"), "62");
+    expect(save()).toBeEnabled();
+    await user.clear(field("Peso em kg"));
+    expect(save()).toBeDisabled();
+  });
+
+  it("comma decimal is stored as a number", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Peso em kg"), "62,9");
+    await user.click(save());
+    expect(measurementsOf(stored())[0].values.peso).toBe(62.9);
+  });
+
+  it("a bad value is marked on leaving the field", async () => {
+    for (const text of ["abc", "680", "6", "62,95"]) {
+      const user = start();
+      await openForm(user);
+      await user.type(field("Peso em kg"), text);
+      expect(field("Peso em kg"), text).not.toHaveAttribute("aria-invalid", "true");
+      expect(row("Peso").queryByText("Confira este valor"), text).toBeNull();
+      await user.tab();
+      expect(field("Peso em kg"), text).toHaveAttribute("aria-invalid", "true");
+      expect(row("Peso").getAllByText("Confira este valor"), text).toHaveLength(1);
+      cleanup();
+      localStorage.clear();
+    }
+  });
+
+  it("one message per D/E row", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Braço D em cm"), "5");
+    await user.type(field("Braço E em cm"), "500");
+    await user.tab();
+    expect(field("Braço D em cm")).toHaveAttribute("aria-invalid", "true");
+    expect(field("Braço E em cm")).toHaveAttribute("aria-invalid", "true");
+    expect(row("Braço").getAllByText("Confira este valor")).toHaveLength(1);
+  });
+
+  it("save is disabled while a value is bad", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Peso em kg"), "62");
+    await user.tab();
+    await user.type(field("Cintura em cm"), "680");
+    expect(save()).toBeDisabled();
+  });
+
+  it("correcting a value clears its mark", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Braço D em cm"), "5");
+    await user.type(field("Braço E em cm"), "500");
+    await user.tab();
+    await user.clear(field("Braço D em cm"));
+    await user.type(field("Braço D em cm"), "29");
+    await user.tab();
+    expect(field("Braço D em cm")).not.toHaveAttribute("aria-invalid", "true");
+    expect(row("Braço").getAllByText("Confira este valor")).toHaveLength(1);
+    await user.clear(field("Braço E em cm"));
+    await user.tab();
+    expect(field("Braço E em cm")).not.toHaveAttribute("aria-invalid", "true");
+    expect(row("Braço").queryByText("Confira este valor")).toBeNull();
+
+    await user.type(field("Peso em kg"), "680");
+    await user.tab();
+    expect(field("Peso em kg")).toHaveAttribute("aria-invalid", "true");
+    await user.clear(field("Peso em kg"));
+    await user.type(field("Peso em kg"), "62");
+    await user.tab();
+    expect(field("Peso em kg")).not.toHaveAttribute("aria-invalid", "true");
+    expect(row("Peso").queryByText("Confira este valor")).toBeNull();
+  });
+
+  it("saving a new day stores it and closes the form", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Peso em kg"), "62,9");
+    await user.type(field("Cintura em cm"), "72");
+    await user.click(save());
+    expect(stored().measurements).toEqual([{ date: "2026-10-08", values: { peso: 62.9, cintura: 72 } }]);
+    expect(screen.getByRole("status")).toHaveTextContent("Medição salva");
+    expect(medidas().getByRole("button", { name: "Abrir" })).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Peso em kg" })).toBeNull();
+  });
+
+  it("weight only is saved", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Peso em kg"), "62,4");
+    await user.click(save());
+    expect(measurementsOf(stored())[0].values).toEqual({ peso: 62.4 });
+  });
+
+  it("saving onto a day with a measurement merges", async () => {
+    const user = start([
+      { date: "2026-10-01", values: { peso: 63 } },
+      { date: "2026-10-08", values: { peso: 62.4, cintura: 72, quadril: 101.5 } },
+    ]);
+    await openForm(user);
+    await user.clear(field("Peso em kg"));
+    await user.type(field("Peso em kg"), "62");
+    await user.clear(field("Cintura em cm"));
+    await user.type(field("Busto em cm"), "91");
+    await user.click(save());
+    expect(stored().measurements).toEqual([
+      { date: "2026-10-01", values: { peso: 63 } },
+      { date: "2026-10-08", values: { peso: 62, cintura: 72, quadril: 101.5, busto: 91 } },
+    ]);
+  });
+
+  it("reopening after a save starts on today", async () => {
+    const user = start();
+    await openForm(user);
+    setDate("2026-10-01");
+    await user.type(field("Peso em kg"), "61");
+    await user.click(save());
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    expect(dateField().value).toBe("2026-10-08");
+    expect(field("Peso em kg").value).toBe("");
+    expect(field("Peso em kg")).toHaveAttribute("placeholder", "61");
+
+    await user.type(field("Peso em kg"), "60");
+    await user.click(save());
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    expect(field("Peso em kg").value).toBe("60");
+  });
+
+  it("onde medir shows the cue", async () => {
+    const user = start();
+    await openForm(user);
+    const buttons = medidas().getAllByRole("button", { name: "onde medir" });
+    expect(buttons).toHaveLength(7);
+    for (const name of ROWS.slice(1)) {
+      const inRow = row(name).getAllByRole("button", { name: "onde medir" });
+      expect(inRow, name).toHaveLength(1);
+      expect(inRow[0], name).toHaveAttribute("aria-expanded", "false");
+    }
+    expect(row("Peso").queryByRole("button", { name: "onde medir" })).toBeNull();
+
+    await user.click(row("Cintura").getByRole("button", { name: "onde medir" }));
+    expect(row("Cintura").getByText("Na parte mais fina, acima do umbigo. Fita reta, sem apertar.")).toBeVisible();
+    expect(row("Cintura").getByRole("button", { name: "fechar" })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("one cue at a time and typed values stay", async () => {
+    const user = start();
+    await openForm(user);
+    await user.type(field("Peso em kg"), "62");
+    await user.type(field("Coxa D em cm"), "56");
+    await user.click(row("Cintura").getByRole("button", { name: "onde medir" }));
+    await user.click(row("Coxa").getByRole("button", { name: "onde medir" }));
+    expect(row("Coxa").getByText("No meio da coxa, em pé. Fita reta, sem apertar.")).toBeVisible();
+    expect(row("Cintura").queryByText(/Fita reta/)).toBeNull();
+    expect(row("Cintura").getByRole("button", { name: "onde medir" })).toHaveAttribute("aria-expanded", "false");
+    expect(medidas().getAllByText(/Fita reta, sem apertar\./)).toHaveLength(1);
+    expect(field("Peso em kg").value).toBe("62");
+    expect(field("Coxa D em cm").value).toBe("56");
+    await user.click(row("Coxa").getByRole("button", { name: "fechar" }));
+    expect(medidas().queryByText(/Fita reta/)).toBeNull();
+    expect(field("Peso em kg").value).toBe("62");
+    expect(field("Coxa D em cm").value).toBe("56");
+  });
+
+  it("every cue line", async () => {
+    const CUES: Record<string, string> = {
+      Busto: "Na parte mais cheia do busto.",
+      Cintura: "Na parte mais fina, acima do umbigo.",
+      Abdômen: "Na linha do umbigo.",
+      Quadril: "Na parte mais larga do bumbum.",
+      Braço: "No meio do braço, relaxado.",
+      Coxa: "No meio da coxa, em pé.",
+      Panturrilha: "Na parte mais grossa da panturrilha.",
+    };
+    const user = start();
+    await openForm(user);
+    for (const [name, cue] of Object.entries(CUES)) {
+      await user.click(row(name).getByRole("button", { name: "onde medir" }));
+      expect(row(name).getByText(`${cue} Fita reta, sem apertar.`), name).toBeVisible();
+    }
+  });
+
+  it("form survives a page switch", async () => {
+    const user = start();
+    await openForm(user);
+    setDate("2026-10-01");
+    await user.type(field("Peso em kg"), "62");
+    await goTo(user, "Hoje");
+    await goTo(user, "Medidas");
+    expect(medidas().getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+    expect(dateField().value).toBe("2026-10-01");
+    expect(field("Peso em kg").value).toBe("62");
   });
 });

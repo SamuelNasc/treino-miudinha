@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Backup } from "./components/Backup";
 import { Celebration } from "./components/Celebration";
+import { MeasureForm } from "./components/MeasureForm";
 import { Menu, type Page } from "./components/Menu";
 import { StreakCard, WeekStrip } from "./components/Progress";
 import { RestTimer } from "./components/RestTimer";
 import { Cherry, Sprite } from "./components/Sprite";
 import { DoneCard, Picker, RestCard, WorkoutCard } from "./components/Workout";
 import { localDate } from "./domain/dates";
+import { measurementsOf, saveMeasurement, type MeasureValues } from "./domain/measurements";
 import { PLAN, type WorkoutId } from "./domain/plan";
 import { streak, weekCount, weekStrip } from "./domain/progress";
 import { isRestDay, nextWorkout } from "./domain/rotation";
@@ -65,6 +67,14 @@ export default function App() {
       else weights[exerciseId] = value;
       return { ...r, weights };
     });
+
+  const saveMeasure = (date: string, values: MeasureValues) => {
+    const result = saveMeasurement(record, date, values, today);
+    if (!result.ok) return false;
+    setRecord(result.record);
+    setToast({ text: "Medição salva", id: Date.now() });
+    return true;
+  };
 
   const goTo = (to: Page) => {
     if (to === page) return;
@@ -133,7 +143,7 @@ export default function App() {
         </div>
 
         <section className="page" aria-label="Medidas" hidden={page !== "medidas"}>
-          <p className="soon">Em breve você registra suas medidas aqui.</p>
+          <MeasureForm measurements={measurementsOf(record)} today={today} onSave={saveMeasure} />
         </section>
       </main>
 

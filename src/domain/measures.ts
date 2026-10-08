@@ -30,3 +30,12 @@ export function isValidValue(id: string, value: unknown): value is number {
   const tenths = value * 10;
   return value >= measure.min && value <= measure.max && Math.abs(tenths - Math.round(tenths)) < 1e-9;
 }
+
+/** What she typed in a field: digits with at most one decimal after a comma or a dot, inside the range. */
+export function parseMeasure(id: MeasureId, text: string): number | "blank" | "bad" {
+  const trimmed = text.trim();
+  if (trimmed === "") return "blank";
+  if (!/^\d+([.,]\d)?$/.test(trimmed)) return "bad";
+  const value = Number(trimmed.replace(",", "."));
+  return isValidValue(id, value) ? value : "bad";
+}

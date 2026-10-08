@@ -116,3 +116,31 @@ for (const scheme of ["light", "dark"] as const) {
     await expect(intervals(page).getByRole("button", { name: "14 dias" })).toHaveCSS("font-weight", "400");
   });
 }
+
+const MUTED = { light: "#8d5a63", dark: "#d59aa4" };
+const SURFACE = { light: "#ffffff", dark: "#2a1016" };
+const BLUSH = { light: "#ffe1e6", dark: "#3a141c" };
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`card and pill styles - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto("/");
+    const title = card(page).getByText("Hora da primeira medição");
+    await expect(title).toHaveCSS("font-weight", "600");
+    await expect(title).toHaveCSS("color", rgb(CHERRY[scheme]));
+    const icon = await box(card(page).locator("svg"));
+    expect(icon.width).toBe(38);
+    expect(icon.height).toBe(38);
+    const measure = card(page).getByRole("button", { name: "Medir agora" });
+    await expect(measure).toHaveCSS("font-size", "16px");
+    await expect(measure).toHaveCSS("background-color", rgb(CHERRY[scheme]));
+    await expect(card(page).getByRole("button", { name: "Hoje não" })).toHaveCSS("color", rgb(MUTED[scheme]));
+
+    await page.getByRole("navigation", { name: "Menu" }).getByRole("button", { name: "Medidas" }).click();
+    const unpressed = intervals(page).getByRole("button", { name: "14 dias" });
+    await expect(unpressed).toHaveCSS("color", rgb(MUTED[scheme]));
+    await expect(unpressed).toHaveCSS("background-color", rgb(SURFACE[scheme]));
+    await expect(unpressed).toHaveCSS("border-top-style", "solid");
+    await expect(intervals(page).getByRole("button", { name: "7 dias" })).toHaveCSS("background-color", rgb(BLUSH[scheme]));
+  });
+}

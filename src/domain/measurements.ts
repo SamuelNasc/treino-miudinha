@@ -1,5 +1,5 @@
 // Measurement door 1: optional fields inside the version-1 record. Door 3: at most one entry per date.
-import { isLocalDate } from "./dates";
+import { daysBetween, isLocalDate } from "./dates";
 import { isValidValue, type MeasureId } from "./measures";
 import type { TreinoRecord } from "./store";
 
@@ -58,6 +58,18 @@ export function deleteMeasurement(record: TreinoRecord, date: string): TreinoRec
 export function lastTapeDate(record: TreinoRecord): string | null {
   const tape = measurementsOf(record).filter((m) => Object.keys(m.values).some((id) => id !== "peso"));
   return tape.length > 0 ? tape[tape.length - 1].date : null;
+}
+
+export type ReminderDue = { first: true } | { days: number } | null;
+
+/** Derived at render, never stored (Key decision 5): on, not snoozed today, and no tape yet or the interval has passed. */
+export function reminderDue(record: TreinoRecord, today: string): ReminderDue {
+  const { everyDays, snoozedOn } = reminderOf(record);
+  if (everyDays === null || snoozedOn === today) return null;
+  const last = lastTapeDate(record);
+  if (last === null) return { first: true };
+  const days = daysBetween(last, today);
+  return days >= everyDays ? { days } : null;
 }
 
 /** Keeps the valid parts of stored entries: bad values and empty or undated entries are dropped. */

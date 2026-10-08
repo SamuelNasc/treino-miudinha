@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { MEASURES, type MeasureId } from "./measures";
-import { deleteMeasurement, lastTapeDate, measurementsOf, saveMeasurement, type Measurement } from "./measurements";
+import {
+  deleteMeasurement,
+  lastTapeDate,
+  measurementsOf,
+  reminderDue,
+  saveMeasurement,
+  type Measurement,
+  type ReminderSettings,
+} from "./measurements";
 import { freshRecord, type TreinoRecord } from "./store";
 
 const TODAY = "2026-10-08";
@@ -115,5 +123,36 @@ describe("measurements", () => {
     ]);
     expect(lastTapeDate(record)).toBe("2026-10-05");
     expect(lastTapeDate(deleteMeasurement(record, "2026-10-05"))).toBe("2026-10-01");
+  });
+});
+
+describe("reminder due", () => {
+  const tape = (date: string): Measurement => ({ date, values: { cintura: 72 } });
+  const peso = (date: string): Measurement => ({ date, values: { peso: 62 } });
+  const every = (everyDays: ReminderSettings["everyDays"], snoozedOn: string | null = null): ReminderSettings => ({ everyDays, snoozedOn });
+
+  // [case, reminder (undefined = absent), measurements, expected]
+  const cases: [string, ReminderSettings | undefined, Measurement[], ReturnType<typeof reminderDue>][] = [
+    ["7, none", every(7), [], { first: true }],
+    ["7, weight only", every(7), [peso("2026-09-01"), peso("2026-10-07")], { first: true }],
+    ["7, tape 7 days ago", every(7), [tape("2026-10-01")], { days: 7 }],
+    ["7, tape 6 days ago", every(7), [tape("2026-10-02")], null],
+    ["14, tape 13 days ago", every(14), [tape("2026-09-25")], null],
+    ["14, tape 14 days ago", every(14), [tape("2026-09-24")], { days: 14 }],
+    ["30, tape 30 days ago", every(30), [tape("2026-09-08")], { days: 30 }],
+    ["30, tape 29 days ago", every(30), [tape("2026-09-09")], null],
+    ["7, weight after tape", every(7), [tape("2026-09-28"), peso("2026-10-07")], { days: 10 }],
+    ["7, future tape", every(7), [tape("2026-10-10")], null],
+    ["off, none", every(null), [], null],
+    ["off, old tape", every(null), [tape("2026-08-01")], null],
+    ["7, none, snoozed today", every(7, TODAY), [], null],
+    ["7, due, snoozed yesterday", every(7, "2026-10-07"), [tape("2026-10-01")], { days: 7 }],
+    ["7, none, snoozed tomorrow", every(7, "2026-10-09"), [], { first: true }],
+    ["absent, none", undefined, [], { first: true }],
+  ];
+
+  it.each(cases)("%s", (_, reminder, measurements, expected) => {
+    const record: TreinoRecord = { ...withEntries(measurements), ...(reminder ? { reminder } : {}) };
+    expect(reminderDue(record, TODAY)).toEqual(expected);
   });
 });

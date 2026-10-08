@@ -18,6 +18,15 @@ export function addDays(date: string, days: number): string {
 }
 
 /** 0 = Monday ... 6 = Sunday */
+/** Calendar days from `from` to `to`; negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  const utc = (date: string) => {
+    const [y, m, d] = date.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}
+
 export function weekdayIndex(date: string): number {
   return (parse(date).getDay() + 6) % 7;
 }

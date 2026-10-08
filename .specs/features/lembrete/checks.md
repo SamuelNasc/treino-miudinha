@@ -20,75 +20,75 @@ measure other than `peso`, e.g. `{ cintura: 72 }`.
 
 ### S1 - The reminder card on Hoje · 7 files · ~92 KB · ~23k
 
-**C1** - The due rule, table-driven over (reminder, Measurements, today = 2026-10-08) → result: every 7, none → first; every 7, only `{ peso }` entries → first; every 7, tape 2026-10-01 → due 7 days; every 7, tape 2026-10-02 → not due; every 14, tape 2026-09-25 → not due; every 14, tape 2026-09-24 → due 14; every 30, tape 2026-09-08 → due 30; every 30, tape 2026-09-09 → not due; every 7, tape 2026-09-28 and `{ peso }` on 2026-10-07 → due 10; every 7, tape 2026-10-10 → not due; off (`null`), none → not due; off, tape 2026-08-01 → not due; every 7, none, snoozed 2026-10-08 → not due; every 7, tape 2026-10-01, snoozed 2026-10-07 → due 7; every 7, none, snoozed 2026-10-09 → first; reminder absent, none → first (AC 1-8)
+**C1** - The due rule, table-driven over (reminder, Measurements, today = 2026-10-08) → result: every 7, none → first; every 7, only `{ peso }` entries → first; every 7, tape 2026-10-01 → due 7 days; every 7, tape 2026-10-02 → not due; every 14, tape 2026-09-25 → not due; every 14, tape 2026-09-24 → due 14; every 30, tape 2026-09-08 → due 30; every 30, tape 2026-09-09 → not due; every 7, tape 2026-09-28 and `{ peso }` on 2026-10-07 → due 10; every 7, tape 2026-10-10 → not due; off (`null`), none → not due; off, tape 2026-08-01 → not due; every 7, none, snoozed 2026-10-08 → not due; every 7, tape 2026-10-01, snoozed 2026-10-07 → due 7; every 7, none, snoozed 2026-10-09 → first; reminder absent, none → first (AC 1-8) — done
 Proof: `pnpm vitest run src/domain/measurements.test.ts -t "reminder due"`
 
-**C2** - With no Measurement and no `reminder`, Hoje shows the card holding the text "Hora da primeira medição", the text "Ela vira o seu ponto de partida.", and the buttons "Medir agora" and "Hoje não"; the card comes before the region "Sequência" in document order (AC 1)
+**C2** - With no Measurement and no `reminder`, Hoje shows the card holding the text "Hora da primeira medição", the text "Ela vira o seu ponto de partida.", and the buttons "Medir agora" and "Hoje não"; the card comes before the region "Sequência" in document order (AC 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "first measurement card"`
 
-**C3** - With a tape Measurement on 2026-10-01 only, Hoje's card holds "Hora de medir" and "A última com fita foi há 7 dias.", and not "Hora da primeira medição" (AC 2)
+**C3** - With a tape Measurement on 2026-10-01 only, Hoje's card holds "Hora de medir" and "A última com fita foi há 7 dias.", and not "Hora da primeira medição" (AC 2) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "due card counts the days"`
 
-**C4** - With a tape Measurement on 2026-10-02, Hoje has no card (AC 3)
+**C4** - With a tape Measurement on 2026-10-02, Hoje has no card (AC 3) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "no card before the interval"`
 
-**C5** - With a tape Measurement on 2026-10-10 only, Hoje on 2026-10-08 has no card (AC 4)
+**C5** - With a tape Measurement on 2026-10-10 only, Hoje on 2026-10-08 has no card (AC 4) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a future tape date is not due"`
 
-**C6** - With tape on 2026-10-02 and `{ peso: 62 }` on 2026-10-07 (every 7), Hoje has no card; with tape on 2026-10-01 and `{ peso: 62 }` on 2026-10-07, the card says "A última com fita foi há 7 dias." (AC 5)
+**C6** - With tape on 2026-10-02 and `{ peso: 62 }` on 2026-10-07 (every 7), Hoje has no card; with tape on 2026-10-01 and `{ peso: 62 }` on 2026-10-07, the card says "A última com fita foi há 7 dias." (AC 5) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a weight-only entry does not count"`
 
-**C7** - With `reminder: { everyDays: null, snoozedOn: null }`, Hoje has no card both with no Measurement and with a tape Measurement on 2026-08-01 (AC 6)
+**C7** - With `reminder: { everyDays: null, snoozedOn: null }`, Hoje has no card both with no Measurement and with a tape Measurement on 2026-08-01 (AC 6) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "reminder off shows no card"`
 
-**C8** - Tapping "Hoje não" removes the card, shows a status "Tudo bem, lembro amanhã", and stores `reminder` equal to `{ everyDays: 7, snoozedOn: "2026-10-08" }` when it was absent, and to `{ everyDays: 14, snoozedOn: "2026-10-08" }` when it was `{ everyDays: 14, snoozedOn: null }` with tape on 2026-09-24 (AC 7)
+**C8** - Tapping "Hoje não" removes the card, shows a status "Tudo bem, lembro amanhã", and stores `reminder` equal to `{ everyDays: 7, snoozedOn: "2026-10-08" }` when it was absent, and to `{ everyDays: 14, snoozedOn: "2026-10-08" }` when it was `{ everyDays: 14, snoozedOn: null }` with tape on 2026-09-24 (AC 7) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "hoje nao hides the card until tomorrow"`
 
-**C9** - Seeded with `reminder: { everyDays: 7, snoozedOn: "2026-10-08" }` and no Measurement: on 2026-10-08 Hoje has no card; rendered fresh on 2026-10-09 it shows "Hora da primeira medição". Rendered on 2026-10-08, after "Hoje não", moving the clock to 2026-10-09 and firing `visibilitychange` shows the card again (AC 8)
+**C9** - Seeded with `reminder: { everyDays: 7, snoozedOn: "2026-10-08" }` and no Measurement: on 2026-10-08 Hoje has no card; rendered fresh on 2026-10-09 it shows "Hora da primeira medição". Rendered on 2026-10-08, after "Hoje não", moving the clock to 2026-10-09 and firing `visibilitychange` shows the card again (AC 8) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "the card comes back the next day"`
 
-**C10** - Tapping "Medir agora" makes the Medidas tab `aria-current="page"`, shows the region "Medidas" with the button "Fechar" and the field "Data" at `2026-10-08`, and leaves the stored record equal to the seed (AC 9)
+**C10** - Tapping "Medir agora" makes the Medidas tab `aria-current="page"`, shows the region "Medidas" with the button "Fechar" and the field "Data" at `2026-10-08`, and leaves the stored record equal to the seed (AC 9) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "medir agora opens the form"`
 
-**C11** - With the form opened on Medidas, its date set to 2026-10-01 and Peso `62` typed, switching to Hoje and tapping "Medir agora" shows the form with date `2026-10-01` and Peso `62` (AC 10)
+**C11** - With the form opened on Medidas, its date set to 2026-10-01 and Peso `62` typed, switching to Hoje and tapping "Medir agora" shows the form with date `2026-10-01` and Peso `62` (AC 10) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "medir agora keeps an open form"`
 
-**C12** - With no Measurement: after "Medir agora" and switching back to Hoje, the card is shown; after "Medir agora" and saving only Peso `62`, Hoje still shows "Hora da primeira medição"; after "Medir agora" and saving Cintura `72`, Hoje has no card (AC 11)
+**C12** - With no Measurement: after "Medir agora" and switching back to Hoje, the card is shown; after "Medir agora" and saving only Peso `62`, Hoje still shows "Hora da primeira medição"; after "Medir agora" and saving Cintura `72`, Hoje has no card (AC 11) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "only a tape save clears the card"`
 
-**C13** - Table-driven with no Measurement, the card is shown on: 2026-10-07 (rest day, "Hoje é descanso" shown); 2026-10-08 with a completion that day (done card shown); 2026-10-08 with `today.checked` holding one exercise of the next workout (workout card shown) (AC 12)
+**C13** - Table-driven with no Measurement, the card is shown on: 2026-10-07 (rest day, "Hoje é descanso" shown); 2026-10-08 with a completion that day (done card shown); 2026-10-08 with `today.checked` holding one exercise of the next workout (workout card shown) (AC 12) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "the card shows in every hoje state"`
 
-**C14** - At 360×740 with no Measurement: the card's icon's right edge ≤ the left edge of "Hora da primeira medição", with the icon's vertical centre within that text block's top and bottom; "Medir agora"'s right edge ≤ "Hoje não"'s left edge with tops within 1px; both buttons' tops ≥ the bottom of "Ela vira o seu ponto de partida."; each button is ≥ 44px tall; the card's bottom ≤ the "Sequência" region's top (AC 1, AC 13)
+**C14** - At 360×740 with no Measurement: the card's icon's right edge ≤ the left edge of "Hora da primeira medição", with the icon's vertical centre within that text block's top and bottom; "Medir agora"'s right edge ≤ "Hoje não"'s left edge with tops within 1px; both buttons' tops ≥ the bottom of "Ela vira o seu ponto de partida."; each button is ≥ 44px tall; the card's bottom ≤ the "Sequência" region's top (AC 1, AC 13) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card arrangement at 360"`
 
-**C15** - The card's computed `border-top-style` is `dashed` and its `border-top-color` is `#e8304a` in the light scheme and `#ff4a64` in the dark scheme (AC 14)
+**C15** - The card's computed `border-top-style` is `dashed` and its `border-top-color` is `#e8304a` in the light scheme and `#ff4a64` in the dark scheme (AC 14) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "card border colour"`
 
 ### S2 - The reminder setting on Medidas · 4 files · ~75 KB · ~19k
 
-**C16** - On Medidas, a heading "Lembrete" comes after the heading "Nova medição" in document order, and its section holds a group "Lembrar a cada" whose buttons are, in order, "7 dias", "14 dias", "30 dias", "Não lembrar". Table-driven over the stored `reminder`: absent → "7 dias"; `everyDays` 7 → "7 dias"; 14 → "14 dias"; 30 → "30 dias"; `null` → "Não lembrar" - that button alone has `aria-pressed="true"` and the other three `"false"` (AC 15)
+**C16** - On Medidas, a heading "Lembrete" comes after the heading "Nova medição" in document order, and its section holds a group "Lembrar a cada" whose buttons are, in order, "7 dias", "14 dias", "30 dias", "Não lembrar". Table-driven over the stored `reminder`: absent → "7 dias"; `everyDays` 7 → "7 dias"; 14 → "14 dias"; 30 → "30 dias"; `null` → "Não lembrar" - that button alone has `aria-pressed="true"` and the other three `"false"` (AC 15) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "lembrete setting shows the stored interval"`
 
-**C17** - Table-driven from `reminder: { everyDays: 7, snoozedOn: "2026-10-08" }`: tapping "14 dias" stores `{ everyDays: 14, snoozedOn: "2026-10-08" }`, "30 dias" → `{ everyDays: 30, … }`, "Não lembrar" → `{ everyDays: null, … }`, and from `everyDays` 30 "7 dias" → `{ everyDays: 7, … }`; after each tap only the tapped button has `aria-pressed="true"` (AC 16)
+**C17** - Table-driven from `reminder: { everyDays: 7, snoozedOn: "2026-10-08" }`: tapping "14 dias" stores `{ everyDays: 14, snoozedOn: "2026-10-08" }`, "30 dias" → `{ everyDays: 30, … }`, "Não lembrar" → `{ everyDays: null, … }`, and from `everyDays` 30 "7 dias" → `{ everyDays: 7, … }`; after each tap only the tapped button has `aria-pressed="true"` (AC 16) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "choosing an interval stores it"`
 
-**C18** - With tape on 2026-09-28 and `reminder: { everyDays: 14, snoozedOn: null }`: Hoje has no card; after tapping "7 dias" on Medidas and switching to Hoje, the card says "A última com fita foi há 10 dias."; after tapping "14 dias" and switching back, no card; after "Não lembrar" from 7, no card (AC 17)
+**C18** - With tape on 2026-09-28 and `reminder: { everyDays: 14, snoozedOn: null }`: Hoje has no card; after tapping "7 dias" on Medidas and switching to Hoje, the card says "A última com fita foi há 10 dias."; after tapping "14 dias" and switching back, no card; after "Não lembrar" from 7, no card (AC 17) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a new interval applies on the next render"`
 
-**C19** - The Lembrete section's hint reads exactly: off → "Sem lembrete. Você mede quando quiser."; no Measurement, not snoozed → "Vai aparecer em Hoje até você medir com a fita. Só o peso não conta."; tape on 2026-10-05, every 7 → "Conta a partir da última medição com fita. Só o peso não conta."; no Measurement, snoozed 2026-10-08 → "Conta a partir da última medição com fita. Só o peso não conta."; and the section holds exactly one such hint (AC 18)
+**C19** - The Lembrete section's hint reads exactly: off → "Sem lembrete. Você mede quando quiser."; no Measurement, not snoozed → "Vai aparecer em Hoje até você medir com a fita. Só o peso não conta."; tape on 2026-10-05, every 7 → "Conta a partir da última medição com fita. Só o peso não conta."; no Measurement, snoozed 2026-10-08 → "Conta a partir da última medição com fita. Só o peso não conta."; and the section holds exactly one such hint (AC 18) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "lembrete hint per state"`
 
-**C20** - Seeded with completions, `today.checked`, `weights`, `restSeconds: 60` and two Measurements: after "Hoje não" and then tapping "30 dias", the stored record has `version: 1` under `treino:v1`, and its `completions`, `today`, `weights`, `restSeconds` and `measurements` deep-equal the seed (AC 19)
+**C20** - Seeded with completions, `today.checked`, `weights`, `restSeconds: 60` and two Measurements: after "Hoje não" and then tapping "30 dias", the stored record has `version: 1` under `treino:v1`, and its `completions`, `today`, `weights`, `restSeconds` and `measurements` deep-equal the seed (AC 19) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "reminder writes keep the rest of the record"`
 
-**C21** - Seeded with no `reminder`: after rendering Hoje with the card, tapping "Medir agora", and switching back, the stored record has no `reminder` property (AC 20)
+**C21** - Seeded with no `reminder`: after rendering Hoje with the card, tapping "Medir agora", and switching back, the stored record has no `reminder` property (AC 20) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "no reminder field until she changes it"`
 
-**C22** - At 360×740 on Medidas: the heading "Lembrete"'s bottom ≤ the "7 dias" button's top; "7 dias", "14 dias" and "30 dias" have tops within 1px of each other and each one's right edge ≤ the next one's left edge; the hint's top ≥ the bottom of every button in "Lembrar a cada"; the Lembrete section's top ≥ the "Nova medição" section's bottom (AC 15, AC 18)
+**C22** - At 360×740 on Medidas: the heading "Lembrete"'s bottom ≤ the "7 dias" button's top; "7 dias", "14 dias" and "30 dias" have tops within 1px of each other and each one's right edge ≤ the next one's left edge; the hint's top ≥ the bottom of every button in "Lembrar a cada"; the Lembrete section's top ≥ the "Nova medição" section's bottom (AC 15, AC 18) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "setting arrangement at 360"`
 
-**C23** - At 360×740 the pressed interval button has computed `border-color` `#b3122e` in the light scheme and `#ff5c75` in the dark scheme, and an unpressed one `#f6d3d9` / `#45202a` (AC 15)
+**C23** - At 360×740 the pressed interval button has computed `border-color` `#b3122e` in the light scheme and `#ff5c75` in the dark scheme, and an unpressed one `#f6d3d9` / `#45202a` (AC 15) — done
 Proof: `pnpm exec playwright test e2e/lembrete.spec.ts -g "pressed interval colour"`
 
 ## Coverage
@@ -150,3 +150,7 @@ Cost: 1 domain proof, 17 `App` proofs, 4 Playwright proofs across 3 test files.
 
 - S1 ≈ `App.tsx` 6.0 KB, `App.test.tsx` 50.0 KB, `measurements.ts` 3.8 KB, `measurements.test.ts` 5.4 KB, `MeasureForm.tsx` 6.9 KB, `index.css` 14.9 KB + new card and `e2e/lembrete.spec.ts` ≈ 5 KB → ~92 KB / 4 ≈ 23k
 - S2 touches the same `App.tsx`, `App.test.tsx`, `index.css` and spec, plus the new setting ≈ 2 KB → S1+S2 ≈ 97 KB / 4 ≈ 24k, under the 150k budget - one builder
+
+- **Boundary:** C1-C23 closed in `feat(lembrete): remind her to measure on hoje and set the interval on medidas` (one builder, no handoff)
+- **Settled mid-build:** none
+- **Abandoned:** none

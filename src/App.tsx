@@ -3,12 +3,13 @@ import { Backup } from "./components/Backup";
 import { Celebration } from "./components/Celebration";
 import { MeasureForm } from "./components/MeasureForm";
 import { Menu, type Page } from "./components/Menu";
+import { ReminderCard, ReminderSetting } from "./components/Reminder";
 import { StreakCard, WeekStrip } from "./components/Progress";
 import { RestTimer } from "./components/RestTimer";
 import { Cherry, Sprite } from "./components/Sprite";
 import { DoneCard, Picker, RestCard, WorkoutCard } from "./components/Workout";
 import { localDate } from "./domain/dates";
-import { measurementsOf, saveMeasurement, type MeasureValues } from "./domain/measurements";
+import { measurementsOf, reminderDue, reminderOf, saveMeasurement, type MeasureValues, type ReminderSettings } from "./domain/measurements";
 import { PLAN, type WorkoutId } from "./domain/plan";
 import { streak, weekCount, weekStrip } from "./domain/progress";
 import { isRestDay, nextWorkout } from "./domain/rotation";
@@ -22,6 +23,7 @@ export default function App() {
   const [celebrating, setCelebrating] = useState<WorkoutId | null>(null);
   const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
   const [page, setPage] = useState<Page>("hoje");
+  const [measureRequest, setMeasureRequest] = useState(0);
 
   // A home-screen app can be resumed the next morning without a reload.
   useEffect(() => {
@@ -76,6 +78,20 @@ export default function App() {
     return true;
   };
 
+  const due = reminderDue(record, today);
+  const setReminder = (change: Partial<ReminderSettings>) =>
+    setRecord((r) => ({ ...r, reminder: { ...reminderOf(r), ...change } }));
+
+  const snooze = () => {
+    setReminder({ snoozedOn: today });
+    setToast({ text: "Tudo bem, lembro amanhã", id: Date.now() });
+  };
+
+  const measureNow = () => {
+    goTo("medidas");
+    setMeasureRequest((n) => n + 1);
+  };
+
   const goTo = (to: Page) => {
     if (to === page) return;
     setPage(to);
@@ -109,6 +125,7 @@ export default function App() {
         <Menu page={page} onPage={goTo} />
 
         <div className="page" hidden={page !== "hoje"}>
+          {due && <ReminderCard due={due} onMeasure={measureNow} onSnooze={snooze} />}
           <StreakCard
             weeks={streak(record.completions, today)}
             thisWeek={weekCount(record.completions, today)}
@@ -143,7 +160,8 @@ export default function App() {
         </div>
 
         <section className="page" aria-label="Medidas" hidden={page !== "medidas"}>
-          <MeasureForm measurements={measurementsOf(record)} today={today} onSave={saveMeasure} />
+          <MeasureForm measurements={measurementsOf(record)} today={today} onSave={saveMeasure} openRequest={measureRequest} />
+          <ReminderSetting everyDays={reminderOf(record).everyDays} showing={due !== null} onChange={(everyDays) => setReminder({ everyDays })} />
         </section>
       </main>
 

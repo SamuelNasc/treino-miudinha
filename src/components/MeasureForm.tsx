@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Measurement, MeasureValues } from "../domain/measurements";
 import { MEASURES, parseMeasure, type MeasureId } from "../domain/measures";
 
@@ -36,10 +36,12 @@ interface Props {
   today: string;
   /** Returns whether the Measurement was stored. */
   onSave: (date: string, values: MeasureValues) => boolean;
+  /** Bumped by "Medir agora": opens the form on today, or leaves an open one as it is. */
+  openRequest: number;
 }
 
 /** The form's state lives here: Medidas stays mounted while hidden, so a page switch keeps it. */
-export function MeasureForm({ measurements, today, onSave }: Props) {
+export function MeasureForm({ measurements, today, onSave, openRequest }: Props) {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(today);
   const [drafts, setDrafts] = useState<Drafts>(() => draftsFor(measurements, today));
@@ -57,6 +59,14 @@ export function MeasureForm({ measurements, today, onSave }: Props) {
     setGuide(null);
     setOpen(!open);
   };
+
+  useEffect(() => {
+    if (openRequest === 0 || open) return;
+    load(today);
+    setGuide(null);
+    setOpen(true);
+    // Only a new request opens the form; later renders must not reopen it.
+  }, [openRequest]);
 
   const changeDate = (value: string) => {
     const day = value === "" || value > today ? today : value;

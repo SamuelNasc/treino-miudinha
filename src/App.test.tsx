@@ -347,7 +347,7 @@ describe("Backup", () => {
       completions: THREE_WEEKS,
       today: { date: "2026-10-06", workout: null, checked: [] },
       weights: { "leg-press-45": 55 },
-      restSeconds: 60,
+      restSeconds: 60 as const,
     };
     const file = () => new File([JSON.stringify(backup)], "treino-backup-2026-10-06.json", { type: "application/json" });
     const user = userEvent.setup();
@@ -664,7 +664,7 @@ describe("Medidas no registro", () => {
       completions: THREE_WEEKS,
       today: { date: "2026-10-06", workout: null, checked: [] },
       weights: { "leg-press-45": 55 },
-      restSeconds: 60,
+      restSeconds: 60 as const,
     };
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
@@ -1145,5 +1145,280 @@ describe("Registrar medição", () => {
     expect(medidas().getByRole("button", { name: "Fechar" })).toBeInTheDocument();
     expect(dateField().value).toBe("2026-10-01");
     expect(field("Peso em kg").value).toBe("62");
+  });
+});
+
+describe("Lembrete", () => {
+  type User = ReturnType<typeof userEvent.setup>;
+  type Seed = Parameters<typeof seed>[0];
+  const tape = (date: string) => ({ date, values: { cintura: 72 } });
+  const card = () => screen.queryByRole("region", { name: "Lembrete de medidas" });
+  const inCard = () => within(card()!);
+  const menuButton = (name: "Hoje" | "Medidas") =>
+    within(screen.getByRole("navigation", { name: "Menu" })).getByRole("button", { name });
+  const goTo = (user: User, name: "Hoje" | "Medidas") => user.click(menuButton(name));
+  const medidas = () => within(screen.getByRole("region", { name: "Medidas" }));
+  const field = (name: string) => screen.getByRole("textbox", { name }) as HTMLInputElement;
+  const dateField = () => screen.getByLabelText("Data") as HTMLInputElement;
+  const intervals = () => within(screen.getByRole("group", { name: "Lembrar a cada" }));
+  const INTERVALS = ["7 dias", "14 dias", "30 dias", "Não lembrar"];
+  const HINTS = [
+    "Sem lembrete. Você mede quando quiser.",
+    "Vai aparecer em Hoje até você medir com a fita. Só o peso não conta.",
+    "Conta a partir da última medição com fita. Só o peso não conta.",
+  ];
+
+  function start(record: Seed = {}, today = THU) {
+    setToday(today);
+    seed(record, today);
+    const user = userEvent.setup();
+    render(<App />);
+    return user;
+  }
+
+  it("first measurement card", () => {
+    start();
+    expect(card()).toBeInTheDocument();
+    expect(inCard().getByText("Hora da primeira medição")).toBeInTheDocument();
+    expect(inCard().getByText("Ela vira o seu ponto de partida.")).toBeInTheDocument();
+    expect(inCard().getByRole("button", { name: "Medir agora" })).toBeInTheDocument();
+    expect(inCard().getByRole("button", { name: "Hoje não" })).toBeInTheDocument();
+    const streak = screen.getByRole("region", { name: "Sequência" });
+    expect(card()!.compareDocumentPosition(streak) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("due card counts the days", () => {
+    start({ measurements: [tape("2026-10-01")] });
+    expect(inCard().getByText("Hora de medir")).toBeInTheDocument();
+    expect(inCard().getByText("A última com fita foi há 7 dias.")).toBeInTheDocument();
+    expect(inCard().queryByText("Hora da primeira medição")).toBeNull();
+  });
+
+  it("no card before the interval", () => {
+    start({ measurements: [tape("2026-10-02")] });
+    expect(card()).toBeNull();
+  });
+
+  it("a future tape date is not due", () => {
+    start({ measurements: [tape("2026-10-10")] });
+    expect(card()).toBeNull();
+  });
+
+  it("a weight-only entry does not count", () => {
+    start({ measurements: [tape("2026-10-02"), { date: "2026-10-07", values: { peso: 62 } }] });
+    expect(card()).toBeNull();
+    cleanup();
+    start({ measurements: [tape("2026-10-01"), { date: "2026-10-07", values: { peso: 62 } }] });
+    expect(inCard().getByText("A última com fita foi há 7 dias.")).toBeInTheDocument();
+  });
+
+  it("reminder off shows no card", () => {
+    const off = { everyDays: null, snoozedOn: null };
+    start({ reminder: off });
+    expect(card()).toBeNull();
+    cleanup();
+    start({ reminder: off, measurements: [tape("2026-08-01")] });
+    expect(card()).toBeNull();
+  });
+
+  it("hoje nao hides the card until tomorrow", async () => {
+    let user = start();
+    await user.click(inCard().getByRole("button", { name: "Hoje não" }));
+    expect(card()).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("Tudo bem, lembro amanhã");
+    expect(stored().reminder).toEqual({ everyDays: 7, snoozedOn: THU });
+    cleanup();
+    user = start({ reminder: { everyDays: 14, snoozedOn: null }, measurements: [tape("2026-09-24")] });
+    await user.click(inCard().getByRole("button", { name: "Hoje não" }));
+    expect(card()).toBeNull();
+    expect(stored().reminder).toEqual({ everyDays: 14, snoozedOn: THU });
+  });
+
+  it("the card comes back the next day", async () => {
+    start({ reminder: { everyDays: 7, snoozedOn: THU } });
+    expect(card()).toBeNull();
+    cleanup();
+    start({ reminder: { everyDays: 7, snoozedOn: THU } }, "2026-10-09");
+    expect(inCard().getByText("Hora da primeira medição")).toBeInTheDocument();
+    cleanup();
+    const user = start();
+    await user.click(inCard().getByRole("button", { name: "Hoje não" }));
+    expect(card()).toBeNull();
+    vi.setSystemTime(new Date(2026, 9, 9, 9, 0));
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(inCard().getByText("Hora da primeira medição")).toBeInTheDocument();
+  });
+
+  it("medir agora opens the form", async () => {
+    const user = start();
+    const before = stored();
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    expect(menuButton("Medidas")).toHaveAttribute("aria-current", "page");
+    expect(medidas().getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+    expect(dateField().value).toBe(THU);
+    expect(stored()).toEqual(before);
+  });
+
+  it("medir agora keeps an open form", async () => {
+    const user = start();
+    await goTo(user, "Medidas");
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    fireEvent.change(dateField(), { target: { value: "2026-10-01" } });
+    await user.type(field("Peso em kg"), "62");
+    await goTo(user, "Hoje");
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    expect(medidas().getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+    expect(dateField().value).toBe("2026-10-01");
+    expect(field("Peso em kg").value).toBe("62");
+  });
+
+  it("only a tape save clears the card", async () => {
+    const user = start();
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    await goTo(user, "Hoje");
+    expect(card()).toBeInTheDocument();
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    await user.type(field("Peso em kg"), "62");
+    await user.click(screen.getByRole("button", { name: "Salvar medição" }));
+    await goTo(user, "Hoje");
+    expect(inCard().getByText("Hora da primeira medição")).toBeInTheDocument();
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    await user.type(field("Cintura em cm"), "72");
+    await user.click(screen.getByRole("button", { name: "Salvar medição" }));
+    await goTo(user, "Hoje");
+    expect(card()).toBeNull();
+  });
+
+  it("the card shows in every hoje state", () => {
+    const first = PLAN.A.exercises[0].id;
+    const states: [string, Seed, string, () => HTMLElement][] = [
+      ["rest day", {}, WED, () => screen.getByText("Hoje é descanso")],
+      ["done today", { completions: [c(THU, "A")] }, THU, () => screen.getByText("Feito por hoje!")],
+      [
+        "in progress",
+        { today: { date: THU, workout: "A", checked: [first] } },
+        THU,
+        () => screen.getByRole("heading", { name: "Treino A" }),
+      ],
+    ];
+    for (const [name, record, today, marker] of states) {
+      start(record, today);
+      expect(marker(), name).toBeInTheDocument();
+      expect(card(), name).toBeInTheDocument();
+      cleanup();
+    }
+  });
+
+  it("lembrete setting shows the stored interval", async () => {
+    const cases: [Seed["reminder"], string][] = [
+      [undefined, "7 dias"],
+      [{ everyDays: 7, snoozedOn: null }, "7 dias"],
+      [{ everyDays: 14, snoozedOn: null }, "14 dias"],
+      [{ everyDays: 30, snoozedOn: null }, "30 dias"],
+      [{ everyDays: null, snoozedOn: null }, "Não lembrar"],
+    ];
+    for (const [reminder, pressed] of cases) {
+      const user = start(reminder ? { reminder } : {});
+      await goTo(user, "Medidas");
+      const headings = medidas().getAllByRole("heading").map((h) => h.textContent);
+      expect(headings.indexOf("Lembrete")).toBeGreaterThan(headings.indexOf("Nova medição"));
+      expect(headings.indexOf("Nova medição")).toBeGreaterThanOrEqual(0);
+      const section = screen.getByRole("heading", { name: "Lembrete" }).closest("section")!;
+      expect(within(section).getByRole("group", { name: "Lembrar a cada" })).toBeInTheDocument();
+      expect(intervals().getAllByRole("button").map((b) => b.textContent)).toEqual(INTERVALS);
+      for (const name of INTERVALS) {
+        expect(intervals().getByRole("button", { name }), `${pressed}: ${name}`).toHaveAttribute(
+          "aria-pressed",
+          String(name === pressed),
+        );
+      }
+      cleanup();
+    }
+  });
+
+  it("choosing an interval stores it", async () => {
+    const cases: [7 | 14 | 30, string, 7 | 14 | 30 | null][] = [
+      [7, "14 dias", 14],
+      [7, "30 dias", 30],
+      [7, "Não lembrar", null],
+      [30, "7 dias", 7],
+    ];
+    for (const [from, tap, everyDays] of cases) {
+      const user = start({ reminder: { everyDays: from, snoozedOn: THU } });
+      await goTo(user, "Medidas");
+      await user.click(intervals().getByRole("button", { name: tap }));
+      expect(stored().reminder, tap).toEqual({ everyDays, snoozedOn: THU });
+      for (const name of INTERVALS) {
+        expect(intervals().getByRole("button", { name }), `${tap}: ${name}`).toHaveAttribute("aria-pressed", String(name === tap));
+      }
+      cleanup();
+    }
+  });
+
+  it("a new interval applies on the next render", async () => {
+    const user = start({ reminder: { everyDays: 14, snoozedOn: null }, measurements: [tape("2026-09-28")] });
+    expect(card()).toBeNull();
+    await goTo(user, "Medidas");
+    await user.click(intervals().getByRole("button", { name: "7 dias" }));
+    await goTo(user, "Hoje");
+    expect(inCard().getByText("A última com fita foi há 10 dias.")).toBeInTheDocument();
+    await goTo(user, "Medidas");
+    await user.click(intervals().getByRole("button", { name: "14 dias" }));
+    await goTo(user, "Hoje");
+    expect(card()).toBeNull();
+    await goTo(user, "Medidas");
+    await user.click(intervals().getByRole("button", { name: "7 dias" }));
+    await user.click(intervals().getByRole("button", { name: "Não lembrar" }));
+    await goTo(user, "Hoje");
+    expect(card()).toBeNull();
+  });
+
+  it("lembrete hint per state", async () => {
+    const cases: [string, Seed, string][] = [
+      ["off", { reminder: { everyDays: null, snoozedOn: null } }, HINTS[0]],
+      ["would show", {}, HINTS[1]],
+      ["not due", { measurements: [tape("2026-10-05")] }, HINTS[2]],
+      ["snoozed", { reminder: { everyDays: 7, snoozedOn: THU } }, HINTS[2]],
+    ];
+    for (const [name, record, hint] of cases) {
+      const user = start(record);
+      await goTo(user, "Medidas");
+      const section = within(screen.getByRole("heading", { name: "Lembrete" }).closest("section")!);
+      expect(section.getByText(hint), name).toBeInTheDocument();
+      expect(HINTS.filter((h) => section.queryByText(h)), name).toHaveLength(1);
+      cleanup();
+    }
+  });
+
+  it("reminder writes keep the rest of the record", async () => {
+    const record = {
+      completions: [c("2026-10-06", "A")],
+      today: { date: THU, workout: "B" as const, checked: [PLAN.B.exercises[0].id] },
+      weights: { [PLAN.B.exercises[0].id]: 20 },
+      restSeconds: 60 as const,
+      measurements: [tape("2026-09-24"), { date: "2026-10-01", values: { peso: 62.9 } }],
+    };
+    const user = start(record);
+    await user.click(inCard().getByRole("button", { name: "Hoje não" }));
+    await goTo(user, "Medidas");
+    await user.click(intervals().getByRole("button", { name: "30 dias" }));
+    const after = JSON.parse(localStorage.getItem("treino:v1")!);
+    expect(after.version).toBe(1);
+    expect(after.reminder).toEqual({ everyDays: 30, snoozedOn: THU });
+    expect(after.completions).toEqual(record.completions);
+    expect(after.today).toEqual(record.today);
+    expect(after.weights).toEqual(record.weights);
+    expect(after.restSeconds).toBe(60);
+    expect(after.measurements).toEqual(record.measurements);
+  });
+
+  it("no reminder field until she changes it", async () => {
+    const user = start();
+    expect(card()).toBeInTheDocument();
+    await user.click(inCard().getByRole("button", { name: "Medir agora" }));
+    await goTo(user, "Hoje");
+    expect(stored()).not.toHaveProperty("reminder");
   });
 });

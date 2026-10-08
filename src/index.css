@@ -164,11 +164,11 @@
   .state-icon { width: 64px; height: 64px; }
 
   .foot { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-  .ghost { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 10px 16px; font-size: 14px; color: var(--muted); cursor: pointer; }
+  .ghost { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); cursor: pointer; }
 
   .timer { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 6px; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(58, 17, 24, 0.35); z-index: 4; }
-  .timer button { border: 0; background: transparent; color: inherit; border-radius: 999px; padding: 12px 14px; }
-  .timer .go { background: var(--berry); color: var(--on-accent); font-family: var(--display); font-weight: 600; font-size: 17px; min-width: 170px; font-variant-numeric: tabular-nums; }
+  .timer button { border: 0; background: transparent; color: inherit; border-radius: 999px; padding: 10px 14px; }
+  .timer .go { background: var(--berry); color: var(--on-accent); font-family: var(--display); font-weight: 600; font-size: 17px; min-width: 150px; font-variant-numeric: tabular-nums; }
   .timer .go.running { background: var(--leaf); }
   .timer .go.done { background: var(--cherry); animation: pulse 0.8s ease-in-out infinite alternate; }
   .timer .len[aria-pressed="true"] { background: rgba(255, 255, 255, 0.18); }

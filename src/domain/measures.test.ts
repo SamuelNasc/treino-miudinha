@@ -30,4 +30,8 @@ describe("measures", () => {
     expect(parseMeasure("peso", "30")).toBe(30);
     expect(parseMeasure("peso", "200")).toBe(200);
   });
+
+  it("a second decimal digit is rejected", () => {
+    for (const text of ["62,90", "74,00", "62.90"]) expect(parseMeasure("peso", text), text).toBe("bad");
+  });
 });

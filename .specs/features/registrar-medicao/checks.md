@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/registrar-medicao/plan.md`
 
-25 checks in 1 slice · 0 one-way doors · 0 open
+27 checks in 1 slice · 0 one-way doors · 0 open
 
 Behaviour proofs render `App` in jsdom (`src/App.test.tsx`, new `describe("Registrar medição")`),
 with `setToday`, `seed` and `stored` as the existing tests use them. Today is `THU` (2026-10-08)
@@ -95,6 +95,12 @@ Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "form arrangement at 36
 **C25** - A field marked by AC 11 has a border colour `#e8304a` in the light scheme and `#ff4a64` in the dark scheme, and an unmarked field's border is transparent (AC 11) — done
 Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "bad value border colour"`
 
+**C26** - The measure-text parser rejects a second decimal digit even when the number is in range: `62,90`, `74,00` and `62.90` → rejected for Peso (AC 10). Added after round 1 of verification: a parser accepting any number of decimals survived C10 — done
+Proof: `pnpm vitest run src/domain/measures.test.ts -t "a second decimal digit is rejected"`
+
+**C27** - At 360×740 with the form open, Cintura holding `680` (left, so marked) and its cue open, as mockup v6 arranges them: in each of Peso, Busto, Cintura, Abdômen, Quadril, the row label's right edge ≤ its field box's left edge, the label's vertical centre lies within the field box's top and bottom, and the field box is 120px wide (±1); "Data"'s right edge ≤ the date input's left edge with its vertical centre within the input's top and bottom; the heading "Nova medição"'s right edge ≤ the "Fechar" button's left edge with its vertical centre within the button's top and bottom; in Cintura, the field box's bottom ≤ "onde medir"'s top ("fechar" while open), its bottom ≤ the cue's top, the cue's bottom ≤ "Confira este valor"'s top, and the three start within 1px of the row label's left edge (AC 4, AC 11, AC 18). Added after round 1 of verification: the mockup's arrangement of these rows had no check — done
+Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "form rows at 360"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -102,10 +108,12 @@ Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "bad value border colou
 | measure fields (11) | C4, table-driven over all 11 names and units | - |
 | row groups (8) | `Peso` C4, C12 · `Busto` C4, C20 · `Cintura` C4, C20 · `Abdômen` C4, C20 · `Quadril` C4, C20 · `Braço` C4, C13 · `Coxa` C4, C21 · `Panturrilha` C4, C20 | - |
 | D/E rows for layout (3) | `Braço` C24 · `Coxa` C24 · `Panturrilha` C24 | - |
+| single rows for layout (5) | `Peso` C27 · `Busto` C27 · `Cintura` C27 · `Abdômen` C27 · `Quadril` C27 | - |
+| stack under a field (3) | "onde medir" C27 · cue C27 · "Confira este valor" C27 | - |
 | cue lines (7) | C22, table-driven over all 7 | - |
 | field value on load (3) | stored value on the day C6 · previous value as placeholder C5 · `–` with no earlier value C5 | - |
 | accepted text (4 shapes) | comma decimal C10, C11 · dot decimal C10 · whole number C10 · spaces around C10 | - |
-| rejected text (5 kinds) | not a number C10, C12 · two decimals C10, C12 · above range C10, C12 · below range C10, C12 · empty-means-blank C10, C9 | - |
+| rejected text (5 kinds) | not a number C10, C12 · two decimals C10, C12, C26 · above range C10, C12 · below range C10, C12 · empty-means-blank C10, C9 | - |
 | Peso range edges (4) | 29,9 C10 · 30 C10 · 200 C10 · 200,1 C10 | - |
 | mark lifecycle (3) | not marked while typing C12 · marked on leaving C12, C13 · cleared on fixing C15 | - |
 | Save enabled states (3) | all empty C9 · a bad value C14 · valid values C9 | - |
@@ -113,9 +121,9 @@ Proof: `pnpm exec playwright test e2e/medidas.spec.ts -g "bad value border colou
 | date inputs (3) | today default C3 · empty C8 · future C8 | - |
 | form open states (3) | closed C1 · open C2 · closed after save C16 | - |
 | colour schemes (2) | light C25 · dark C25 | - |
-| mockup v6 form elements (12) | heading "Nova medição" C1 · Abrir/Fechar C2 · "Data" C3 · merge hint C6 · group labels C4 · units C4 · D/E side labels C4 · D/E side by side C24 · "onde medir"/"fechar" C20 · "Confira este valor" C12, C13 · full-width "Salvar medição" C24 · toast "Medição salva" C16 | - |
+| mockup v6 form elements (15) | header row beside its button C27 · date row beside its input C27 · single row label beside a 120px field C27 · heading "Nova medição" C1 · Abrir/Fechar C2 · "Data" C3 · merge hint C6 · group labels C4 · units C4 · D/E side labels C4 · D/E side by side C24 · "onde medir"/"fechar" C20 · "Confira este valor" C12, C13 · full-width "Salvar medição" C24 · toast "Medição salva" C16 | - |
 
-- Claims naming layout or colour: C24, C25 - each proof runs in Chromium at 360×740
+- Claims naming layout or colour: C24, C25, C27 - each proof runs in Chromium at 360×740
 - No other check claims more than the cases its proof exercises
 - Out of reach, enumerated for the form: the card's padding and shadow, the field box's radius, padding and `--blush` background, the placeholder colour, the group-label letter spacing and size, the hint and message font size and colour, the "onde medir" chevron rotation, and the Save button's disabled opacity
 
@@ -157,4 +165,5 @@ Cost: 1 parser proof, 22 `App` proofs, 2 Playwright proofs across 3 test files.
 
 - **Boundary:** C1-C25 closed in `feat(medidas): log and merge a measurement from the nova medição form` (one builder, no handoff)
 - **Settled mid-build:** none
+- **Round 1 fix:** C26 and C27 added (tests only, no code change) for the verifier's surviving mutant on the decimal rule and the uncovered mockup arrangement
 - **Abandoned:** none

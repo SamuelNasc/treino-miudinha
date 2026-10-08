@@ -38,6 +38,47 @@ test("form arrangement at 360", async ({ page }) => {
   expect(after.y + after.height).toBeLessThanOrEqual(timer.y);
 });
 
+test("form rows at 360", async ({ page }) => {
+  await openForm(page);
+  const cintura = page.getByRole("textbox", { name: "Cintura em cm" });
+  await cintura.fill("680");
+  await cintura.blur();
+  const rowOf = (name: string) => page.getByRole("group", { name, exact: true });
+  await rowOf("Cintura").getByRole("button", { name: "onde medir" }).click();
+  const mid = (b: { y: number; height: number }) => b.y + b.height / 2;
+  const beside = (left: { x: number; width: number; y: number; height: number }, right: { x: number; y: number; height: number }, what: string) => {
+    expect(left.x + left.width, what).toBeLessThanOrEqual(right.x);
+    expect(mid(left), what).toBeGreaterThanOrEqual(right.y);
+    expect(mid(left), what).toBeLessThanOrEqual(right.y + right.height);
+  };
+
+  for (const [name, unit] of [["Peso", "kg"], ["Busto", "cm"], ["Cintura", "cm"], ["Abdômen", "cm"], ["Quadril", "cm"]]) {
+    const label = await box(rowOf(name).getByText(name, { exact: true }));
+    const field = await box(page.getByRole("textbox", { name: `${name} em ${unit}` }).locator("xpath=ancestor::label[1]"));
+    beside(label, field, name);
+    expect(Math.abs(field.width - 120), name).toBeLessThanOrEqual(1);
+  }
+
+  beside(await box(page.getByText("Data", { exact: true })), await box(page.getByLabel("Data")), "Data");
+  beside(await box(page.getByRole("heading", { name: "Nova medição" })), await box(medidas(page).getByRole("button", { name: "Fechar", exact: true })), "header");
+
+  const label = await box(rowOf("Cintura").getByText("Cintura", { exact: true }));
+  const field = await box(cintura.locator("xpath=ancestor::label[1]"));
+  const whereButton = rowOf("Cintura").getByRole("button", { name: "fechar" });
+  const where = await box(whereButton);
+  // The cue box is the region "onde medir" controls; its text sits inside the box's padding.
+  const cueBox = page.locator(`#${await whereButton.getAttribute("aria-controls")}`);
+  await expect(cueBox).toContainText("Fita reta, sem apertar.");
+  const cue = await box(cueBox);
+  const err = await box(rowOf("Cintura").getByText("Confira este valor"));
+  expect(field.y + field.height).toBeLessThanOrEqual(where.y);
+  expect(where.y + where.height).toBeLessThanOrEqual(cue.y);
+  expect(cue.y + cue.height).toBeLessThanOrEqual(err.y);
+  for (const [what, b] of [["onde medir", where], ["cue", cue], ["message", err]] as const) {
+    expect(Math.abs(b.x - label.x), what).toBeLessThanOrEqual(1);
+  }
+});
+
 const BERRY = { light: "#e8304a", dark: "#ff4a64" } as const;
 
 for (const scheme of ["light", "dark"] as const) {

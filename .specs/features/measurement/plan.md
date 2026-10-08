@@ -116,7 +116,7 @@ Defaults that are not already a numbered criterion. Drop a row once it is.
 
 | Assumption | Chosen default | Rationale | Confirmed? |
 | --- | --- | --- | --- |
-| A stored or imported Measurement dated after today | kept as it is | the importer has no "today" to check against, and the only way to get one is a wrong phone clock. The form's date picker stops new ones (slice Registrar medição) | n |
+| A stored or imported Measurement dated after today | kept as it is | the importer has no "today" to check against, and the only way to get one is a wrong phone clock. The form's date picker stops new ones (slice Registrar medição) | y - Samuel took the recommended default, 2026-10-08 |
 | How "at most one decimal" is checked for a stored number | the value times 10 is within 1e-9 of a whole number | `62.9 * 10` is not exactly 629 in floating point, so an exact check would refuse real values | n |
 
 **Open questions:** none - all resolved or logged above.

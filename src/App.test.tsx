@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { GUIDES } from "./domain/guides";
 import { PLAN, type WorkoutId } from "./domain/plan";
+import { measurementsOf, reminderOf } from "./domain/measurements";
 import { STORAGE_KEY, type TreinoRecord } from "./domain/store";
 
 // 2026-10-05 is a Monday.
@@ -611,5 +612,67 @@ describe("como faz", () => {
     }
     expect(seen[0].cue).toBe(GUIDES["abdominal-reto"].cue);
     expect(seen[1]).toEqual(seen[0]);
+  });
+});
+
+describe("Medidas no registro", () => {
+  it("opening the app writes no measurement fields", async () => {
+    setToday(MON);
+    seed({ completions: [c("2026-10-02", "D")] }, MON);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Marcar Extensão" }));
+    expect(stored().today.checked).toEqual(["extensao"]);
+    expect(stored()).not.toHaveProperty("measurements");
+    expect(stored()).not.toHaveProperty("reminder");
+  });
+
+  it("backup round-trips measurements and reminder", async () => {
+    setToday(THU);
+    const measurements = [
+      { date: "2026-10-01", values: { peso: 63 } },
+      { date: "2026-10-05", values: { peso: 62.9, cintura: 70, "braco-d": 27.5 } },
+    ];
+    const reminder = { everyDays: 14 as const, snoozedOn: "2026-10-06" };
+    seed({ completions: [c("2026-10-02", "D")], measurements, reminder }, THU);
+    const createObjectURL = vi.fn((_: Blob) => "blob:backup");
+    Object.defineProperty(URL, "createObjectURL", { value: createObjectURL, configurable: true });
+    Object.defineProperty(URL, "revokeObjectURL", { value: vi.fn(), configurable: true });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const user = userEvent.setup();
+    const first = render(<App />);
+    await user.click(screen.getByRole("button", { name: /Exportar/ }));
+    const text = await createObjectURL.mock.calls[0][0].text();
+    expect(JSON.parse(text).measurements).toEqual(measurements);
+    expect(JSON.parse(text).reminder).toEqual(reminder);
+    first.unmount();
+
+    localStorage.clear();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+    await user.upload(screen.getByLabelText("Importar backup"), new File([text], "treino-backup-2026-10-08.json", { type: "application/json" }));
+    expect(await screen.findByText("Backup importado")).toBeInTheDocument();
+    expect(stored().measurements).toEqual(measurements);
+    expect(stored().reminder).toEqual(reminder);
+  });
+
+  it("older backup without measurements imports", async () => {
+    setToday(THU);
+    seed({ measurements: [{ date: "2026-10-05", values: { peso: 62 } }] }, THU);
+    const backup = {
+      version: 1,
+      completions: THREE_WEEKS,
+      today: { date: "2026-10-06", workout: null, checked: [] },
+      weights: { "leg-press-45": 55 },
+      restSeconds: 60,
+    };
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.upload(screen.getByLabelText("Importar backup"), new File([JSON.stringify(backup)], "treino-backup-2026-10-06.json", { type: "application/json" }));
+    expect(await screen.findByText("Backup importado")).toBeInTheDocument();
+    expect(stored().completions).toEqual(THREE_WEEKS);
+    expect(measurementsOf(stored())).toEqual([]);
+    expect(reminderOf(stored())).toEqual({ everyDays: 7, snoozedOn: null });
   });
 });

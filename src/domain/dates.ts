@@ -25,3 +25,8 @@ export function weekdayIndex(date: string): number {
 export function weekStart(date: string): string {
   return addDays(date, -weekdayIndex(date));
 }
+
+/** True for a real calendar date written as "YYYY-MM-DD". */
+export function isLocalDate(value: unknown): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && localDate(parse(value)) === value;
+}

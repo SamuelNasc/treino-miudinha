@@ -1,6 +1,7 @@
 // Door 1: one localStorage key holding the whole record, versioned from day one.
-import { parseMeasurements, parseReminder, type Measurement, type ReminderSettings } from "./measurements";
-import type { WorkoutId } from "./plan";
+// Frozen copy of src/domain/store.ts at 9e5a252, the build on her phone before measurements (AC 20).
+// Only this import path changed. Never edit it to match the current store.
+import type { WorkoutId } from "../../src/domain/plan";
 
 export const STORAGE_KEY = "treino:v1";
 
@@ -15,10 +16,6 @@ export interface TreinoRecord {
   today: { date: string; workout: WorkoutId | null; checked: string[] };
   weights: Record<string, number>;
   restSeconds: 60 | 90;
-  /** Absent until her first Measurement: an older build still reads this as version 1. */
-  measurements?: Measurement[];
-  /** Absent until she changes the reminder; absent means every 7 days, never snoozed. */
-  reminder?: ReminderSettings;
 }
 
 export function freshRecord(today: string): TreinoRecord {
@@ -58,16 +55,13 @@ export function parseRecord(text: string): TreinoRecord | null {
     r.today && typeof r.today.date === "string" && Array.isArray(r.today.checked)
       ? { date: r.today.date, workout: WORKOUTS.has(r.today.workout as string) ? r.today.workout! : null, checked: r.today.checked }
       : { date: "", workout: null, checked: [] };
-  const record: TreinoRecord = {
+  return {
     version: 1,
     completions: r.completions,
     today,
     weights: r.weights,
     restSeconds: r.restSeconds === 60 ? 60 : 90,
   };
-  if ("measurements" in r) record.measurements = parseMeasurements(r.measurements);
-  if ("reminder" in r) record.reminder = parseReminder(r.reminder);
-  return record;
 }
 
 /** Reads the stored record. `persistent` is false when localStorage cannot be read. */

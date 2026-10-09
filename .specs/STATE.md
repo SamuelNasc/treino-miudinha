@@ -9,9 +9,9 @@
 ## Handoff
 
 **Feature**: measure-guide (slice 7 of 7 in `.design/body-measurements.md`)
-**Where**: plan written - Samuel approved mockup v6's seven drawings as-is from a contact sheet 2026-10-09; `validate_plan.py` 0 errors, 1 expected warning (open question: has she seen the drawings - blocks go-live)
+**Where**: verified - round 1 PASS: 14/14 checks, 5/5 faults killed, Vitest 219, Playwright 78, validate_verification exit 0. Clean pass, no lessons recorded
 **In progress**: none
-**Next step**: Samuel reviews `.specs/features/measure-guide/plan.md`, then checks.md (profile ui)
+**Next step**: push and deploy after Samuel's go-ahead; the design asks his wife to see the drawings before release (plan open question 1, blocks go-live). All 7 body-measurement slices are built
 **Blockers**: none
-**Uncommitted**: this file, `.specs/features/measure-guide/plan.md`
-**Branch**: main, pushed 2026-10-09 (69fb998), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete, Histórico and Gráfico are live
+**Uncommitted**: none
+**Branch**: main, 3 commits ahead of origin (25e3157, e780c6e, this one). Production still has slices 1-6

@@ -1863,3 +1863,385 @@ describe("Histórico", () => {
     expect(after.measurements).toEqual([{ date: "2026-09-30", values: { peso: 62.4, cintura: 71.6 } }, record.measurements[2]]);
   });
 });
+
+describe("Gráfico", () => {
+  type User = ReturnType<typeof userEvent.setup>;
+  type Seed = Parameters<typeof seed>[0];
+  type Entry = NonNullable<TreinoRecord["measurements"]>[number];
+  const FRI = "2026-10-09";
+  const CIN3: Entry[] = [
+    { date: "2026-08-27", values: { cintura: 74, peso: 64.2 } },
+    { date: "2026-09-24", values: { cintura: 72.4 } },
+    { date: "2026-10-01", values: { peso: 62.9 } },
+    { date: "2026-10-08", values: { cintura: 71.6, peso: 62.6 } },
+  ];
+  const PAIR: Entry[] = [
+    { date: "2026-09-24", values: { "braco-d": 29, "braco-e": 28.6 } },
+    { date: "2026-10-08", values: { "braco-d": 28.5, "braco-e": 28.3 } },
+  ];
+  const PESO1: Entry = { date: "2026-10-01", values: { peso: 62.9 } };
+  const ONE_SIDE_SINGLE: Entry[] = [
+    { date: "2026-09-24", values: { "braco-d": 29 } },
+    { date: "2026-10-08", values: { "braco-d": 28.5, "braco-e": 28.3 } },
+  ];
+  const CHIP_NAMES = ["Peso", "Busto", "Cintura", "Abdômen", "Quadril", "Braço", "Coxa", "Panturrilha"];
+  const FIRST_TEXT = (date: string) => `primeira medição, ${date}. A linha aparece a partir da segunda.`;
+
+  const goTo = (user: User, name: "Hoje" | "Medidas") =>
+    user.click(within(screen.getByRole("navigation", { name: "Menu" })).getByRole("button", { name }));
+  const evoRegion = () => screen.getByRole("region", { name: "Sua evolução" });
+  const evo = () => within(evoRegion());
+  const chips = () => within(screen.getByRole("group", { name: "Escolher medida" })).getAllByRole("button");
+  const chip = (name: string) => within(screen.getByRole("group", { name: "Escolher medida" })).getByRole("button", { name });
+  const chart = () => screen.queryByRole("img", { name: /^Gráfico de/ });
+  const lines = () => Array.from(chart()!.querySelectorAll("polyline"));
+  const coords = (el: Element) =>
+    el.getAttribute("points")!.trim().split(/\s+/).map((pair) => pair.split(",").map(Number));
+  const near = (actual: number[][], expected: number[][]) => {
+    expect(actual.length).toBe(expected.length);
+    actual.forEach(([x, y], i) => {
+      expect(Math.abs(x - expected[i][0]), `x${i}`).toBeLessThan(0.01);
+      expect(Math.abs(y - expected[i][1]), `y${i}`).toBeLessThan(0.01);
+    });
+  };
+  const sides = () => Array.from(evoRegion().querySelectorAll(".headline > div"));
+  const side = (el: Element) => ({
+    letter: el.querySelector(".now small:not(:last-child)")?.textContent ?? null,
+    value: el.querySelector(".now span")!.textContent,
+    unit: el.querySelector(".now small:last-child")!.textContent,
+    delta: el.querySelector(".delta")!.textContent,
+  });
+  const lastDots = () => Array.from(chart()!.querySelectorAll("circle.dot")).filter((c) => !c.closest(".hover-dots"));
+  const texts = (filter: (t: SVGTextElement) => boolean) =>
+    Array.from(chart()!.querySelectorAll<SVGTextElement>("text.tick")).filter(filter);
+  const yTexts = () => texts((t) => t.getAttribute("text-anchor") === "end" && t.getAttribute("x") === "28");
+  const xTexts = () => texts((t) => t.getAttribute("y") === "174");
+
+  async function onMedidas(record: Seed = {}, today = FRI) {
+    setToday(today);
+    seed(record, today);
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, "Medidas");
+    return user;
+  }
+
+  it("sua evolucao comes first on medidas", async () => {
+    await onMedidas({ measurements: CIN3 });
+    const medidas = within(screen.getByRole("region", { name: "Medidas" }));
+    const headings = medidas.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    const order = ["Sua evolução", "Nova medição", "Histórico", "Lembrete"].map((h) => headings.indexOf(h));
+    expect(order.every((i) => i >= 0)).toBe(true);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(order[0]).toBe(0);
+  });
+
+  it("no measurement no evolucao", async () => {
+    for (const record of [{}, { measurements: [] }] as Seed[]) {
+      await onMedidas(record);
+      expect(screen.queryByRole("heading", { name: "Sua evolução" })).toBeNull();
+      expect(screen.queryByRole("group", { name: "Escolher medida" })).toBeNull();
+      expect(chart()).toBeNull();
+      expect(screen.getByText("Nenhuma medição ainda.")).toBeInTheDocument();
+      cleanup();
+      localStorage.clear();
+    }
+    const user = await onMedidas({ measurements: [PESO1] });
+    expect(screen.getByRole("heading", { name: "Sua evolução" })).toBeInTheDocument();
+    const hist = within(screen.getByRole("heading", { name: "Histórico" }).closest("section")!);
+    await user.click(hist.getByRole("button", { name: /01\/10/ }));
+    await user.click(hist.getByRole("button", { name: "Apagar" }));
+    await user.click(within(screen.getByRole("group", { name: "Apagar a medição de 01/10?" })).getByRole("button", { name: "Apagar" }));
+    expect(screen.queryByRole("heading", { name: "Sua evolução" })).toBeNull();
+  });
+
+  it("eight chips in order", async () => {
+    await onMedidas({ measurements: CIN3 });
+    expect(chips().map((b) => b.textContent)).toEqual(CHIP_NAMES);
+  });
+
+  it("cintura is chosen first", async () => {
+    await onMedidas({ measurements: CIN3 });
+    for (const b of chips()) expect(b, b.textContent!).toHaveAttribute("aria-pressed", b.textContent === "Cintura" ? "true" : "false");
+  });
+
+  it("a chip tap chooses the measure", async () => {
+    const user = await onMedidas({ measurements: CIN3 });
+    await user.click(chip("Peso"));
+    for (const b of chips()) expect(b, b.textContent!).toHaveAttribute("aria-pressed", b.textContent === "Peso" ? "true" : "false");
+    expect(side(sides()[0])).toMatchObject({ value: "62,6", unit: "kg" });
+    expect(screen.getByRole("img", { name: "Gráfico de peso" })).toBeInTheDocument();
+    await user.click(chip("Quadril"));
+    for (const b of chips()) expect(b, b.textContent!).toHaveAttribute("aria-pressed", b.textContent === "Quadril" ? "true" : "false");
+  });
+
+  it("the chosen chip survives a page switch", async () => {
+    const user = await onMedidas({ measurements: CIN3 });
+    await user.click(chip("Peso"));
+    await goTo(user, "Hoje");
+    await goTo(user, "Medidas");
+    expect(chip("Peso")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("img", { name: "Gráfico de peso" })).toBeInTheDocument();
+  });
+
+  it("a measure with no entry says so", async () => {
+    const user = await onMedidas({ measurements: [PESO1] });
+    const table: [string, string][] = [
+      ["Cintura", "Ainda sem medição de cintura."],
+      ["Busto", "Ainda sem medição de busto."],
+      ["Abdômen", "Ainda sem medição de abdômen."],
+      ["Braço", "Ainda sem medição de braço."],
+      ["Panturrilha", "Ainda sem medição de panturrilha."],
+    ];
+    for (const [name, text] of table) {
+      await user.click(chip(name));
+      expect(evo().getByText(text)).toBeInTheDocument();
+      expect(chart(), name).toBeNull();
+    }
+    await user.click(chip("Peso"));
+    expect(evo().queryByText(/^Ainda sem/)).toBeNull();
+  });
+
+  it("one entry shows primeira medicao", async () => {
+    const user = await onMedidas({ measurements: [PESO1, { date: "2026-10-08", values: { cintura: 71.6 } }] });
+    const first = () => evoRegion().querySelector(".first")!;
+    expect(first().querySelector("b")!.textContent).toBe("71,6 cm");
+    expect(first().textContent).toBe("71,6 cm" + FIRST_TEXT("08/10"));
+    expect(chart()).toBeNull();
+    await user.click(chip("Peso"));
+    expect(first().querySelector("b")!.textContent).toBe("62,9 kg");
+    expect(first().textContent).toBe("62,9 kg" + FIRST_TEXT("01/10"));
+    expect(chart()).toBeNull();
+  });
+
+  it("latest value and change since the first", async () => {
+    const user = await onMedidas({ measurements: CIN3 });
+    expect(sides()).toHaveLength(1);
+    expect(side(sides()[0])).toEqual({ letter: null, value: "71,6", unit: "cm", delta: "−2,4 cm desde 27/08" });
+    expect(side(sides()[0]).delta.charCodeAt(0)).toBe(0x2212);
+    await user.click(chip("Peso"));
+    expect(side(sides()[0])).toEqual({ letter: null, value: "62,6", unit: "kg", delta: "−1,6 kg desde 27/08" });
+  });
+
+  it("one line through the measured dates", async () => {
+    const user = await onMedidas({ measurements: CIN3 });
+    expect(lines()).toHaveLength(1);
+    near(coords(lines()[0]), [[34, 12], [218, 88.8], [310, 127.2]]);
+    await user.click(chip("Peso"));
+    expect(lines()).toHaveLength(1);
+    near(coords(lines()[0]), [[34, 50.4], [264, 112.8], [310, 127.2]]);
+  });
+
+  it("a date without the measure has no point", async () => {
+    await onMedidas({
+      measurements: [
+        { date: "2026-09-24", values: { cintura: 72.4 } },
+        { date: "2026-10-01", values: { peso: 62.9 } },
+        { date: "2026-10-08", values: { cintura: 71.6 } },
+      ],
+    });
+    expect(lines()).toHaveLength(1);
+    expect(coords(lines()[0])).toHaveLength(2);
+  });
+
+  it("axis labels", async () => {
+    await onMedidas({ measurements: CIN3 });
+    expect(yTexts().map((t) => t.textContent)).toEqual(["71", "72", "73", "74"]);
+    yTexts().forEach((t, i) => expect(Math.abs(Number(t.getAttribute("y")) - [160, 112, 64, 16][i])).toBeLessThan(0.01));
+    expect(xTexts().map((t) => t.textContent)).toEqual(["27/08", "24/09", "08/10"]);
+    expect(xTexts().map((t) => t.getAttribute("text-anchor"))).toEqual(["start", "middle", "end"]);
+    xTexts().forEach((t, i) => expect(Math.abs(Number(t.getAttribute("x")) - [34, 218, 310][i])).toBeLessThan(0.01));
+    cleanup();
+    localStorage.clear();
+    const user2 = await onMedidas({ measurements: PAIR });
+    await user2.click(chip("Braço"));
+    expect(yTexts().map((t) => t.textContent)).toEqual(["28,25", "28,5", "28,75", "29"]);
+    expect(xTexts().map((t) => t.textContent)).toEqual(["24/09", "08/10"]);
+  });
+
+  it("chart dates show the year only when it differs", async () => {
+    const today = "2027-01-05";
+    await onMedidas({ measurements: [{ date: "2026-12-20", values: { cintura: 74 } }, { date: "2027-01-03", values: { cintura: 73 } }] }, today);
+    expect(side(sides()[0]).delta).toBe("−1 cm desde 20/12/26");
+    expect(xTexts().map((t) => t.textContent)).toEqual(["20/12/26", "03/01"]);
+    cleanup();
+    localStorage.clear();
+    await onMedidas({ measurements: [{ date: "2026-12-20", values: { cintura: 74 } }] }, today);
+    expect(evoRegion().querySelector(".first")!.textContent).toBe("74 cm" + FIRST_TEXT("20/12/26"));
+  });
+
+  it("latest point has a dot", async () => {
+    await onMedidas({ measurements: CIN3 });
+    expect(lastDots()).toHaveLength(1);
+    const dot = lastDots()[0];
+    expect(dot.getAttribute("r")).toBe("5");
+    expect(Math.abs(Number(dot.getAttribute("cx")) - 310)).toBeLessThan(0.01);
+    expect(Math.abs(Number(dot.getAttribute("cy")) - 127.2)).toBeLessThan(0.01);
+    const grid = Array.from(chart()!.querySelectorAll("line.grid"));
+    expect(grid).toHaveLength(4);
+    for (const g of grid) {
+      expect(g.getAttribute("x1")).toBe("34");
+      expect(g.getAttribute("x2")).toBe("310");
+    }
+  });
+
+  it("chart accessible name", async () => {
+    const user = await onMedidas({
+      measurements: [
+        ...CIN3.slice(0, 1),
+        { date: "2026-09-24", values: { cintura: 72.4, abdomen: 81 } },
+        ...CIN3.slice(2, 3),
+        { date: "2026-10-08", values: { cintura: 71.6, peso: 62.6, abdomen: 80 } },
+        ...PAIR.map((p) => ({ date: p.date === "2026-09-24" ? "2026-09-23" : "2026-10-07", values: p.values })),
+      ],
+    });
+    expect(screen.getByRole("img", { name: "Gráfico de cintura" })).toBeInTheDocument();
+    await user.click(chip("Abdômen"));
+    expect(screen.getByRole("img", { name: "Gráfico de abdômen" })).toBeInTheDocument();
+    await user.click(chip("Braço"));
+    expect(screen.getByRole("img", { name: "Gráfico de braço" })).toBeInTheDocument();
+  });
+
+  it("a pair shows d and e headlines", async () => {
+    const user = await onMedidas({ measurements: PAIR });
+    await user.click(chip("Braço"));
+    expect(sides().map(side)).toEqual([
+      { letter: "D", value: "28,5", unit: "cm", delta: "−0,5 cm desde 24/09" },
+      { letter: "E", value: "28,3", unit: "cm", delta: "−0,3 cm desde 24/09" },
+    ]);
+  });
+
+  it("a pair draws solid d and dashed e", async () => {
+    const user = await onMedidas({ measurements: PAIR });
+    await user.click(chip("Braço"));
+    const [d, e] = lines();
+    expect(lines()).toHaveLength(2);
+    expect(d.getAttribute("stroke")).toBe("var(--s-d)");
+    expect(d.hasAttribute("stroke-dasharray")).toBe(false);
+    near(coords(d), [[34, 12], [310, 108]]);
+    expect(e.getAttribute("stroke")).toBe("var(--s-e)");
+    expect(e.getAttribute("stroke-dasharray")).toBe("6 4");
+    near(coords(e), [[34, 88.8], [310, 146.4]]);
+    expect(lastDots().map((c) => c.getAttribute("fill"))).toEqual(["var(--s-d)", "var(--s-e)"]);
+    near(lastDots().map((c) => [Number(c.getAttribute("cx")), Number(c.getAttribute("cy"))]), [[310, 108], [310, 146.4]]);
+    const ends = Array.from(chart()!.querySelectorAll("text.end-label"));
+    expect(ends.map((t) => t.textContent)).toEqual(["D", "E"]);
+    near(ends.map((t) => [Number(t.getAttribute("x")), Number(t.getAttribute("y"))]), [[319, 112], [319, 150.4]]);
+    const legend = evoRegion().querySelector(".legend")!;
+    const entries = Array.from(legend.querySelectorAll("span"));
+    expect(entries.map((s) => s.textContent)).toEqual(["Direita", "Esquerda"]);
+    const [ld, le] = entries.map((s) => s.querySelector("line")!);
+    expect(ld.getAttribute("stroke")).toBe("var(--s-d)");
+    expect(ld.getAttribute("stroke-width")).toBe("2.5");
+    expect(ld.hasAttribute("stroke-dasharray")).toBe(false);
+    expect(le.getAttribute("stroke")).toBe("var(--s-e)");
+    expect(le.getAttribute("stroke-width")).toBe("2.5");
+    expect(le.getAttribute("stroke-dasharray")).toBe("4 3");
+    cleanup();
+    localStorage.clear();
+    await onMedidas({ measurements: CIN3 });
+    expect(evoRegion().querySelector(".legend")).toBeNull();
+    expect(chart()!.querySelectorAll("text.end-label")).toHaveLength(0);
+  });
+
+  it("a side with one entry shows primeira medicao", async () => {
+    const user = await onMedidas({ measurements: ONE_SIDE_SINGLE });
+    await user.click(chip("Braço"));
+    const [d, e] = sides().map(side);
+    expect(d.delta).toBe("−0,5 cm desde 24/09");
+    expect(e).toEqual({ letter: "E", value: "28,3", unit: "cm", delta: "primeira medição" });
+    expect(e.delta).not.toContain("desde");
+    expect(lines()).toHaveLength(1);
+    expect(lines()[0].getAttribute("stroke")).toBe("var(--s-d)");
+    const eDot = lastDots().filter((c) => c.getAttribute("fill") === "var(--s-e)");
+    expect(eDot).toHaveLength(1);
+    expect(Math.abs(Number(eDot[0].getAttribute("cx")) - 310)).toBeLessThan(0.01);
+    cleanup();
+    localStorage.clear();
+    const user2 = await onMedidas({
+      measurements: [
+        { date: "2026-10-01", values: { "braco-e": 28.6 } },
+        { date: "2026-10-08", values: { "braco-d": 29 } },
+      ],
+    });
+    await user2.click(chip("Braço"));
+    expect(chart()).not.toBeNull();
+    expect(lines()).toHaveLength(0);
+    expect(lastDots().map((c) => c.getAttribute("fill"))).toEqual(["var(--s-d)", "var(--s-e)"]);
+  });
+
+  it("a side with no entry is left out", async () => {
+    const user = await onMedidas({
+      measurements: [
+        { date: "2026-09-24", values: { "braco-d": 29 } },
+        { date: "2026-10-08", values: { "braco-d": 28.5 } },
+      ],
+    });
+    await user.click(chip("Braço"));
+    expect(sides().map(side).map((s) => s.letter)).toEqual(["D"]);
+    expect(lines()).toHaveLength(1);
+    const legend = evoRegion().querySelector(".legend")!;
+    expect(Array.from(legend.querySelectorAll("span")).map((s) => s.textContent)).toEqual(["Direita"]);
+    expect(Array.from(chart()!.querySelectorAll("text.end-label")).map((t) => t.textContent)).toEqual(["D"]);
+    expect(evoRegion().textContent).not.toMatch(/NaN|undefined/);
+  });
+
+  it("a pair on one date shows primeira medicao", async () => {
+    const user = await onMedidas({ measurements: [{ date: "2026-10-08", values: { "braco-d": 29, "braco-e": 28.6 } }] });
+    await user.click(chip("Braço"));
+    const first = evoRegion().querySelector(".first")!;
+    expect(Array.from(first.querySelectorAll("b")).map((b) => b.textContent)).toEqual(["D 29 cm", "E 28,6 cm"]);
+    expect(first.textContent).toBe("D 29 cmE 28,6 cm" + FIRST_TEXT("08/10"));
+    expect(chart()).toBeNull();
+  });
+
+  it("the chart follows saves edits and deletes", async () => {
+    const record: Seed = { measurements: CIN3, completions: [c("2026-10-06", "A")], weights: { extensao: 30 }, restSeconds: 60, reminder: { everyDays: 14, snoozedOn: "2026-10-07" } };
+    const user = await onMedidas(record);
+    const before = stored();
+    await user.click(chip("Peso"));
+    const form = () => within(screen.getByRole("form"));
+    await user.click(screen.getByRole("button", { name: "Abrir" }));
+    await user.type(form().getByRole("textbox", { name: "Peso em kg" }), "62,2");
+    await user.click(form().getByRole("button", { name: "Salvar medição" }));
+    expect(side(sides()[0])).toMatchObject({ value: "62,2", delta: "−2 kg desde 27/08" });
+    expect(chip("Peso")).toHaveAttribute("aria-pressed", "true");
+    const hist = within(screen.getByRole("heading", { name: "Histórico" }).closest("section")!);
+    await user.click(hist.getByRole("button", { name: /09\/10/ }));
+    await user.click(hist.getByRole("button", { name: "Editar" }));
+    const peso = form().getByRole("textbox", { name: "Peso em kg" });
+    await user.clear(peso);
+    await user.type(peso, "62,3");
+    await user.click(form().getByRole("button", { name: "Salvar medição" }));
+    expect(side(sides()[0]).value).toBe("62,3");
+    const row = hist.getByRole("button", { name: /09\/10/ });
+    if (row.getAttribute("aria-expanded") !== "true") await user.click(row);
+    await user.click(hist.getByRole("button", { name: "Apagar" }));
+    await user.click(within(screen.getByRole("group", { name: "Apagar a medição de 09/10?" })).getByRole("button", { name: "Apagar" }));
+    expect(side(sides()[0]).value).toBe("62,6");
+    expect(chip("Peso")).toHaveAttribute("aria-pressed", "true");
+    const after = stored();
+    expect(after.version).toBe(1);
+    expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+    expect(after.completions).toEqual(before.completions);
+    expect(after.today).toEqual(before.today);
+    expect(after.weights).toEqual(before.weights);
+    expect(after.restSeconds).toBe(60);
+    expect(after.reminder).toEqual(before.reminder);
+  });
+
+  it("choosing chips stores nothing", async () => {
+    const user = await onMedidas({ measurements: CIN3 });
+    const before = localStorage.getItem(STORAGE_KEY);
+    for (const name of CHIP_NAMES) await user.click(chip(name));
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(before);
+  });
+
+  it("chart numbers use a decimal comma", async () => {
+    const user = await onMedidas({ measurements: [...CIN3, ...PAIR.map((p) => ({ date: p.date === "2026-09-24" ? "2026-09-23" : "2026-10-07", values: p.values }))] });
+    expect(evoRegion().textContent).not.toMatch(/\d\.\d/);
+    await user.click(chip("Braço"));
+    expect(evoRegion().textContent).not.toMatch(/\d\.\d/);
+    expect(evoRegion().textContent).toContain("28,5");
+  });
+});

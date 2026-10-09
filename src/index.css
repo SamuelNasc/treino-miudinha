@@ -16,6 +16,8 @@
   --fig: #7a2a36;
   --mach: #b98a92;
   --pad: #f3c3cb;
+  --s-d: #e8304a;
+  --s-e: #8a3fb0;
   --shadow: 0 6px 20px rgba(179, 18, 46, 0.1);
   --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
   --body: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -37,6 +39,8 @@
     --fig: #ffc9d1;
     --mach: #9a6670;
     --pad: #5a2632;
+    --s-d: #e8364f;
+    --s-e: #a87ae0;
     --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     color-scheme: dark;
   }
@@ -110,6 +114,35 @@
   .seg { display: flex; flex-wrap: wrap; gap: 6px; }
   .seg button { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); cursor: pointer; }
   .seg button[aria-pressed="true"] { border-color: var(--cherry); background: var(--blush); color: var(--cherry); font-weight: 500; }
+
+  /* Gráfico: the "Sua evolução" card on Medidas, one measure at a time, as mockup v6 draws it. */
+  .sr-title { font-size: 22px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { border-color: var(--cherry); background: var(--blush); color: var(--cherry); }
+  .card.chart-card { padding-bottom: 14px; }
+  .headline { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .headline .now { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .headline .now small { font-size: 16px; font-weight: 500; color: var(--muted); margin-left: 3px; }
+  .headline .delta { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .headline .delta b { color: var(--ink); font-weight: 700; }
+  .pair { display: flex; gap: 18px; flex-wrap: wrap; }
+  .pair .now { font-size: 30px; }
+  .legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend svg { width: 22px; height: 8px; }
+  .plot { position: relative; }
+  .plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+  .plot .grid { stroke: var(--line); stroke-width: 1; }
+  .plot .tick { fill: var(--muted); font: 11px var(--body); font-variant-numeric: tabular-nums; }
+  .plot .series { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .plot .dot { stroke: var(--surface); stroke-width: 2; }
+  .plot .end-label { font: 700 12px var(--body); fill: var(--ink); }
+  .plot .cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .tip { position: absolute; top: 0; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 10px; padding: 6px 9px; font-size: 12px; line-height: 1.35; white-space: nowrap; font-variant-numeric: tabular-nums; transform: translateX(-50%); }
+  .first { background: var(--blush); border-radius: 18px; padding: 16px; text-align: center; color: var(--muted); font-size: 14px; }
+  .first b { display: block; font-family: var(--display); font-size: 30px; color: var(--ink); }
 
   /* Histórico: collapsible rows of past Measurements on Medidas, as mockup v6 draws them. Actions keep the 44px tap floor. */
   .hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }

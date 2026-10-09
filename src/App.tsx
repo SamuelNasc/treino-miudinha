@@ -3,6 +3,7 @@ import { Backup } from "./components/Backup";
 import { Celebration } from "./components/Celebration";
 import { MeasureForm } from "./components/MeasureForm";
 import { History } from "./components/History";
+import { Evolution } from "./components/Evolution";
 import { Menu, type Page } from "./components/Menu";
 import { ReminderCard, ReminderSetting } from "./components/Reminder";
 import { StreakCard, WeekStrip } from "./components/Progress";
@@ -177,6 +178,7 @@ export default function App() {
         </div>
 
         <section className="page" aria-label="Medidas" hidden={page !== "medidas"}>
+          <Evolution measurements={measurementsOf(record)} today={today} />
           <MeasureForm
             measurements={measurementsOf(record)}
             today={today}

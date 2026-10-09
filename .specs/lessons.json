@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 12,
+  "next_id": 16,
   "lessons": [
     {
       "id": "L-001",
@@ -137,17 +137,19 @@
       "text": "Assert every CSS value the binding mockup decides for a new section, or name it out of reach per screen",
       "signal": "surviving_mutant",
       "scope": "ui",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "historico"
+        "historico",
+        "grafico"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "verification round 1 P1-P6 (b834871) (ui)"
+        "verification round 1 P1-P6 (b834871) (ui)",
+        "P1-P7; checks.md:179 (ui)"
       ],
       "created": "2026-10-09T11:01:14Z",
-      "last_seen": "2026-10-09T11:01:14Z"
+      "last_seen": "2026-10-09T21:35:45Z"
     },
     {
       "id": "L-009",
@@ -202,6 +204,78 @@
       ],
       "created": "2026-10-09T11:01:14Z",
       "last_seen": "2026-10-09T11:01:14Z"
+    },
+    {
+      "id": "L-012",
+      "key": "ac_gap::assert a geometric claim at every position the claim names not only the first case",
+      "text": "Assert a geometric claim at every position the claim names, not only the first case",
+      "signal": "ac_gap",
+      "scope": "ui-layout",
+      "status": "candidate",
+      "features": [
+        "grafico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C24; e2e/grafico.spec.ts:101-115 (ui-layout)"
+      ],
+      "created": "2026-10-09T21:35:45Z",
+      "last_seen": "2026-10-09T21:35:45Z"
+    },
+    {
+      "id": "L-013",
+      "key": "surviving_mutant::prove each input event handler with an interaction that fires only that event",
+      "text": "Prove each input event handler with an interaction that fires only that event",
+      "signal": "surviving_mutant",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "grafico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Q3, Q4; e2e/grafico.spec.ts:66-71 (ui)"
+      ],
+      "created": "2026-10-09T21:35:45Z",
+      "last_seen": "2026-10-09T21:35:45Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::give each candidate in a selection list a test row that only that candidate satisfies",
+      "text": "Give each candidate in a selection list a test row that only that candidate satisfies",
+      "signal": "surviving_mutant",
+      "scope": "domain",
+      "status": "candidate",
+      "features": [
+        "grafico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Q1, Q2; src/domain/chart.ts:236 (domain)"
+      ],
+      "created": "2026-10-09T21:35:45Z",
+      "last_seen": "2026-10-09T21:35:45Z"
+    },
+    {
+      "id": "L-015",
+      "key": "spec_deviation::record every deviation from the binding mockup as an assumption even when the app s version is better",
+      "text": "Record every deviation from the binding mockup as an Assumption, even when the app's version is better",
+      "signal": "spec_deviation",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "grafico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C17; mockup v6 l.756 (ui)"
+      ],
+      "created": "2026-10-09T21:35:45Z",
+      "last_seen": "2026-10-09T21:35:45Z"
     }
   ]
 }

@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/grafico/plan.md`
 
-36 checks in 5 slices · 0 one-way doors · 0 open
+42 checks in 6 slices · 0 one-way doors · 0 open
 
 The chart's rules - a measure's series, the change and its sign, the y ticks, the x labels - are
 proven at their own layer in `src/domain/chart.test.ts` (new). Behaviour proofs render `App` in
@@ -147,6 +147,26 @@ Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "series tokens"`
 **C36** - The tip's left is clamped as v6 does: at the right edge of `CIN3`'s chart the tip's centre is at most the plot's width minus 50px from the plot's left, and at the left edge at least 50px (AC 23) — done
 Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "touching the chart shows the date"`
 
+### S6 - Verification round 1 fixes · 5 files · ~150 KB · ~38k
+
+**C37** - At 360×740 with `CIN3` on "Cintura": a single `pointerdown` (`pointerType` touch) at the chart's right edge, with no move before it, shows the tip "08/10" "71,6 cm"; then a mouse move to the left edge with no button down shows "27/08" "74 cm" (AC 23) — done
+Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "a tap alone and a move alone each show the tip"`
+
+**C38** - At 360×740, at every position C24 names and also at `PAIR`'s left edge, the tip's left and right lie within the plot's (0.5px), so within the card, and its centre is at least 50px from each side of the plot (AC 23, Assumption "Where the tip sits") — done
+Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "touching the chart shows the date"`
+
+**C39** - The tick rule picks each of its step candidates: (0, 30) → [0, 10, 20, 30] (×1); (0, 12) → [0, 5, 10, 15] (×5); and the flat ranges give exactly (72, 72) → [71.5, 72, 72.5] and (62.9, 62.9) → [62, 62.5, 63, 63.5] (AC 13) — done
+Proof: `pnpm vitest run src/domain/chart.test.ts -t "y ticks"`
+
+**C40** - With `PAIR` on "Braço": each legend `svg` has `viewBox` "0 0 22 8" and its line `x1` 1, `y1` 4, `x2` 21, `y2` 4; the dashed line has `y1` 12 and `y2` 156 and `visibility` `hidden` before any pointer (AC 18, AC 23) — done
+Proof: `pnpm vitest run src/App.test.tsx -t "legend and crosshair geometry"`
+
+**C41** - At 360×740, the hover dots have `r` 5 and the fill of their side: `PAIR` at the right edge gives `var(--s-d)` at (310, 108) and `var(--s-e)` at (310, 146.4), each within 0.01; the C21 fixture at the left edge gives one, `var(--s-d)` (AC 23) — done
+Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "touching the chart shows the date"`
+
+**C42** - In each scheme (light / dark), the card's computed `display` is `flex`, `flex-direction` `column`, and `box-shadow` `rgba(179, 18, 46, 0.1) 0px 6px 20px 0px` / `rgba(0, 0, 0, 0.35) 0px 6px 20px 0px` (AC 29) — done
+Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "mockup v6 chart declarations"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -159,24 +179,25 @@ Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "touching the chart sho
 | change sign (3) | "+" C10 · "−" U+2212 C9, C10 · "±" C10 | - |
 | change rounding (2) | up C10 · to zero C10 | - |
 | units (2) | kg C5, C8, C9 · cm C8, C9, C18 | - |
-| y-tick ranges (8) | whole step C13 · 0.25 step C13, C14 · 100 step C13 · 0.2 step C13 · straddling C13 · four ticks C13 · flat whole C13 · flat with decimal C13 | - |
+| y-tick ranges (10) | ×1 step C39 · ×5 step C39 · whole step C13 · 0.25 step C13, C14 · 100 step C13 · 0.2 step C13 · straddling C13 · four ticks C13 · flat whole C13, C39 · flat with decimal C13, C39 | - |
 | x-label counts (4) | 2 dates C14 · 3 C14 · 4 C14 · 5 C14 | - |
 | date formats (2) | this year `dd/mm` C9, C14 · other year `dd/mm/aa` C15 | - |
 | dates the card shows (4) | change "desde" C9, C15 · one-entry C8, C15 · x labels C14, C15 · tip C24 | - |
 | a missing measure on a date (2) | weight-only between tape C12 · pair side missing C21, C24 | - |
+| tip positions (5) | `CIN3` right C24, C36, C38 · `CIN3` left C24, C36, C38 · `PAIR` right C38 · `PAIR` left C38 · one side single, left C38 |
 | tip contents (3) | single C24 · pair both sides C24 · pair one side C24 | - |
-| pointer events (3) | down C24 · move C24 · leave C25 | - |
+| pointer events (3) | down C24, C37 · move C24, C37 · leave C25 | - |
 | re-derive triggers (3) | save C27 · edit C27 · delete C27, C2 | - |
 | untouched record fields (5) | `completions` C33 · `today` C33 · `weights` C33 · `restSeconds` C33 · `reminder` C33 | - |
 | colour schemes (2) | light C20, C32, C35 · dark C20, C32, C35 | - |
-| mockup v6 elements (20) | heading "Sua evolução" C1, C32 · chip row C3, C29, C32 · chosen chip C4, C32 · headline value C9, C30, C32 · unit C9, C32 · change text C9, C32 · pair headlines C18, C31 · legend C19, C32 · y grid C16, C32 · y labels C14, C32 · x labels C14, C32 · lines C11, C19, C32 · last dot C16, C19, C32 · D/E end labels C19, C32 · dashed crosshair C24, C32 · hover dots C24 · tip C24, C32, C36 · one-entry panel C8, C31, C32 · "Ainda sem" text C7 · card placement C1, C31 | - |
-| mockup v6 rules (27) | `.chips` C29, C32 · `.chip` C32 · `.chip[aria-pressed]` C32 · `.chart-card` C32 · `.card` C32 · `.headline` C31, C32 · `.headline .now` C30, C32 · `.now small` C32 · `.delta` C32 · `.delta b` C32 · `.pair` C32 · `.pair .now` C30 · `.legend` C32 · `.legend span` C32 · `.legend svg` C32 · `.plot` C32 · `.plot svg` C26, C30, C32 · `.grid` C32 · `.tick` C32 · `.series` C32 · `.dot` C32 · `.end-label` C32 · `.cross` C32 · `.tip` C32, C36 · `.first` C32 · `.first b` C32 · `.sr-title` C32 | - |
-| v6 SVG geometry (8) | viewBox 340×180 C30 · plot box L34 R30 C11, C16 · T12 B24 C11, C14 · tick text x L−6, y+4 C14 · x text y H−6 C14 · dot r 5 C16 · end label x+9 y+4 C19 · E dash `6 4` and legend dash `4 3` C19 | - |
+| mockup v6 elements (20) | heading "Sua evolução" C1, C32 · chip row C3, C29, C32 · chosen chip C4, C32 · headline value C9, C30, C32 · unit C9, C32 · change text C9, C32 · pair headlines C18, C31 · legend C19, C32, C40 · y grid C16, C32 · y labels C14, C32 · x labels C14, C32 · lines C11, C19, C32 · last dot C16, C19, C32 · D/E end labels C19, C32 · dashed crosshair C24, C32, C40 · hover dots C24, C41 · tip C24, C32, C36 · one-entry panel C8, C31, C32 · "Ainda sem" text C7 · card placement C1, C31, C42 | - |
+| mockup v6 rules (27) | `.chips` C29, C32 · `.chip` C32 · `.chip[aria-pressed]` C32 · `.chart-card` C32 · `.card` C32, C42 · `.headline` C31, C32 · `.headline .now` C30, C32 · `.now small` C32 · `.delta` C32 · `.delta b` C32 · `.pair` C32 · `.pair .now` C30 · `.legend` C32 · `.legend span` C32 · `.legend svg` C32 · `.plot` C32 · `.plot svg` C26, C30, C32 · `.grid` C32 · `.tick` C32 · `.series` C32 · `.dot` C32 · `.end-label` C32 · `.cross` C32 · `.tip` C32, C36 · `.first` C32 · `.first b` C32 · `.sr-title` C32 | - |
+| v6 SVG geometry (11) | crosshair y1 12 y2 156 C40 · legend viewBox 22×8 and line 1,4-21,4 C40 · hover dot r 5 and side fill C41 · viewBox 340×180 C30 · plot box L34 R30 C11, C16 · T12 B24 C11, C14 · tick text x L−6, y+4 C14 · x text y H−6 C14 · dot r 5 C16 · end label x+9 y+4 C19 · E dash `6 4` and legend dash `4 3` C19 | - |
 
-- Claims naming layout, type or colour: C20, C26, C29-C32, C35, C36 - each proof runs in Chromium at 360×740
-- Deviation from mockup v6, approved in the plan: the "Ainda sem medição de …" copy (AC 7); a side with one or no value (AC 20, AC 21) where v6 crashes; ticks for a flat range (C13) where v6 gives one tick and divides by zero
+- Claims naming layout, type or colour: C20, C26, C29-C32, C35-C38, C41, C42 - each proof runs in Chromium at 360×740
+- Deviation from mockup v6, approved in the plan: the "Ainda sem medição de …" copy (AC 7); a side with one or no value (AC 20, AC 21) where v6 crashes; ticks for a flat range (C13) where v6 gives one tick and divides by zero; the accessible name with the chip's label, "Gráfico de abdômen", where v6 l.756 writes the key "abdomen" (C17); the tip clamped by half its own width when that is over 50px (C38), where v6's 50px lets a pair's tip leave the card
 - No other check claims more than the cases its proof exercises
-- Out of reach, enumerated per screen against mockup v6. Sua evolução: `.chips::-webkit-scrollbar { display: none }` (Chromium honours `scrollbar-width: none`, asserted in C29). Nothing else in the rules above is out of reach
+- Out of reach, enumerated per screen against mockup v6. Sua evolução: `.chips::-webkit-scrollbar { display: none }` (Chromium honours `scrollbar-width: none`, asserted in C29). the transparent hit `rect` (v6 l.766), which has no visible or accessible effect - the `svg` handles the pointer either way. Nothing else in the rules or geometry above is out of reach
 
 ## Test policy
 
@@ -221,5 +242,6 @@ Cost: 4 domain proofs, 22 `App` proofs, 10 Playwright proofs across 3 test files
 - **Settled mid-build:** C31 corrected before any code for it existed - it claimed the single measure's value and change on one line, value left and change right, but v6's `renderChart` puts both in one block, the change under the value. The check now follows the approved mockup
 - **Settled mid-build:** C31's pair claim corrected - it said D left and E right on one line, but v6 measured at 360px wraps the pair, E under D, both left-aligned. C32's legend entry `display` is read as declared, since a flex item's `inline-flex` computes as `flex` in v6 and in the app alike. Both corrections follow the approved mockup and weaken nothing
 - **Boundary:** C1-C36 closed (one builder, no handoff)
+- **Round 1 fixes:** C37-C42 added for verification round 1's gaps; C17's and the tip's deviations recorded as Assumptions in the plan (Samuel, 2026-10-09). S6 ≈ `Evolution.tsx` 8 KB, `grafico.spec.ts` 22 KB, `App.test.tsx` 90 KB, `chart.test.ts` 4 KB, the specs ≈ 30 KB → ~154 KB / 4 ≈ 38k, one builder
 - **Abandoned:** rendering the headline, legend and plot as direct children of the card - the card's 14px gap then sat between them, where v6's `#chartBody` stacks them with none
 - **Also touched:** `e2e/historico.spec.ts` "open row arrangement at 360" re-measures the row's "Apagar" after the tap, since the card above now makes that tap scroll the page; same claim, same bound

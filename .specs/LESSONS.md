@@ -8,7 +8,11 @@
 
 Corroborated across multiple features. Safe to apply as guidance.
 
-_none_
+### L-008 - Assert every CSS value the binding mockup decides for a new section, or name it out of reach per screen
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `ui` · harmful: 0
+- features: historico, grafico
+- evidence: verification round 1 P1-P6 (b834871) (ui) (+1 more)
+- last seen: 2026-10-09T21:35:45Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -56,12 +60,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: verification.md Binding sources - mockup v6 single-row, date-row, header and cue-below arrangement uncovered (C24 covers only D/E and Save) (ui-layout)
 - last seen: 2026-10-08T22:46:30Z
 
-### L-008 - Assert every CSS value the binding mockup decides for a new section, or name it out of reach per screen
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
-- features: historico
-- evidence: verification round 1 P1-P6 (b834871) (ui)
-- last seen: 2026-10-09T11:01:14Z
-
 ### L-009 - Assert all four sides of a padding or radius shorthand, not one side or corner
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
 - features: historico
@@ -79,6 +77,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: historico
 - evidence: verification round 1 gap 2, mockup l.857 (ui)
 - last seen: 2026-10-09T11:01:14Z
+
+### L-012 - Assert a geometric claim at every position the claim names, not only the first case
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `ui-layout` · harmful: 0
+- features: grafico
+- evidence: C24; e2e/grafico.spec.ts:101-115 (ui-layout)
+- last seen: 2026-10-09T21:35:45Z
+
+### L-013 - Prove each input event handler with an interaction that fires only that event
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: grafico
+- evidence: Q3, Q4; e2e/grafico.spec.ts:66-71 (ui)
+- last seen: 2026-10-09T21:35:45Z
+
+### L-014 - Give each candidate in a selection list a test row that only that candidate satisfies
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain` · harmful: 0
+- features: grafico
+- evidence: Q1, Q2; src/domain/chart.ts:236 (domain)
+- last seen: 2026-10-09T21:35:45Z
+
+### L-015 - Record every deviation from the binding mockup as an Assumption, even when the app's version is better
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: grafico
+- evidence: C17; mockup v6 l.756 (ui)
+- last seen: 2026-10-09T21:35:45Z
 
 ## Quarantined (failed when applied - ignore)
 

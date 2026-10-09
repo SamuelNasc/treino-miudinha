@@ -18,6 +18,7 @@
   --pad: #f3c3cb;
   --s-d: #e8304a;
   --s-e: #8a3fb0;
+  --tape: #3f9a4a;
   --shadow: 0 6px 20px rgba(179, 18, 46, 0.1);
   --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
   --body: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -41,6 +42,7 @@
     --pad: #5a2632;
     --s-d: #e8364f;
     --s-e: #a87ae0;
+    --tape: #6cc677;
     --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     color-scheme: dark;
   }
@@ -99,8 +101,14 @@
   .hint { margin: 0; font-size: 13px; color: var(--muted); }
   .save { align-self: stretch; }
   .save:disabled { opacity: 0.4; cursor: not-allowed; }
-  .guide { grid-column: 1 / -1; background: var(--blush); border-radius: 18px; padding: 10px 12px; }
+  .guide { grid-column: 1 / -1; display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; background: var(--blush); border-radius: 18px; padding: 10px 12px; }
+  .guide svg { width: 96px; height: auto; display: block; }
   .guide p { margin: 0; font-size: 14px; line-height: 1.4; }
+  .guide .body-fill { fill: var(--pad); }
+  .guide .body-line { fill: none; stroke: var(--fig); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .guide .body-head { fill: var(--fig); }
+  .guide .body-bun { fill: var(--cherry); }
+  .guide .tape { fill: none; stroke: var(--tape); stroke-width: 3.5; stroke-dasharray: 5 3; stroke-linecap: round; }
 
   /* Lembrete: the card on Hoje and the interval setting on Medidas, as mockup v6 draws them. */
   .nudge { background: var(--surface); border: 2px dashed var(--berry); border-radius: 22px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; }

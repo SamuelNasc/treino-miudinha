@@ -1,22 +1,24 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Measurement, MeasureValues } from "../domain/measurements";
 import { MEASURES, parseMeasure, type MeasureId } from "../domain/measures";
+import { MEASURE_GUIDES } from "../domain/measureGuides";
 import { DeleteConfirm, shortDate } from "./History";
+import { MeasureDrawing } from "./MeasureDrawing";
 
 type Drafts = Record<MeasureId, string>;
 
 const LABEL = Object.fromEntries(MEASURES.map((m) => [m.id, m])) as Record<MeasureId, (typeof MEASURES)[number]>;
 
-// Where the tape goes, one line per row. The drawings come with the MeasureGuide slice.
-const ROWS: { name: string; ids: MeasureId[]; cue?: string }[] = [
+// One row per measure, or per D/E pair. Every row but Peso has a "where to measure" guide.
+const ROWS: { name: string; ids: MeasureId[] }[] = [
   { name: "Peso", ids: ["peso"] },
-  { name: "Busto", ids: ["busto"], cue: "Na parte mais cheia do busto." },
-  { name: "Cintura", ids: ["cintura"], cue: "Na parte mais fina, acima do umbigo." },
-  { name: "Abdômen", ids: ["abdomen"], cue: "Na linha do umbigo." },
-  { name: "Quadril", ids: ["quadril"], cue: "Na parte mais larga do bumbum." },
-  { name: "Braço", ids: ["braco-d", "braco-e"], cue: "No meio do braço, relaxado." },
-  { name: "Coxa", ids: ["coxa-d", "coxa-e"], cue: "No meio da coxa, em pé." },
-  { name: "Panturrilha", ids: ["panturrilha-d", "panturrilha-e"], cue: "Na parte mais grossa da panturrilha." },
+  { name: "Busto", ids: ["busto"] },
+  { name: "Cintura", ids: ["cintura"] },
+  { name: "Abdômen", ids: ["abdomen"] },
+  { name: "Quadril", ids: ["quadril"] },
+  { name: "Braço", ids: ["braco-d", "braco-e"] },
+  { name: "Coxa", ids: ["coxa-d", "coxa-e"] },
+  { name: "Panturrilha", ids: ["panturrilha-d", "panturrilha-e"] },
 ];
 
 const show = (v: number) => String(v).replace(".", ",");
@@ -146,8 +148,9 @@ export function MeasureForm({ measurements, today, onSave, openRequest, editRequ
     );
   };
 
-  const row = ({ name, ids, cue }: (typeof ROWS)[number]) => {
+  const row = ({ name, ids }: (typeof ROWS)[number]) => {
     const pair = ids.length === 2;
+    const where = ids[0] === "peso" ? undefined : MEASURE_GUIDES[ids[0]];
     const isOpen = guide === name;
     const cueId = `where-${ids[0]}`;
     const errId = `err-${ids[0]}`;
@@ -155,7 +158,7 @@ export function MeasureForm({ measurements, today, onSave, openRequest, editRequ
       <div className={pair ? "row" : "row single"} role="group" aria-label={name} key={name}>
         {pair ? <span className="row-label">{name}</span> : <label htmlFor={`m-${ids[0]}`}>{name}</label>}
         {pair ? <div className="lr">{field(ids[0], errId, "D")}{field(ids[1], errId, "E")}</div> : field(ids[0], errId)}
-        {cue && (
+        {where && (
           <button className="where" type="button" aria-expanded={isOpen} aria-controls={cueId} onClick={() => setGuide(isOpen ? null : name)}>
             {isOpen ? "fechar" : "onde medir"}
             <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -163,9 +166,10 @@ export function MeasureForm({ measurements, today, onSave, openRequest, editRequ
             </svg>
           </button>
         )}
-        {cue && isOpen && (
+        {where && isOpen && (
           <div className="guide" id={cueId}>
-            <p>{`${cue} Fita reta, sem apertar.`}</p>
+            <MeasureDrawing guide={where} name={name.toLowerCase()} />
+            <p>{`${where.cue} Fita reta, sem apertar.`}</p>
           </div>
         )}
         {ids.some((id) => marked.includes(id)) && (

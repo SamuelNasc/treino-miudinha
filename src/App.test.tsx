@@ -1146,6 +1146,113 @@ describe("Registrar medição", () => {
     expect(dateField().value).toBe("2026-10-01");
     expect(field("Peso em kg").value).toBe("62");
   });
+
+  // MeasureGuide slice: the drawing in the "onde medir" box, as mockup v6's figure() draws it.
+  const TAPE: [row: string, name: string, cue: string, ellipse: [cx: number, cy: number, rx: number, ry: number]][] = [
+    ["Busto", "busto", "Na parte mais cheia do busto.", [60, 62, 19, 4]],
+    ["Cintura", "cintura", "Na parte mais fina, acima do umbigo.", [60, 80, 15, 4]],
+    ["Abdômen", "abdômen", "Na linha do umbigo.", [60, 92, 16, 4]],
+    ["Quadril", "quadril", "Na parte mais larga do bumbum.", [60, 108, 19, 4]],
+    ["Braço", "braço", "No meio do braço, relaxado.", [36, 70, 7, 4]],
+    ["Coxa", "coxa", "No meio da coxa, em pé.", [52, 136, 9, 4]],
+    ["Panturrilha", "panturrilha", "Na parte mais grossa da panturrilha.", [52.5, 170, 7.5, 4]],
+  ];
+  const FIGURE = [
+    ["path", "body-fill", "M49 40 Q60 45 71 40 L77 50 Q78 60 75 68 Q70 80 71 90 Q75 100 75 112 L72 120 L61 122 L59 122 L48 120 L45 112 Q45 100 49 90 Q50 80 45 68 Q42 60 43 50 Z"],
+    ["path", "body-line", "M43 50 Q37 56 36 70 Q35 86 34 104 M77 50 Q83 56 84 70 Q85 86 86 104"],
+    ["path", "body-line", "M48 118 Q46 140 49 160 Q50 176 50 192 M57 122 Q58 140 56 160 Q55 176 55 192"],
+    ["path", "body-line", "M72 118 Q74 140 71 160 Q70 176 70 192 M63 122 Q62 140 64 160 Q65 176 65 192"],
+  ];
+
+  /** Opens the row's guide and returns the box "onde medir" controls. */
+  async function openGuide(user: User, name: string) {
+    await user.click(row(name).getByRole("button", { name: "onde medir" }));
+    const id = row(name).getByRole("button", { name: "fechar" }).getAttribute("aria-controls")!;
+    return document.getElementById(id)!;
+  }
+
+  it("onde medir shows the drawing", async () => {
+    const user = start();
+    await openForm(user);
+    for (const [name, , cue] of TAPE) {
+      const box = await openGuide(user, name);
+      expect(screen.getByRole("group", { name }).contains(box), name).toBe(true);
+      const imgs = within(box).getAllByRole("img");
+      expect(imgs, name).toHaveLength(1);
+      const text = within(box).getByText(`${cue} Fita reta, sem apertar.`);
+      expect(text, name).toBeVisible();
+      expect(imgs[0].compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING, name).toBeTruthy();
+    }
+  });
+
+  it("drawing is the v6 figure", async () => {
+    const user = start();
+    await openForm(user);
+    for (const [name] of TAPE) {
+      const box = await openGuide(user, name);
+      const svg = within(box).getByRole("img");
+      expect(svg.tagName.toLowerCase(), name).toBe("svg");
+      expect(svg.getAttribute("viewBox"), name).toBe("0 0 120 200");
+      const kids = [...svg.children];
+      expect(kids.map((k) => k.tagName.toLowerCase()), name).toEqual(["path", "path", "path", "path", "circle", "circle", "ellipse"]);
+      FIGURE.forEach(([, cls, d], i) => {
+        expect(kids[i].getAttribute("class"), `${name} ${i}`).toBe(cls);
+        expect(kids[i].getAttribute("d"), `${name} ${i}`).toBe(d);
+      });
+      const circle = (el: Element) => ["cx", "cy", "r"].map((a) => Number(el.getAttribute(a)));
+      expect(circle(kids[4]), `${name} head`).toEqual([60, 24, 12]);
+      expect(circle(kids[5]), `${name} bun`).toEqual([60, 9, 6]);
+      expect(kids[6].getAttribute("class"), name).toBe("tape");
+    }
+  });
+
+  it("tape band matches v6", async () => {
+    const user = start();
+    await openForm(user);
+    for (const [name, , , ellipse] of TAPE) {
+      const box = await openGuide(user, name);
+      const tape = within(box).getByRole("img").querySelector("ellipse.tape")!;
+      expect(["cx", "cy", "rx", "ry"].map((a) => Number(tape.getAttribute(a))), name).toEqual(ellipse);
+    }
+  });
+
+  it("peso has no guide", async () => {
+    const user = start();
+    await openForm(user);
+    const form = within(screen.getByRole("form", { name: "Nova medição" }));
+    expect(row("Peso").queryByRole("button", { name: "onde medir" })).toBeNull();
+    expect(form.queryAllByRole("img", { name: /^Onde medir/ })).toHaveLength(0);
+    for (const [name] of TAPE) {
+      await user.click(row(name).getByRole("button", { name: "onde medir" }));
+      expect(form.getAllByRole("img", { name: /^Onde medir/ }), name).toHaveLength(1);
+      expect(row("Peso").queryByRole("img"), name).toBeNull();
+    }
+  });
+
+  it("drawing names", async () => {
+    const user = start();
+    await openForm(user);
+    for (const [name, lower, cue] of TAPE) {
+      const box = await openGuide(user, name);
+      const svg = within(box).getByRole("img");
+      expect(svg, name).toHaveAccessibleName(`Onde medir: ${lower}`);
+      expect(svg.textContent, name).toBe("");
+      const p = within(box).getByText(`${cue} Fita reta, sem apertar.`);
+      expect(p.tagName.toLowerCase(), name).toBe("p");
+      expect(svg.contains(p), name).toBe(false);
+    }
+  });
+
+  it("opening guides stores nothing", async () => {
+    const user = start([{ date: "2026-10-01", values: { cintura: 72 } }]);
+    await openForm(user);
+    const before = localStorage.getItem(STORAGE_KEY);
+    for (const [name] of TAPE) {
+      await user.click(row(name).getByRole("button", { name: "onde medir" }));
+      await user.click(row(name).getByRole("button", { name: "fechar" }));
+    }
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(before);
+  });
 });
 
 describe("Lembrete", () => {

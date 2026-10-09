@@ -37,52 +37,52 @@ head `circle` 60, 24, r 12; bun `circle` 60, 9, r 6; then the `ellipse.tape`.
 
 ### S1 - Seeing where the tape goes · 4 files · ~117 KB · ~29k
 
-**C1** - Table-driven over the 7 tape rows: tapping that row's "onde medir" shows inside that row's box exactly one `img`, followed in document order by the text "<cue> Fita reta, sem apertar." (AC 1)
+**C1** - Table-driven over the 7 tape rows: tapping that row's "onde medir" shows inside that row's box exactly one `img`, followed in document order by the text "<cue> Fita reta, sem apertar." (AC 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "onde medir shows the drawing"`
 
-**C2** - `MEASURE_GUIDES` holds the 7 cue lines exactly as AC 2 writes them, compared with `toBe`: busto, cintura, abdomen, quadril, braco-d, coxa-d, panturrilha-d; and through `App`, every row shows its cue with the appended "Fita reta, sem apertar." (AC 2)
+**C2** - `MEASURE_GUIDES` holds the 7 cue lines exactly as AC 2 writes them, compared with `toBe`: busto, cintura, abdomen, quadril, braco-d, coxa-d, panturrilha-d; and through `App`, every row shows its cue with the appended "Fita reta, sem apertar." (AC 2) — done
 Proof: `pnpm vitest run src/domain/measureGuides.test.ts -t "cue lines"`
 Proof: `pnpm vitest run src/App.test.tsx -t "every cue line"`
 
-**C3** - Table-driven over the 7 rows: the drawing is an `svg` with `viewBox="0 0 120 200"` whose children are, in this order and no others, the 4 paths with the classes and `d` of v6's figure above, the head `circle` (60, 24, 12), the bun `circle` (60, 9, 6), and one `ellipse.tape` last (AC 3, AC 4 paint order)
+**C3** - Table-driven over the 7 rows: the drawing is an `svg` with `viewBox="0 0 120 200"` whose children are, in this order and no others, the 4 paths with the classes and `d` of v6's figure above, the head `circle` (60, 24, 12), the bun `circle` (60, 9, 6), and one `ellipse.tape` last (AC 3, AC 4 paint order) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "drawing is the v6 figure"`
 
-**C4** - Table-driven over the 7 rows: the drawing's `ellipse.tape` has the `cx`, `cy`, `rx`, `ry` of the table above, as numbers (AC 4)
+**C4** - Table-driven over the 7 rows: the drawing's `ellipse.tape` has the `cx`, `cy`, `rx`, `ry` of the table above, as numbers (AC 4) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "tape band matches v6"`
 
-**C5** - `MEASURE_GUIDES` has exactly the 10 keys `busto`, `cintura`, `abdomen`, `quadril`, `braco-d`, `braco-e`, `coxa-d`, `coxa-e`, `panturrilha-d`, `panturrilha-e`, and no `peso`; `braco-d` and `braco-e` are the same object (`toBe`), and the same for coxa and panturrilha; the 7 distinct guides have 7 distinct bands (AC 5)
+**C5** - `MEASURE_GUIDES` has exactly the 10 keys `busto`, `cintura`, `abdomen`, `quadril`, `braco-d`, `braco-e`, `coxa-d`, `coxa-e`, `panturrilha-d`, `panturrilha-e`, and no `peso`; `braco-d` and `braco-e` are the same object (`toBe`), and the same for coxa and panturrilha; the 7 distinct guides have 7 distinct bands (AC 5) — done
 Proof: `pnpm vitest run src/domain/measureGuides.test.ts -t "every tape measure has a guide"`
 
-**C6** - The row Peso has no "onde medir" button, and after opening each of the 7 guides in turn, the form never holds more than one `img` named starting "Onde medir" and the row Peso never holds one (AC 6)
+**C6** - The row Peso has no "onde medir" button, and after opening each of the 7 guides in turn, the form never holds more than one `img` named starting "Onde medir" and the row Peso never holds one (AC 6) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "peso has no guide"`
 
-**C7** - Table-driven over the 7 rows: the drawing's role is `img` and its accessible name equals exactly "Onde medir: busto", "Onde medir: cintura", "Onde medir: abdômen", "Onde medir: quadril", "Onde medir: braço", "Onde medir: coxa", "Onde medir: panturrilha"; the `svg` holds no text node, and the cue is a `p` outside it (AC 7)
+**C7** - Table-driven over the 7 rows: the drawing's role is `img` and its accessible name equals exactly "Onde medir: busto", "Onde medir: cintura", "Onde medir: abdômen", "Onde medir: quadril", "Onde medir: braço", "Onde medir: coxa", "Onde medir: panturrilha"; the `svg` holds no text node, and the cue is a `p` outside it (AC 7) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "drawing names"`
 
-**C8** - The existing toggle is unchanged: the 7 "onde medir" buttons start collapsed, one box is open at a time, "fechar" closes it, and typed values stay (Impact - unchanged behaviour)
+**C8** - The existing toggle is unchanged: the 7 "onde medir" buttons start collapsed, one box is open at a time, "fechar" closes it, and typed values stay (Impact - unchanged behaviour) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "onde medir shows the cue"`
 Proof: `pnpm vitest run src/App.test.tsx -t "one cue at a time and typed values stay"`
 
 ### S2 - Look in both schemes · 3 files · ~31 KB · ~8k
 
-**C9** - In the light and the dark scheme, with Cintura's box open: the root's `--tape` is `#3f9a4a` / `#6cc677`; the computed `fill` of `.body-fill` is `--pad` (`#f3c3cb` / `#5a2632`); the `stroke` of each `.body-line` is `--fig` (`#7a2a36` / `#ffc9d1`); the head's `fill` is `--fig`; the bun's `fill` is `--cherry` (`#b3122e` / `#ff5c75`); the `stroke` of `.tape` is `--tape`; the box's background is `--blush` (`#ffe1e6` / `#3a141c`) (AC 8, AC 9)
+**C9** - In the light and the dark scheme, with Cintura's box open: the root's `--tape` is `#3f9a4a` / `#6cc677`; the computed `fill` of `.body-fill` is `--pad` (`#f3c3cb` / `#5a2632`); the `stroke` of each `.body-line` is `--fig` (`#7a2a36` / `#ffc9d1`); the head's `fill` is `--fig`; the bun's `fill` is `--cherry` (`#b3122e` / `#ff5c75`); the `stroke` of `.tape` is `--tape`; the box's background is `--blush` (`#ffe1e6` / `#3a141c`) (AC 8, AC 9) — done
 Proof: `pnpm playwright test e2e/measure-guide.spec.ts -g "guide colours"`
 
-**C10** - With Cintura's box open: each `.body-line` has computed `fill` `none`, `stroke-width` `2.5px`, `stroke-linecap` `round`, `stroke-linejoin` `round`; `.tape` has `fill` `none`, `stroke-width` `3.5px`, `stroke-dasharray` `5px, 3px`, `stroke-linecap` `round` (AC 10)
+**C10** - With Cintura's box open: each `.body-line` has computed `fill` `none`, `stroke-width` `2.5px`, `stroke-linecap` `round`, `stroke-linejoin` `round`; `.tape` has `fill` `none`, `stroke-width` `3.5px`, `stroke-dasharray` `5px, 3px`, `stroke-linecap` `round` (AC 10) — done
 Proof: `pnpm playwright test e2e/measure-guide.spec.ts -g "drawing strokes"`
 
-**C11** - At 360×740, for each of the 7 rows with its box open: the box's computed `display` is `grid`, its first column `96px`, `column-gap` `12px`, `align-items` `center`, all four corner radii `18px`, padding top/bottom `10px` and left/right `12px`, and it spans the row's full width (±1 px); the drawing renders 96 px wide and 160 px tall with `display` `block`; the cue `p` starts at least 96 + 12 px right of the drawing's left edge (−1 px), at the same vertical centre as the drawing (±1 px), with `margin` 0 on all four sides, `font-size` `14px` and `line-height` `19.6px` (AC 11)
+**C11** - At 360×740, for each of the 7 rows with its box open: the box's computed `display` is `grid`, its first column `96px`, `column-gap` `12px`, `align-items` `center`, all four corner radii `18px`, padding top/bottom `10px` and left/right `12px`, and it spans the row's full width (±1 px); the drawing renders 96 px wide and 160 px tall with `display` `block`; the cue `p` starts at least 96 + 12 px right of the drawing's left edge (−1 px), at the same vertical centre as the drawing (±1 px), with `margin` 0 on all four sides, `font-size` `14px` and `line-height` `19.6px` (AC 11) — done
 Proof: `pnpm playwright test e2e/measure-guide.spec.ts -g "guide box arrangement at 360"`
 
-**C12** - At 360×740, for each of the 7 rows with its box open, the document's `scrollWidth` is not greater than its `clientWidth` (AC 12)
+**C12** - At 360×740, for each of the 7 rows with its box open, the document's `scrollWidth` is not greater than its `clientWidth` (AC 12) — done
 Proof: `pnpm playwright test e2e/measure-guide.spec.ts -g "no horizontal scroll with a guide open"`
 
 ### S3 - Staying static · 1 file · ~103 KB · ~26k
 
-**C13** - With a stored record holding one Measurement, `localStorage["treino:v1"]` is the same string after opening the form, then opening and closing each of the 7 guides, as it was right after opening the form (AC 13)
+**C13** - With a stored record holding one Measurement, `localStorage["treino:v1"]` is the same string after opening the form, then opening and closing each of the 7 guides, as it was right after opening the form (AC 13) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "opening guides stores nothing"`
 
-**C14** - The build type-checks with `MEASURE_GUIDES` typed `Record<Exclude<MeasureId, "peso">, MeasureGuide>`, so a tape measure with no guide fails `tsc` (door 1)
+**C14** - The build type-checks with `MEASURE_GUIDES` typed `Record<Exclude<MeasureId, "peso">, MeasureGuide>`, so a tape measure with no guide fails `tsc` (door 1) — done
 Proof: `pnpm tsc -b`
 
 ## Coverage
@@ -142,3 +142,7 @@ Cost: 2 domain proofs, 7 `App` proofs, 4 Playwright proofs across 3 test files.
 - S1 ≈ `MeasureForm.tsx` 8.9 KB, `App.test.tsx` 103 KB, `measures.ts` 2 KB, new `measureGuides.ts` + test ≈ 3 KB → ~117 KB / 4 ≈ 29k
 - S2 adds `index.css` 21 KB and `e2e/measure-guide.spec.ts` (new, ≈ 6 KB), with `e2e/medidas.spec.ts` 5 KB read for its helpers → ~31 KB / 4 ≈ 8k; S3 is in `App.test.tsx`, already counted
 - S1-S3 ≈ 148 KB / 4 ≈ 37k, under the 150k budget - one builder
+
+- **Boundary:** C1-C14 closed (one builder, no handoff)
+- **Settled mid-build:** none
+- **Abandoned:** none. The head and bun take classes (`body-head`, `body-bun`) where v6 writes inline `fill` attributes, so both schemes come from the stylesheet; C9 asserts the computed fills

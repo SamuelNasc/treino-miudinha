@@ -102,6 +102,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: C17; mockup v6 l.756 (ui)
 - last seen: 2026-10-09T21:35:45Z
 
+### L-016 - When a check says an element keeps its look, assert the position, size and colour of each of its parts against an unchanged sibling, not only the first part
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: apagar-treino
+- evidence: verification.md round 1 (1645c5f): .day button display:flex column -> block survived C20, src/index.css:202 (ui) (+1 more)
+- last seen: 2026-10-09T23:52:07Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

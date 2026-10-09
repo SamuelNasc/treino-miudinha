@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 16,
+  "next_id": 17,
   "lessons": [
     {
       "id": "L-001",
@@ -276,6 +276,25 @@
       ],
       "created": "2026-10-09T21:35:45Z",
       "last_seen": "2026-10-09T21:35:45Z"
+    },
+    {
+      "id": "L-016",
+      "key": "surviving_mutant::when a check says an element keeps its look assert the position size and colour of each of its parts against an unchanged sibling not only the first part",
+      "text": "When a check says an element keeps its look, assert the position, size and colour of each of its parts against an unchanged sibling, not only the first part",
+      "signal": "surviving_mutant",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "apagar-treino"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md round 1 (1645c5f): .day button display:flex column -> block survived C20, src/index.css:202 (ui)",
+        "verification.md round 2 (e14d261): .day button color:inherit -> var(--ink) survived C20, src/index.css:202 (ui)"
+      ],
+      "created": "2026-10-09T23:52:07Z",
+      "last_seen": "2026-10-09T23:52:07Z"
     }
   ]
 }

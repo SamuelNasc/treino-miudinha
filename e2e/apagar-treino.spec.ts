@@ -88,6 +88,10 @@ test("strip day button keeps its look", async ({ page }) => {
   const tueLabel = await box(page.getByRole("list", { name: "Semana" }).getByRole("listitem").nth(1).getByTestId("day-label"));
   expect(Math.abs(label.y - tueLabel.y)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(label.height - tueLabel.height)).toBeLessThanOrEqual(0.5);
+  const tueLabelEl = page.getByRole("list", { name: "Semana" }).getByRole("listitem").nth(1).getByTestId("day-label");
+  for (const prop of ["color", "font-size", "font-weight", "font-family"]) {
+    expect(await css(button.getByTestId("day-label"), prop), prop).toBe(await css(tueLabelEl, prop));
+  }
   expect(await css(button, "background-color")).toBe(TRANSPARENT);
   expect(await css(button, "border-top-width")).toBe("0px");
   await page.getByRole("button", { name: "Apagar treino de seg, 05/10" }).focus();

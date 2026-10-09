@@ -86,6 +86,7 @@ test("touching the chart shows the date", async ({ page }) => {
     const t = await box(tip(page));
     expect(t.x).toBeGreaterThanOrEqual(cardBox.x);
     expect(t.x + t.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+    await tipInside(page);
     return t.x + t.width / 2 - plot.x;
   };
 

@@ -15,7 +15,7 @@ import { deleteMeasurement, editMeasurement, measurementsOf, reminderDue, remind
 import { PLAN, type WorkoutId } from "./domain/plan";
 import { streak, weekCount, weekStrip } from "./domain/progress";
 import { isRestDay, nextWorkout } from "./domain/rotation";
-import { addCompletion, rollOver, toggleCheck } from "./domain/store";
+import { addCompletion, removeCompletion, rollOver, toggleCheck } from "./domain/store";
 import { useRecord } from "./useRecord";
 
 export default function App() {
@@ -60,9 +60,22 @@ export default function App() {
       setRecord(addCompletion(toggled, today, workout));
       setOverride(null);
       setCelebrating(workout);
+    } else if (already && !toggled.today.checked.includes(exerciseId)) {
+      // Unchecking an exercise of today's finished workout takes the finish back.
+      setRecord(removeCompletion(toggled, today, workout));
     } else {
       setRecord(toggled);
     }
+  };
+
+  const removeWorkout = (date: string, workout: WorkoutId) => {
+    setRecord((r) => {
+      const removed = removeCompletion(r, date, workout);
+      const ownSession = date === today && r.today.workout === workout;
+      return ownSession ? { ...removed, today: { date: today, workout: null, checked: [] } } : removed;
+    });
+    if (date === today) setOverride(null);
+    setToast({ text: "Treino apagado", id: Date.now() });
   };
 
   const setWeight = (exerciseId: string, value: number | undefined) =>
@@ -149,7 +162,7 @@ export default function App() {
             thisWeek={weekCount(record.completions, today)}
             empty={record.completions.length === 0}
           />
-          <WeekStrip days={weekStrip(record.completions, today)} />
+          <WeekStrip key={today} days={weekStrip(record.completions, today)} onRemove={removeWorkout} />
           <Picker shown={shown} next={next} onPick={setOverride} />
 
           {shown ? (

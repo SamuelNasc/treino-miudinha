@@ -206,7 +206,7 @@ export function MeasureForm({ measurements, today, onSave, openRequest, editRequ
           {row(ROWS[0])}
           {group("Tronco", ROWS.slice(1, 5))}
           {group("Braços e pernas", ROWS.slice(5))}
-          {editing && asking && <DeleteConfirm label={shortDate(editing, today)} onYes={() => onDelete(editing)} onNo={() => setAsking(false)} />}
+          {editing && asking && <DeleteConfirm question={`Apagar a medição de ${shortDate(editing, today)}?`} onYes={() => onDelete(editing)} onNo={() => setAsking(false)} />}
           <button className="cta save" type="submit" disabled={!canSave}>
             {editing && blank ? "Apagar medição" : "Salvar medição"}
           </button>

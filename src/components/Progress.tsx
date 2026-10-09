@@ -1,4 +1,7 @@
+import { useState } from "react";
+import type { WorkoutId } from "../domain/plan";
 import type { StripDay } from "../domain/progress";
+import { DeleteConfirm } from "./History";
 import { Berry, Cherry } from "./Sprite";
 
 export function StreakCard({ weeks, thisWeek, empty }: { weeks: number; thisWeek: number; empty: boolean }) {
@@ -23,22 +26,58 @@ export function StreakCard({ weeks, thisWeek, empty }: { weeks: number; thisWeek
   );
 }
 
-export function WeekStrip({ days }: { days: StripDay[] }) {
+/** "qua, 07/10" */
+const dayName = (d: StripDay) => `${d.label.toLowerCase()}, ${d.date.slice(8, 10)}/${d.date.slice(5, 7)}`;
+
+/** Which day is asking is screen state only: App remounts the strip when the day changes. */
+export function WeekStrip({ days, onRemove }: { days: StripDay[]; onRemove: (date: string, workout: WorkoutId) => void }) {
+  const [asking, setAsking] = useState<string | null>(null);
+  const askingDay = days.find((d) => d.date === asking && d.letters.length);
   return (
-    <ul className="strip" aria-label="Semana">
-      {days.map((d) => (
-        <li
-          key={d.date}
-          className={["day", d.letters.length ? "done" : "", d.isToday ? "today" : "", d.isFuture ? "future" : ""].join(" ")}
-          aria-current={d.isToday ? "date" : undefined}
-          data-future={d.isFuture ? "true" : "false"}
-        >
-          <span className="dot" data-testid="day-dot">
-            {d.letters.join("")}
-          </span>
-          <span data-testid="day-label">{d.label}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="strip" aria-label="Semana">
+        {days.map((d) => {
+          const face = (
+            <>
+              <span className="dot" data-testid="day-dot">
+                {d.letters.join("")}
+              </span>
+              <span data-testid="day-label">{d.label}</span>
+            </>
+          );
+          return (
+            <li
+              key={d.date}
+              className={["day", d.letters.length ? "done" : "", d.isToday ? "today" : "", d.isFuture ? "future" : ""].join(" ")}
+              aria-current={d.isToday ? "date" : undefined}
+              data-future={d.isFuture ? "true" : "false"}
+            >
+              {d.letters.length ? (
+                <button type="button" aria-label={`Apagar treino de ${dayName(d)}`} onClick={() => setAsking((a) => (a === d.date ? null : d.date))}>
+                  {face}
+                </button>
+              ) : (
+                face
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {askingDay && (
+        <div className="strip-confirm">
+          {askingDay.letters.map((w) => (
+            <DeleteConfirm
+              key={w}
+              question={`Apagar o Treino ${w} de ${dayName(askingDay)}?`}
+              onYes={() => {
+                setAsking(null);
+                onRemove(askingDay.date, w);
+              }}
+              onNo={() => setAsking(null)}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }

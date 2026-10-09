@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { parseRecord as parseRecordBefore } from "../../tests/fixtures/store-9e5a252";
 import { measurementsOf, reminderOf } from "./measurements";
-import { STORAGE_KEY, addCompletion, freshRecord, loadRecord, parseRecord, parseWeight, saveRecord, toggleCheck } from "./store";
+import { STORAGE_KEY, addCompletion, freshRecord, loadRecord, parseRecord, parseWeight, removeCompletion, saveRecord, toggleCheck } from "./store";
 
 beforeEach(() => localStorage.clear());
 
@@ -187,5 +187,27 @@ describe("store measurements", () => {
     const record = parseRecordBefore(text);
     expect(record).not.toBeNull();
     expectWorkoutsKept(record!);
+  });
+});
+
+describe("removeCompletion", () => {
+  it("removeCompletion drops exactly one pair", () => {
+    const r = {
+      ...freshRecord("2026-10-09"),
+      completions: [
+        { date: "2026-10-05", workout: "A" as const },
+        { date: "2026-10-07", workout: "B" as const },
+        { date: "2026-10-07", workout: "C" as const },
+      ],
+      weights: { extensao: 40 },
+      restSeconds: 60 as const,
+    };
+    const out = removeCompletion(r, "2026-10-07", "B");
+    expect(out.completions).toEqual([
+      { date: "2026-10-05", workout: "A" },
+      { date: "2026-10-07", workout: "C" },
+    ]);
+    expect({ ...out, completions: r.completions }).toEqual(r);
+    expect(removeCompletion(r, "2026-10-06", "B").completions).toEqual(r.completions);
   });
 });

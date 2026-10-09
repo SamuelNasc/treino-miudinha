@@ -104,6 +104,11 @@ export function addCompletion(record: TreinoRecord, date: string, workout: Worko
   return { ...record, completions: [...record.completions, { date, workout }] };
 }
 
+/** Drops exactly the (date, workout) Completion; anything else in the record is kept. */
+export function removeCompletion(record: TreinoRecord, date: string, workout: WorkoutId): TreinoRecord {
+  return { ...record, completions: record.completions.filter((c) => !(c.date === date && c.workout === workout)) };
+}
+
 /** Parses a typed weight in kg. Empty clears it; anything outside 0–500 keeps `previous`. */
 export function parseWeight(input: string, previous: number | undefined): number | undefined {
   const text = input.trim().replace(",", ".");

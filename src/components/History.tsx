@@ -22,8 +22,7 @@ const chevron = (
   </svg>
 );
 
-export function DeleteConfirm({ label, onYes, onNo }: { label: string; onYes: () => void; onNo: () => void }) {
-  const question = `Apagar a medição de ${label}?`;
+export function DeleteConfirm({ question, onYes, onNo }: { question: string; onYes: () => void; onNo: () => void }) {
   return (
     <div className="confirm" role="group" aria-label={question}>
       <span>{question}</span>
@@ -103,7 +102,7 @@ export function History({ measurements, today, onFirst, onEdit, onDelete }: Prop
                     </div>
                     {asking === m.date && (
                       <DeleteConfirm
-                        label={label}
+                        question={`Apagar a medição de ${label}?`}
                         onYes={() => {
                           setOpenRow(null);
                           setAsking(null);

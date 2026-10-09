@@ -2368,3 +2368,258 @@ describe("Gráfico", () => {
     expect(evoRegion().textContent).toContain("28,5");
   });
 });
+
+describe("Apagar treino", () => {
+  // 2026-10-09 is a Friday, a training day.
+  const FRI = "2026-10-09";
+  const WEEK = [c("2026-10-05", "A"), c("2026-10-07", "B")];
+  const strip = () => screen.getByRole("list", { name: "Semana" });
+  const days = () => within(strip()).getAllByRole("listitem");
+  const card = () => screen.getByRole("region", { name: "Sequência" });
+  const pickerButton = (id: WorkoutId) => within(screen.getByRole("group", { name: "Escolher treino" })).getByRole("button", { name: `Treino ${id}` });
+  const confirmOf = (q: string) => screen.getByRole("group", { name: q });
+  const B_WED = "Apagar o Treino B de qua, 07/10?";
+
+  it("strip days with a workout are buttons", () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    render(<App />);
+    expect(within(strip()).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Apagar treino de seg, 05/10",
+      "Apagar treino de qua, 07/10",
+    ]);
+    for (const i of [1, 3, 4, 5, 6]) expect(within(days()[i]).queryByRole("button")).toBeNull();
+    cleanup();
+    seed({ completions: [...WEEK, c(FRI, "C")] }, FRI);
+    render(<App />);
+    expect(within(strip()).getByRole("button", { name: "Apagar treino de sex, 09/10" })).toBeInTheDocument();
+  });
+
+  it("tapping a day asks first", async () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    const before = stored();
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    const group = confirmOf(B_WED);
+    expect(group).toHaveTextContent(B_WED);
+    expect(within(group).getByRole("button", { name: "Apagar" })).toBeInTheDocument();
+    expect(within(group).getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    const picker = screen.getByRole("group", { name: "Escolher treino" });
+    expect(strip().compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(group.compareDocumentPosition(picker) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(stored()).toEqual(before);
+  });
+
+  it("one confirm per workout of the day", async () => {
+    setToday(FRI);
+    seed({ completions: [c("2026-10-07", "A"), c("2026-10-07", "B")] }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    const a = confirmOf("Apagar o Treino A de qua, 07/10?");
+    const b = confirmOf(B_WED);
+    expect(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("cancelar or a second tap keeps the workout", async () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    const before = stored();
+    const user = userEvent.setup();
+    render(<App />);
+    const wed = screen.getByRole("button", { name: "Apagar treino de qua, 07/10" });
+    await user.click(wed);
+    await user.click(within(confirmOf(B_WED)).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("group", { name: B_WED })).toBeNull();
+    expect(stored()).toEqual(before);
+    await user.click(wed);
+    expect(confirmOf(B_WED)).toBeInTheDocument();
+    await user.click(wed);
+    expect(screen.queryByRole("group", { name: B_WED })).toBeNull();
+    expect(stored()).toEqual(before);
+  });
+
+  it("another day replaces the confirm", async () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    await user.click(screen.getByRole("button", { name: "Apagar treino de seg, 05/10" }));
+    expect(screen.queryByRole("group", { name: B_WED })).toBeNull();
+    expect(confirmOf("Apagar o Treino A de seg, 05/10?")).toBeInTheDocument();
+  });
+
+  it("apagar removes the workout and re-derives", async () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    await user.click(within(confirmOf(B_WED)).getByRole("button", { name: "Apagar" }));
+    expect(stored().completions).toEqual([c("2026-10-05", "A")]);
+    expect(screen.queryByRole("group", { name: B_WED })).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("Treino apagado");
+    expect(within(days()[2]).getByTestId("day-dot")).toHaveTextContent("");
+    expect(within(strip()).queryByRole("button", { name: "Apagar treino de qua, 07/10" })).toBeNull();
+    expect(within(card()).getByText("Esta semana: 1/4")).toBeInTheDocument();
+    expect(pickerButton("B")).toHaveTextContent("próximo");
+  });
+
+  it("removing a workout lowers the streak", async () => {
+    setToday(FRI);
+    seed(
+      {
+        completions: [
+          c("2026-09-21", "A"), c("2026-09-22", "B"), c("2026-09-24", "C"),
+          c("2026-09-28", "D"), c("2026-09-29", "A"), c("2026-10-01", "B"),
+          c("2026-10-05", "A"), c("2026-10-06", "B"), c("2026-10-08", "C"),
+        ],
+      },
+      FRI,
+    );
+    const user = userEvent.setup();
+    render(<App />);
+    expect(within(card()).getByTestId("streak-number")).toHaveTextContent("3");
+    expect(within(card()).getByText("Esta semana: 3/4")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qui, 08/10" }));
+    await user.click(within(confirmOf("Apagar o Treino C de qui, 08/10?")).getByRole("button", { name: "Apagar" }));
+    expect(within(card()).getByTestId("streak-number")).toHaveTextContent("2");
+    expect(within(card()).getByText("Esta semana: 2/4")).toBeInTheDocument();
+  });
+
+  it("removing today's workout clears its checks", async () => {
+    setToday(FRI);
+    seed({ completions: [c(FRI, "A")], today: { date: FRI, workout: "A", checked: PLAN.A.exercises.map((e) => e.id) } }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de sex, 09/10" }));
+    await user.click(within(confirmOf("Apagar o Treino A de sex, 09/10?")).getByRole("button", { name: "Apagar" }));
+    expect(stored().completions).toEqual([]);
+    expect(stored().today).toEqual({ date: FRI, workout: null, checked: [] });
+    expect(screen.getByRole("heading", { name: "Treino A" })).toBeInTheDocument();
+    expect(screen.getByText("0/6")).toBeInTheDocument();
+    expect(within(card()).getByText("Comece hoje 💪")).toBeInTheDocument();
+  });
+
+  it("removing today's workout on a rest day shows rest", async () => {
+    const SAT = "2026-10-10";
+    setToday(SAT);
+    seed({ completions: [c("2026-10-05", "A"), c(SAT, "B")], today: { date: SAT, workout: "B", checked: PLAN.B.exercises.map((e) => e.id) } }, SAT);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de sáb, 10/10" }));
+    await user.click(within(confirmOf("Apagar o Treino B de sáb, 10/10?")).getByRole("button", { name: "Apagar" }));
+    expect(screen.getByRole("heading", { name: "Hoje é descanso" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Treinar mesmo assim" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Treino B" })).toBeNull();
+  });
+
+  it("a new day hides the confirm", async () => {
+    setToday(FRI);
+    seed({ completions: WEEK }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    expect(confirmOf(B_WED)).toBeInTheDocument();
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(screen.queryByRole("group", { name: B_WED })).toBeNull();
+  });
+
+  // Completes B on FRI, closes the celebration, picks B and unchecks Voador.
+  async function completeThenUncheck(user: ReturnType<typeof userEvent.setup>) {
+    await checkAll(user, "B");
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Fechar" }));
+    await user.click(pickerButton("B"));
+    await user.click(screen.getByRole("button", { name: "Marcar Voador" }));
+  }
+
+  it("unchecking undoes today's workout", async () => {
+    setToday(FRI);
+    seed({ completions: [c("2026-10-05", "A")] }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await checkAll(user, "B");
+    expect(stored().completions).toEqual([c("2026-10-05", "A"), c(FRI, "B")]);
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Fechar" }));
+    await user.click(pickerButton("B"));
+    await user.click(screen.getByRole("button", { name: "Marcar Voador" }));
+    expect(stored().completions).toEqual([c("2026-10-05", "A")]);
+    expect(stored().today.workout).toBe("B");
+    expect([...stored().today.checked].sort()).toEqual(PLAN.B.exercises.map((e) => e.id).filter((id) => id !== "voador").sort());
+  });
+
+  it("unchecking re-derives quietly", async () => {
+    setToday(FRI);
+    seed({ completions: [c("2026-10-05", "A")] }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await completeThenUncheck(user);
+    expect(within(days()[4]).getByTestId("day-dot")).toHaveTextContent("");
+    expect(within(card()).getByText("Esta semana: 1/4")).toBeInTheDocument();
+    expect(pickerButton("B")).toHaveTextContent("próximo");
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("checking again records it again", async () => {
+    setToday(FRI);
+    seed({ completions: [c("2026-10-05", "A")] }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await completeThenUncheck(user);
+    await user.click(screen.getByRole("button", { name: "Marcar Voador" }));
+    expect(stored().completions).toEqual([c("2026-10-05", "A"), c(FRI, "B")]);
+    expect(within(screen.getByRole("dialog")).getByText(/Treino B feito\./)).toBeInTheDocument();
+  });
+
+  it("unchecking another workout keeps today's completion", async () => {
+    setToday(FRI);
+    seed({ completions: [c(FRI, "B")], today: { date: FRI, workout: "A", checked: ["extensao", "agachamento"] } }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(pickerButton("A"));
+    await user.click(screen.getByRole("button", { name: "Marcar Extensão" }));
+    expect(stored().completions).toEqual([c(FRI, "B")]);
+  });
+
+  it("removal keeps weights", async () => {
+    setToday(FRI);
+    const weights = { extensao: 40, voador: 12 };
+    seed({ completions: [...WEEK], weights }, FRI);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    await user.click(within(confirmOf(B_WED)).getByRole("button", { name: "Apagar" }));
+    expect(stored().weights).toEqual(weights);
+    await completeThenUncheck(user);
+    expect(stored().weights).toEqual(weights);
+  });
+
+  it("removal keeps the rest of the record", async () => {
+    setToday(FRI);
+    seed(
+      {
+        completions: WEEK,
+        weights: { extensao: 40 },
+        restSeconds: 60,
+        measurements: [{ date: "2026-10-01", values: { peso: 62.5 } }],
+        reminder: { everyDays: 14, snoozedOn: null },
+      },
+      FRI,
+    );
+    const before = stored();
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Apagar treino de qua, 07/10" }));
+    await user.click(within(confirmOf(B_WED)).getByRole("button", { name: "Apagar" }));
+    const after = stored();
+    expect(after.version).toBe(1);
+    expect({ ...after, completions: before.completions }).toEqual(before);
+  });
+});

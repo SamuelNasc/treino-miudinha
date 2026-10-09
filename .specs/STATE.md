@@ -9,9 +9,9 @@
 ## Handoff
 
 **Feature**: grafico (slice 6 of 7 in `.design/body-measurements.md`)
-**Where**: plan written, `validate_plan` exit 0, awaiting Samuel's review. Mockup v6's Gráfico approved as-is by Samuel 2026-10-09 (no v7). Profile ui
+**Where**: verified - round 1 FAIL (5 gaps), fixed in 02b207a/32aa089 (C37-C42 added, tip clamp and accessible-name deviations approved by Samuel 2026-10-09), round 2 scoped PASS: 42/42 checks, 18/18 faults killed, Vitest 211, Playwright 73, validate_verification exit 0. Lessons L-012..L-015 added, L-008 confirmed
 **In progress**: none
-**Next step**: Samuel reviews `.specs/features/grafico/plan.md` (three `n` defaults: AC 7 copy, pair with different dates, chip size), then checks.md
+**Next step**: push 02b207a.. (needs Samuel's go-ahead); then MeasureGuide (needs a mockup review first). Optional: call tipInside at the CIN3 positions too (round 2 note 1)
 **Blockers**: none
-**Uncommitted**: `.specs/features/grafico/plan.md`, this file
-**Branch**: main, pushed 2026-10-09 (4bf7012), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete and Histórico are live
+**Uncommitted**: this file
+**Branch**: main, 3 commits ahead of origin (origin at 5bd6cf7: the first Gráfico build is pushed, deploy not checked)

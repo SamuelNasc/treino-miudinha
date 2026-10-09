@@ -184,7 +184,7 @@ Proof: `pnpm exec playwright test e2e/grafico.spec.ts -g "mockup v6 chart declar
 | date formats (2) | this year `dd/mm` C9, C14 · other year `dd/mm/aa` C15 | - |
 | dates the card shows (4) | change "desde" C9, C15 · one-entry C8, C15 · x labels C14, C15 · tip C24 | - |
 | a missing measure on a date (2) | weight-only between tape C12 · pair side missing C21, C24 | - |
-| tip positions (5) | `CIN3` right C24, C36, C38 · `CIN3` left C24, C36, C38 · `PAIR` right C38 · `PAIR` left C38 · one side single, left C38 |
+| tip positions (5) | `CIN3` right C24, C36, C38 · `CIN3` left C24, C36, C38 · `PAIR` right C38 · `PAIR` left C38 · one side single, left C38 | - |
 | tip contents (3) | single C24 · pair both sides C24 · pair one side C24 | - |
 | pointer events (3) | down C24, C37 · move C24, C37 · leave C25 | - |
 | re-derive triggers (3) | save C27 · edit C27 · delete C27, C2 | - |

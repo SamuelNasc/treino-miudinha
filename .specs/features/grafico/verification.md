@@ -1,250 +1,259 @@
 # Gráfico verification
 
-**Verdict**: FAIL
+**Verdict**: PASS
 **Profile**: ui
-**Diff range**: 2974484..5bd6cf7 (HEAD). Commits fddbb94 (plan and checks), bec45c3 (feature), 5bd6cf7 (tests)
-**Round**: 1 - full
-**Verifier**: independent sub-agent (author != verifier). Fresh context. It did not build the feature or write its checks, and it changed no file except this report
+**Diff range**: 2974484..32aa089 (HEAD). The fix under review is 5bd6cf7..32aa089: commit 02b207a (code and tests) and commit 32aa089 (specs)
+**Round**: 2 - scoped
+**Verifier**: independent sub-agent (author != verifier). Fresh context. It did not build the feature, write its checks or write the round-1 fix, and it changed no file except this report
 
 ## Summary
 
-The feature works and the whole suite is green at `5bd6cf7`, but the checks do not hold up as written. Five findings fail it.
+Round 2 closes all five round-1 findings. The scoped review found no new failure.
 
-- **35 of 36 checks are proven** with a located assertion. All 27 Vitest names and all 20 Playwright tests behind the 36 proofs ran and passed in two batched invocations. The full gate is green too: Vitest 210, Playwright 72.
-- **C24 fails.** It claims "Each time the tip lies horizontally inside the card", for four pointer positions. The proof asserts it for two of them. Measured at HEAD, the tip for the `PAIR` fixture at the right edge spans x 210.5 to 345.5, but the card spans x 16 to 344. So the claim is false for a case its proof skips.
-- **Two coverage sets have unproven members.** Neither is caught by any proof:
-  - Pointer down and pointer move are never proven apart. Removing either handler leaves every proof green (Q3, Q4), because the test helper always sends a move and then a down. A tap on a phone sends only the down, so the touch path is unproven.
-  - Two of the five tick step candidates are never pinned. Removing the ×1 or the ×5 candidate leaves C13 green (Q1, Q2).
-- **Ten values mockup v6 decides for this card are neither asserted nor named out of reach.** `checks.md:179` says "Nothing else in the rules above is out of reach". The values:
-  - the card's `box-shadow`, and its `display: flex; flex-direction: column` (P1, P6)
-  - the crosshair's `y1`/`y2`
-  - each hover dot's radius and per-side fill
-  - the legend line's geometry and its svg `viewBox`
-  - the transparent hit `rect`
-
-  Probes on five of them all survive.
-- **C17 / AC 16 spells the chart's accessible name differently from v6.** The app gives "Gráfico de abdômen" and "Gráfico de braço". v6 l.756 renders `Gráfico de ${chosen}`, which gives "Gráfico de abdomen" and "Gráfico de braco". The change is an improvement, but unlike the three other deviations it is not recorded as approved.
-- **Faults.** 5 behaviour faults were injected, one per assertion surface, and all 5 were killed. A further 11 coverage and precision probes were run (Q1-Q4, P1-P7), and all 11 survived. They are the evidence for the findings above.
+- **All 42 checks are proven at `32aa089`**, each with a located assertion. Both proof batches ran on the real tree: Vitest ran 28 named tests and Playwright ran 21, all green.
+- **C24 now holds.** The tip is clamped by `max(half its own width, 50px)` (`src/components/Evolution.tsx:69-74`), and "inside the card" is asserted at every position C24 names. Measured at HEAD, the CIN3 tip spans x 248.5-307.5 at the right edge and x 56.5-107.5 at the left. The plot spans 32-328 and the card 16-344.
+- **Pointer down and pointer move are now proven apart (C37).** Removing either handler is killed (M4, M5).
+- **The ×1 and ×5 tick steps are now pinned (C39).** Dropping either is killed (M6, M7). The flat ranges are exact.
+- **The ten mockup v6 values left unaccounted in round 1 are now all accounted for.** Nine are asserted (C40, C41, C42), and each was made to fail by a fault. The hit `rect` is named out of reach at `checks.md:200`.
+- **The C17 accessible-name deviation is now recorded.** It is an Assumption row at `plan.md:154` and listed as approved at `checks.md:198`.
+- **Faults.** 18 mutations were run on the surfaces the fix touched or created, and all 18 were killed.
+- **The fix keeps the rules of hooks and the jsdom path.** The new `useLayoutEffect` runs unconditionally, before the early returns at `Evolution.tsx:83-84`. A jsdom probe went from one entry to a chart and back with 0 `console.error` calls. A pointer down in jsdom did not throw.
 
 Lesson distillation (step 7) is left to the orchestrator.
 
+## Round 1 record (carried from 5bd6cf7, summary)
+
+Round 1 ran on `2974484..5bd6cf7` and returned **FAIL**.
+
+- **What passed.** 35 of 36 checks (C1-C36) were proven with located evidence. All 5 behaviour faults F1-F5 were killed: the minus sign, the x-label middle index, the 2.5 tick step, the one-entry state per side, and pointer leave. The gate was green: Vitest 210, Playwright 72.
+- **Finding 1.** C24 claimed the tip lies inside the card at four positions but asserted it for two. The `PAIR` tip at the right edge overflowed the card (x 210.5-345.5 against 16-344).
+- **Finding 2.** Pointer down and pointer move were not proven apart. Probes Q3 and Q4 survived.
+- **Finding 3.** The ×1 and ×5 tick step candidates were never pinned. Probes Q1 and Q2 survived.
+- **Finding 4.** Ten mockup v6 values were neither asserted nor named out of reach:
+  - the card's `box-shadow`, `display: flex` and `flex-direction: column`
+  - the crosshair's `y1` and `y2`
+  - each hover dot's `r` and its per-side fill
+  - the legend line's coordinates and its svg `viewBox`
+  - the transparent hit `rect`
+
+  Probes P1-P7 survived.
+- **Finding 5.** The C17 / AC 16 accessible name contradicted v6 l.756, and the deviation was not recorded.
+- **Notes carried, not failing.**
+  - C10's row "62 → 62.05 is +0,1" differs from v6, but that input cannot be stored.
+  - C31's pair wrap depends on the fontsource fonts loading.
+
+## Scope of this round
+
+The scope follows `verify.md` "Re-verifying after a fix". It is set by the fix's diff and by the five non-PASS findings above.
+
+The diff (`git diff --stat 5bd6cf7..HEAD`) touches these files:
+
+- `src/components/Evolution.tsx` (+14/-4). It adds the clamp in a `useLayoutEffect` and a `tipRef`. `hover` now carries the plot `width` instead of a clamped `left`.
+- `e2e/grafico.spec.ts` (+43). It adds `SHADOW`, the `tipInside` and `dotsAt` helpers, the pair and one-side assertions, the C37 test, and the C42 declarations.
+- `src/App.test.tsx` (+16). It adds the "legend and crosshair geometry" test at `:2147`. Everything after it shifts by 16 lines.
+- `src/domain/chart.test.ts` (+6/-4). It adds the ×1, ×5 and exact flat rows.
+- `plan.md` gains two Assumption rows. `checks.md` gains C37-C42, Coverage rows, the deviations and the out-of-reach list.
+- `.specs/LESSONS.md` and `.specs/lessons.json` are touched by the specs commit. They are not inputs to any check.
+
+| Step | This round |
+| --- | --- |
+| Step 1 (binding sources) | Re-done for what the fix touched: the tip's position, the pointer, the hover dots, the crosshair, the legend svg, the `.card` rule, and the accessible name. Verified at `32aa089` |
+| Proofs | All 42 re-run at `32aa089` in 2 batched invocations |
+| Citations | Refreshed for every check in a touched file: `App.test.tsx` from `:2147` on, all of `e2e/grafico.spec.ts`, and `chart.test.ts` C13 and C14. C1-C20's `App.test.tsx` lines (before `:2147`) and C10/C12's `chart.test.ts` lines (before the `@@ -43` hunk) are unchanged and carried |
+| Coverage | Recomputed: pointer events, tip positions, y-tick step candidates and ranges, mockup v6 elements and rules, v6 SVG geometry, and round 1's ten unaccounted values. Other rows are carried from 5bd6cf7 |
+| Test policy | All three rows classify a touched file, so all three are re-judged |
+| Faults | Re-injected on every surface the fix touched or created (M1-M18). F1-F5 are carried from 5bd6cf7 |
+| Swept existing | Carried from 5bd6cf7. The fix touches no swept constraint |
+
 ## Binding sources
+
+Verified at `32aa089`, for the surfaces in scope.
 
 | Source | Opened | Contradiction | Uncovered |
 | --- | --- | --- | --- |
-| `.design/body-measurements.md`: `### Gráfico` (l.194-207), Key decision 3 (l.46) and Key decision 6 (l.49) | yes - read this round | none. Each state row has a check: no Measurement (C2), one entry (C8, C23), two or more (C9, C11), a D/E pair without colour (C19), a missing measure (C12), dark mode (C20, C32, C35). KD 3 (one point per date) holds because `seriesOf` is per Measurement (C12). KD 6 (pt-BR comma) is C34 | - |
-| Mockup v6, https://claude.ai/artifact/4cBeaiXRUspBbtpdr9isNa, version `1791496183-91de`. Opened with the Artifact tool (`read`); the local copy `artifact-1d35028d-1791496183-91de.html` (918 lines) was read in full. Rules: `.card` l.86, `.chips` l.162-163, `.chip` l.164-165, `.chart-card` l.167, `.headline` … `.first b` l.168-188, `.sr-title` l.243, tokens l.23-24/34/41. Markup: `#chartCard` l.356-360. Script: `CHIPS` l.652, `PAIRS` l.653, `series` l.719, `niceTicks` l.720-726, `renderChart` l.727-783 | yes - read this round | C17 / AC 16: the accessible name is "Gráfico de " plus the chip label in lower case ("Gráfico de abdômen", "Gráfico de braço"). v6 l.756 uses the chip key (`aria-label="Gráfico de ${chosen}"`), which gives "Gráfico de abdomen" and "Gráfico de braco". It is not among the approved deviations at `checks.md:177`, and the plan has no Assumption row for it (`plan.md:148-154`) | The card's `box-shadow: var(--shadow)` and `display: flex; flex-direction: column` (l.86). The crosshair's `y1="12"` / `y2="156"` (l.765). Each hover dot's `r="5"` and per-side `fill` (l.774). The legend line's `x1="1" y1="4" x2="21" y2="4"` and its svg's `viewBox="0 0 22 8"` (l.746-747). The transparent hit `rect` (l.766). See "Decided values" |
+| Mockup v6, https://claude.ai/artifact/4cBeaiXRUspBbtpdr9isNa, version `1791496183-91de`. Opened this round with the Artifact tool (`read`). The rules are in the returned head, and the local copy `artifact-1d35028d-1791496183-91de.html` was read for l.720-918. The parts the fix touched: `.card` l.86, the legend l.745-747, `aria-label` l.756, the crosshair and hit rect l.765-766, the hover dots l.774, the tip clamp l.778, and the handlers l.782 | yes - read this round | none. The two deviations the fix touches are now approved Assumptions. The tip clamp (`max(half width, 50)` vs v6's fixed 50, l.778) is at `plan.md:155` and `checks.md:198`. The accessible name (chip label vs chip key, l.756) is at `plan.md:154` and `checks.md:198`. The app's legend svg adds `aria-hidden="true"`, which v6 omits. That has no visual effect, and the svg carries no name in either | none |
+| `.design/body-measurements.md` `### Gráfico` (l.194-207) | yes - re-read this round. It decides nothing about the tip's position or the pointer | none | - |
 
-### Arrangement and copy, enumerated per state
+### What the fix touched, against v6
 
-The card is v6's `#chartCard` (l.356-360). It holds a heading, the chip row, and one body block (`#chartBody`). The body holds the headline, then the legend (pair only), then the plot, with the tip overlaid on the plot.
-
-The app matches that composition: `Evolution.tsx:44-59` wraps `ChartBody` in a single `div`.
-
-| State | What v6 decides | Check |
-| --- | --- | --- |
-| Card placement | First section on Medidas, above Nova medição, Histórico and Lembrete (l.356, l.362, l.378, l.383) | C1, C31 |
-| Card absent | Hidden when there are no entries (l.732) | C2 |
-| Chip row | 8 chips in `CHIPS` order, in a group labelled "Escolher medida", on one scrolling line | C3, C29 |
-| Chosen chip | "Cintura" at start; `aria-pressed` | C4, C5, C6 |
-| Region order inside the card | heading, chips, headline, legend (pair only), plot; all left-aligned | C31 (`grafico.spec.ts:186-193`, `:207-214`) |
-| Headline, single measure | value and unit in one block, with the change under it | C31 (`:194-198`), C9 |
-| Headline, pair | D then E. They wrap at 360px with E under D | C18, C31 (`:220-224`) |
-| No gap inside the body | headline, legend and plot touch | C31 (`:216-218`) |
-| Legend | "Direita" with a solid line, "Esquerda" with a dashed line | C19 |
-| Plot | grid, y and x labels, lines, last dot, D/E end labels | C11, C14, C16, C19 |
-| Tip | date in bold (`<b>`), then values joined by " · " | C24 (`:79-80`) |
-| One-entry panel | full content width, below the chips, centred | C31 (`:227-236`), C8, C23 |
-| "Ainda sem" panel | the `.first` panel. The copy is an approved deviation | C7, C32 (`:348-349`) |
-| "sem medida nesse dia" (l.776) | Cannot be reached in v6: `dates` comes from the drawn series, so every date has a hit. The app has no such branch either | n/a |
+| v6 decides | Line | App | Check |
+| --- | --- | --- | --- |
+| `.card` `box-shadow: var(--shadow)` (light `0 6px 20px rgba(179,18,46,.10)`, dark `rgba(0,0,0,.35)`) | l.86, l.25, l.31 | `index.css:201`, `:21`, `:44` | C42 `e2e/grafico.spec.ts:335` |
+| `.card` `display: flex; flex-direction: column` | l.86 | `index.css:201` | C42 `:335` |
+| legend svg `viewBox="0 0 22 8"` | l.746-747 | `Evolution.tsx:149` | C40 `src/App.test.tsx:2153` |
+| legend line `x1=1 y1=4 x2=21 y2=4` | l.746-747 | `Evolution.tsx:150` | C40 `:2155` |
+| crosshair `y1=T (12)`, `y2=H-B (156)`, hidden at rest | l.765 | `Evolution.tsx:194` | C40 `:2158-2160` |
+| hit `rect` transparent | l.766 | `Evolution.tsx:200` | out of reach, `checks.md:200` |
+| hover dot `r=5`, `fill=colors[i]` per side, at `(x(d), y(v))` | l.774 | `Evolution.tsx:197` | C41 `e2e/grafico.spec.ts:126-130`, `:143` |
+| handlers on pointermove, pointerdown, pointerleave | l.782 | `Evolution.tsx:163-165` | C37 (down, move), C25 (leave) |
+| tip centre clamped to [50, width-50] | l.778 | `Evolution.tsx:69-74`: `max(offsetWidth/2, 50)` | C36, C38 (approved deviation) |
+| accessible name `Gráfico de ${chosen}` | l.756 | `Evolution.tsx:162` (`label.toLowerCase()`) | C17 (approved deviation) |
 
 ## Checks
 
-Proof runs, both at `5bd6cf7` on the real tree:
+All proofs ran at `32aa089` on the real tree, in two batched invocations.
 
-- **Vitest (V).** `pnpm vitest run src/App.test.tsx src/domain/chart.test.ts -t "<all 27 names joined by |>" --reporter=verbose` exited 0. It ran 27 tests and skipped 113, and each of the 27 names appears individually in the output as ✓.
-- **Playwright (P).** `pnpm exec playwright test e2e/grafico.spec.ts -g "pair colours|touching the chart shows the date|leaving the chart hides the tip|the chart lets the page scroll|touching the chart stores nothing|chips on one scrolling line|plot fills the card|card arrangement at 360|mockup v6 chart declarations|series tokens"` exited 0 with 20 passed. Each test is listed by name in the output.
-
-Every proof resolves to a test added in `5bd6cf7`.
+- **Vitest (V).** `pnpm vitest run src/App.test.tsx src/domain/chart.test.ts -t "<the 28 distinct proof names from checks.md joined by |>" --reporter=verbose` exited 0. It ran 28 tests and skipped 113, and each of the 28 appears individually as ✓: the 4 under `chart > …` and the 24 under `Gráfico > …`, including the new `Gráfico > legend and crosshair geometry`.
+- **Playwright (P).** `pnpm exec playwright test e2e/grafico.spec.ts -g "a tap alone and a move alone each show the tip|card arrangement at 360|chips on one scrolling line|leaving the chart hides the tip|mockup v6 chart declarations|pair colours|plot fills the card|series tokens|the chart lets the page scroll|touching the chart shows the date|touching the chart stores nothing"` exited 0 with 21 passed. Each test is listed by name. The new one is `:147` "a tap alone and a move alone each show the tip".
+- **Every name exists and is the feature's own.** The 11 Playwright patterns resolve to tests in `e2e/grafico.spec.ts`, which the feature created. The 28 Vitest names resolve to `describe("Gráfico")` in `src/App.test.tsx` (from `:1929`) and to `src/domain/chart.test.ts`. Both were added in 5bd6cf7 or 02b207a.
 
 | Check | Claim | Proof run | Evidence | Result |
 | --- | --- | --- | --- | --- |
-| C1 | headings in order, "Sua evolução" first | V ✓ "sua evolucao comes first on medidas" | `src/App.test.tsx:1935` - `expect(order).toEqual([...order].sort((a, b) => a - b))`. Also `:1936` - `expect(order[0]).toBe(0)` | PASS |
-| C2 | no Measurement, no card; deleting the last one removes it | V ✓ "no measurement no evolucao" | `src/App.test.tsx:1942-1945` - the heading, the group and the chart are each `toBeNull()`, and "Nenhuma medição ainda." is in the document. Also `:1955` - the heading is null after the delete | PASS |
-| C3 | 8 chips in order | V ✓ "eight chips in order" | `src/App.test.tsx:1960` - `expect(chips().map((b) => b.textContent)).toEqual(CHIP_NAMES)`. The list is at `:1887` | PASS |
-| C4 | Cintura pressed first | V ✓ "cintura is chosen first" | `src/App.test.tsx:1965` - `toHaveAttribute("aria-pressed", b.textContent === "Cintura" ? "true" : "false")` | PASS |
-| C5 | a tap chooses the measure | V ✓ "a chip tap chooses the measure" | `src/App.test.tsx:1971-1973` - Peso pressed and the others not; `{ value: "62,6", unit: "kg" }`; "Gráfico de peso". Also `:1975` - Quadril | PASS |
-| C6 | the chip survives a page switch | V ✓ "the chosen chip survives a page switch" | `src/App.test.tsx:1983-1984` - Peso has `aria-pressed` `"true"` and the chart is "Gráfico de peso" | PASS |
-| C7 | "Ainda sem medição de …" | V ✓ "a measure with no entry says so" | `src/App.test.tsx:1998-1999` - `evo().getByText(text)` and `expect(chart(), name).toBeNull()` over the 5 rows at `:1990-1994`. Also `:2002` - nothing matches `/^Ainda sem/` on Peso | PASS |
-| C8 | one entry shows primeira medição | V ✓ "one entry shows primeira medicao" | `src/App.test.tsx:2009` - `toBe("71,6 cm" + FIRST_TEXT("08/10"))`. Also `:2013` - `"62,9 kg" + FIRST_TEXT("01/10")`, and `:2010`, `:2014` - chart null | PASS |
-| C9 | latest value and change | V ✓ "latest value and change since the first" | `src/App.test.tsx:2020` - `toEqual({ letter: null, value: "71,6", unit: "cm", delta: "−2,4 cm desde 27/08" })`. Also `:2021` - `0x2212`, and `:2023` - "−1,6 kg desde 27/08" | PASS |
-| C10 | the change rule | V ✓ "change since the first" | `src/domain/chart.test.ts:39` - `expect(change(first, last)).toBe(text)` over the 7 rows at `:30-36`. Also `:40` - `not.toContain("-")`, and `:42` - `charCodeAt(0)).toBe(0x2212)` | PASS |
-| C11 | one line at v6's coordinates | V ✓ "one line through the measured dates" | `src/App.test.tsx:2029` - `near(coords(lines()[0]), [[34, 12], [218, 88.8], [310, 127.2]])`. Also `:2032` - Peso `[[34, 50.4], [264, 112.8], [310, 127.2]]`, and `:2028`/`:2031` - exactly one line | PASS |
-| C12 | the series rule; a date without the measure | V ✓ "series of a measure", ✓ "a date without the measure has no point" | `src/domain/chart.test.ts:14-25` - `toEqual` against the exact cintura, reversed, peso and busto `[]` series. Also `src/App.test.tsx:2043-2044` - one line with 2 points | PASS |
-| C13 | the tick rule | V ✓ "y ticks" | `src/domain/chart.test.ts:58` - `expect(ticks).toEqual(expected)` over `:47-52`. Also `:59-65` - 3 to 5 ticks, equal steps within 1e-9, the span covered, and the flat range strictly inside. Coverage gap: the step candidates ×1 and ×5 are never pinned (see Coverage, Q1, Q2) | PASS |
-| C14 | x labels; axis texts through `App` | V ✓ "x labels", ✓ "axis labels" | `src/domain/chart.test.ts:70-73` - the 3, 4, 5 and 2 date cases. `src/App.test.tsx:2049-2053` - the y texts "71".."74" at y 160/112/64/16, filtered on `text-anchor` `end` and x `28` at `:1917`; the x texts with anchors `["start","middle","end"]` at x 34/218/310, filtered on y `174` at `:1918`. `:2058-2059` - the `PAIR` texts | PASS |
-| C15 | year shown when it differs | V ✓ "chart dates show the year only when it differs" | `src/App.test.tsx:2065` - `"−1 cm desde 20/12/26"`. Also `:2066` - `["20/12/26", "03/01"]`, and `:2070` - `"74 cm" + FIRST_TEXT("20/12/26")` | PASS |
-| C16 | the last dot; grid lines | V ✓ "latest point has a dot" | `src/App.test.tsx:2075-2079` - one dot, `r` `"5"`, at (310, 127.2). Also `:2081-2084` - 4 grid lines, each from `x1` "34" to `x2` "310" | PASS |
-| C17 | the accessible name | V ✓ "chart accessible name" | `src/App.test.tsx:2098-2102` - the img named "Gráfico de cintura", "Gráfico de abdômen" and "Gráfico de braço". This proves the check, but the check itself contradicts v6 l.756 (see Binding sources) | PASS |
-| C18 | the D and E headlines | V ✓ "a pair shows d and e headlines" | `src/App.test.tsx:2108-2111` - `toEqual([{ letter: "D", value: "28,5", unit: "cm", delta: "−0,5 cm desde 24/09" }, { letter: "E", … "−0,3 cm desde 24/09" }])` | PASS |
-| C19 | solid D, dashed E, end labels, legend | V ✓ "a pair draws solid d and dashed e" | `src/App.test.tsx:2118-2139`: the stroke `var(--s-d)` with no dash; `var(--s-e)` with `"6 4"`; the points; the dot fills; the "D"/"E" texts at (319, 112) and (319, 150.4); the legend "Direita"/"Esquerda" with `stroke-width` `2.5` and dash `4 3`. `:2143-2144` - no legend and no end label on Cintura | PASS |
-| C20 | pair colours in both schemes | P ✓ "pair colours - light", ✓ "- dark" | `e2e/grafico.spec.ts:245-252` - `expect(await css(d, "stroke")).toBe(rgb(S_D[scheme]))`, and the same for E, the dots and the legend lines | PASS |
-| C21 | a side with one entry | V ✓ "a side with one entry shows primeira medicao" | `src/App.test.tsx:2151-2158` - D's delta; E `{ letter: "E", value: "28,3", unit: "cm", delta: "primeira medição" }`; one line, D's; one E dot at x 310. Also `:2168-2170` - a chart with 0 lines and the dots `["var(--s-d)","var(--s-e)"]` | PASS |
-| C22 | a side with no entry | V ✓ "a side with no entry is left out" | `src/App.test.tsx:2181-2186` - the letters `["D"]`; one line; the legend `["Direita"]`; the end labels `["D"]`; `not.toMatch(/NaN\|undefined/)` | PASS |
-| C23 | a pair on one date | V ✓ "a pair on one date shows primeira medicao" | `src/App.test.tsx:2193-2195` - `["D 29 cm", "E 28,6 cm"]`, the full text, and chart null | PASS |
-| C24 | the tip, crosshair and hover dots, and the tip inside the card each time | P ✓ "touching the chart shows the date", "… - pair", "… - pair with one side missing" | `e2e/grafico.spec.ts:79-87` (`checkTip`) - the text, the `<b>` date, visibility, `x1`, `3px, 3px`, the dot count, and the tip inside the card. `:92-94` - the hover dot at (310, 127.2). `:105-106` and `:113-114` - the pair texts and dot counts. **Gap.** "Each time the tip lies horizontally inside the card" is asserted only for `CIN3` (via `checkTip`). The pair and one-side cases (`:101-115`) never call `checkTip`. Measured at HEAD in the scratch tree with the fonts loaded: the `PAIR` tip at the right edge spans x 210.5-345.5, and the card spans 16-344. The claim is false for that member | FAIL |
-| C25 | leaving hides the tip, the line and the dots | P ✓ "leaving the chart hides the tip" | `e2e/grafico.spec.ts:122-124` - `toBeHidden()`, `visibility` `"hidden"`, and `toHaveCount(0)` | PASS |
-| C26 | `touch-action: pan-y` | P ✓ "the chart lets the page scroll" | `e2e/grafico.spec.ts:129` - `expect(await css(chart(page), "touch-action")).toBe("pan-y")` | PASS |
-| C27 | follows saves, edits and deletes | V ✓ "the chart follows saves edits and deletes" | `src/App.test.tsx:2207-2208` - `{ value: "62,2", delta: "−2 kg desde 27/08" }` with Peso pressed. Also `:2216` - "62,3", and `:2221-2222` - "62,6" with Peso pressed. It is one `render` with no remount (`:2200`) | PASS |
-| C28 | stores nothing | V ✓ "choosing chips stores nothing"; P ✓ "touching the chart stores nothing" | `src/App.test.tsx:2237` - `expect(localStorage.getItem(STORAGE_KEY)).toBe(before)`. Also `e2e/grafico.spec.ts:140` - the same after pointer downs and moves | PASS |
-| C29 | chips on one scrolling line; no page scroll | P ✓ "chips on one scrolling line" | `e2e/grafico.spec.ts:151-158`: the tops are within 1, each next left ≥ the previous right; `overflow-x` `auto`; `scrollbar-width` `none`; `sw > cw`; the page `scrollWidth` ≤ 360 | PASS |
-| C30 | the plot fills the card at 340:180; the headline type | P ✓ "plot fills the card", ✓ "plot fills the card, pair" | `e2e/grafico.spec.ts:165-169` - the width within 1, the ratio within 0.01, `Fredoka`, `36px`. Also `:177` - `30px` for each side | PASS |
-| C31 | the card's arrangement at 360 | P ✓ "card arrangement at 360", ", pair", ", one entry" | `e2e/grafico.spec.ts:190-198`, `:211-224` and `:233-236` - order, left alignment, the stacking of value and change, E under D, the no-gap body, and the one-entry panel's width and centring. The pair-wrap assertion (`:223`) holds only when the fontsource fonts load. In a worktree whose symlinked `node_modules` Vite would not serve, it failed with E at x +165. That is consistent with v6, which also wraps only because of Fredoka's width | PASS |
-| C32 | v6's declarations in both schemes | P ✓ "mockup v6 chart declarations - light/dark", ", pair and one entry - light/dark" | `e2e/grafico.spec.ts:290-343`, `:349`, `:360-383` and `:393-401` - `expectCss(... ).toBe(value)` for each declaration the claim lists. Also `:343` - transform `e` within 0.5 of minus half the width | PASS |
-| C33 | the other record fields untouched | V ✓ "the chart follows saves edits and deletes" | `src/App.test.tsx:2224-2230` - `version` 1, and `completions`, `today`, `weights` and `reminder` `toEqual(before.…)`, and `restSeconds` `toBe(60)` | PASS |
-| C34 | no dot decimals | V ✓ "chart numbers use a decimal comma" | `src/App.test.tsx:2242` - `not.toMatch(/\d\.\d/)`. Also `:2244-2245` on Braço | PASS |
-| C35 | the `--s-d` / `--s-e` tokens | P ✓ "series tokens - light/dark" | `e2e/grafico.spec.ts:269-271` - the resolved colours equal `rgb(S_D/S_E[scheme])`, and the `:root` property is non-empty | PASS |
-| C36 | the tip clamp | P ✓ "touching the chart shows the date" | `e2e/grafico.spec.ts:95` - `rightCentre ≤ plot.width - 50 + 0.5`. Also `:98` - `leftCentre ≥ 50 - 0.5` | PASS |
+| C1 | headings in order | V ✓ | `src/App.test.tsx:1935-1936` (carried from 5bd6cf7, lines unchanged) | PASS |
+| C2 | no Measurement, no card | V ✓ | `src/App.test.tsx:1942-1945`, `:1955` (carried) | PASS |
+| C3 | 8 chips in order | V ✓ | `src/App.test.tsx:1960` (carried) | PASS |
+| C4 | Cintura pressed first | V ✓ | `src/App.test.tsx:1965` (carried) | PASS |
+| C5 | a tap chooses | V ✓ | `src/App.test.tsx:1971-1975` (carried) | PASS |
+| C6 | survives a page switch | V ✓ | `src/App.test.tsx:1983-1984` (carried) | PASS |
+| C7 | "Ainda sem medição de …" | V ✓ | `src/App.test.tsx:1998-1999`, `:2002` (carried) | PASS |
+| C8 | one entry | V ✓ | `src/App.test.tsx:2009-2014` (carried) | PASS |
+| C9 | latest value and change | V ✓ | `src/App.test.tsx:2020-2023` (carried) | PASS |
+| C10 | change rule | V ✓ | `src/domain/chart.test.ts:39-42` (carried, above the fix's hunk) | PASS |
+| C11 | one line at v6's coordinates | V ✓ | `src/App.test.tsx:2028-2032` (carried) | PASS |
+| C12 | series rule | V ✓ ×2 | `src/domain/chart.test.ts:14-25`; `src/App.test.tsx:2043-2044` (carried) | PASS |
+| C13 | tick rule | V ✓ "y ticks" | `src/domain/chart.test.ts:60` `expect(ticks, …).toEqual(expected)`, now unconditional over every row at `:47-56`. Also `:61-67` - 3 to 5 ticks, equal steps, span covered, flat strictly inside. Refreshed | PASS |
+| C14 | x labels; axis texts | V ✓ ×2 | `src/domain/chart.test.ts:72-75` (refreshed, +2); `src/App.test.tsx:2049-2059` (carried) | PASS |
+| C15 | year when it differs | V ✓ | `src/App.test.tsx:2065-2070` (carried) | PASS |
+| C16 | last dot; grid | V ✓ | `src/App.test.tsx:2075-2084` (carried) | PASS |
+| C17 | accessible name | V ✓ | `src/App.test.tsx:2098-2102` (carried). Now backed by the Assumption at `plan.md:154` | PASS |
+| C18 | D and E headlines | V ✓ | `src/App.test.tsx:2108-2111` (carried) | PASS |
+| C19 | solid D, dashed E, legend | V ✓ | `src/App.test.tsx:2118-2144` (carried) | PASS |
+| C20 | pair colours, both schemes | P ✓ ×2 | `e2e/grafico.spec.ts:287-294` `expect(await css(d, "stroke")).toBe(rgb(S_D[scheme]))`, and E, the dots and the legend lines. Refreshed | PASS |
+| C21 | a side with one entry | V ✓ | `src/App.test.tsx:2167-2174` - D's delta, `e` `toEqual({ letter: "E", value: "28,3", unit: "cm", delta: "primeira medição" })`, one line, one E dot at 310. `:2184-2186` - 0 lines, dots `["var(--s-d)","var(--s-e)"]`. Refreshed | PASS |
+| C22 | a side with no entry | V ✓ | `src/App.test.tsx:2197-2202` - letters `["D"]`, one line, legend `["Direita"]`, end labels `["D"]`, and the region text not matching "NaN" or "undefined" (`not.toMatch`). Refreshed | PASS |
+| C23 | pair on one date | V ✓ | `src/App.test.tsx:2209-2211`. Refreshed | PASS |
+| C24 | tip, crosshair, hover dots; tip inside the card each time | P ✓ "touching the chart shows the date", "- pair", "- pair with one side missing" | `e2e/grafico.spec.ts:79-85` (`checkTip`: text, `<b>`, visibility, `x1`, `3px, 3px`, dot count), `:87-88` tip in card for CIN3 right and left, `:94-95` hover dot at (310, 127.2). `:123-124` pair text and 2 dots, `:131` → `:109-110` pair right in card. `:141-142` one-side text and 1 dot, `:144` → `:109-110` in card. Refreshed. Round 1's gap is closed | PASS |
+| C25 | leaving hides | P ✓ | `e2e/grafico.spec.ts:164-166` `toBeHidden()`, `visibility` `"hidden"`, `toHaveCount(0)`. Refreshed | PASS |
+| C26 | `touch-action: pan-y` | P ✓ | `e2e/grafico.spec.ts:171`. Refreshed | PASS |
+| C27 | follows saves, edits, deletes | V ✓ | `src/App.test.tsx:2223-2224`, `:2232`, `:2237-2238`. One `onMedidas` render at `:2216`. Refreshed | PASS |
+| C28 | stores nothing | V ✓, P ✓ | `src/App.test.tsx:2253` `toBe(before)`; `e2e/grafico.spec.ts:182` `toBe(before)`. Refreshed | PASS |
+| C29 | chips on one scrolling line | P ✓ | `e2e/grafico.spec.ts:193-200`. Refreshed | PASS |
+| C30 | plot fills the card; headline type | P ✓ ×2 | `e2e/grafico.spec.ts:207-211`, `:219`. Refreshed | PASS |
+| C31 | card arrangement | P ✓ ×3 | `e2e/grafico.spec.ts:232-240`, `:253-266`, `:275-278`. Refreshed | PASS |
+| C32 | v6 declarations, both schemes | P ✓ ×4 | `e2e/grafico.spec.ts:332-386` (`expectCss … toBe(value)` at `:320`), `:391-392`, `:403-444`. `:386` - transform `e` within 0.5 of minus half the width. Refreshed | PASS |
+| C33 | other record fields untouched | V ✓ | `src/App.test.tsx:2240-2246`. Refreshed | PASS |
+| C34 | decimal comma | V ✓ | `src/App.test.tsx:2258`, `:2260-2261`. Refreshed | PASS |
+| C35 | `--s-d` / `--s-e` tokens | P ✓ ×2 | `e2e/grafico.spec.ts:311-313`. Refreshed | PASS |
+| C36 | the clamp at CIN3's edges | P ✓ | `e2e/grafico.spec.ts:96` `expect(rightCentre).toBeLessThanOrEqual(plot.width - 50 + 0.5)`; `:99` `expect(leftCentre).toBeGreaterThanOrEqual(50 - 0.5)`. Refreshed | PASS |
+| C37 | a tap alone, a move alone | P ✓ "a tap alone and a move alone each show the tip" | `e2e/grafico.spec.ts:152` dispatches only `pointerdown` (`pointerType: "touch"`), then `:153` `toHaveText("08/1071,6 cm")`. `:155` `page.mouse.move` with no button, then `:156` `toHaveText("27/0874 cm")`. New | PASS |
+| C38 | tip inside the plot and card at every position; centre ≥ 50 from each side | P ✓ "touching the chart shows the date" ×3 | `tipInside` at `e2e/grafico.spec.ts:107-113`: `t.x ≥ plot.x - 0.5`, `t.x + t.width ≤ plot.x + plot.width + 0.5`, the same against the card, and centre in [49.5, width - 49.5]. It is called at `:131` (PAIR right), `:133` (PAIR left) and `:144` (one side, left). CIN3 right and left go through `:87-88` (in card) plus `:96`/`:99` (centre bound). See note 1. New | PASS |
+| C39 | ×1, ×5 and exact flat ticks | V ✓ "y ticks" | `src/domain/chart.test.ts:53` `[0, 30, [0, 10, 20, 30]]`, `:54` `[0, 12, [0, 5, 10, 15]]`, `:55` `[72, 72, [71.5, 72, 72.5]]`, `:56` `[62.9, 62.9, [62, 62.5, 63, 63.5]]`, all asserted at `:60` `toEqual(expected)`. New | PASS |
+| C40 | legend svg and crosshair geometry | V ✓ "legend and crosshair geometry" | `src/App.test.tsx:2151` 2 svgs; `:2153` `viewBox` `toBe("0 0 22 8")`; `:2155` `toEqual(["1", "4", "21", "4"])`; `:2158` `y1` `toBe("12")`; `:2159` `y2` `toBe("156")`; `:2160` `visibility` `toBe("hidden")`. New | PASS |
+| C41 | hover dots r 5, side fill, position | P ✓ "- pair", "- pair with one side missing" | `e2e/grafico.spec.ts:126` `toEqual([["var(--s-d)", "5"], ["var(--s-e)", "5"]])`; `:128-129` cx/cy within 0.01 of (310, 108) and (310, 146.4); `:143` `toEqual([["var(--s-d)", "5"]])`. New | PASS |
+| C42 | card display, direction, shadow, both schemes | P ✓ "mockup v6 chart declarations - light", "- dark" | `e2e/grafico.spec.ts:335` `display: "flex", "flex-direction": "column", "box-shadow": SHADOW[scheme]`, with `SHADOW` at `:22`, asserted by `:320` `toBe(value)`. New | PASS |
+
+Per-check tally: **42/42 PASS** with located evidence.
 
 ## Coverage
 
-Recomputed from the authority over each set. For sets the design decides, that authority is mockup v6 and the plan. For the code's own branches, it is `chart.ts` and `Evolution.tsx`.
+Each row the fix touched is recomputed from its authority: mockup v6 for what the design decides, and the code for its own branches. The other rows are carried from 5bd6cf7.
 
 | Set (size) | Recomputed from | Member -> proof | Unproven |
 | --- | --- | --- | --- |
-| Medidas sections (4) | v6 l.356/362/378/383 | all 4 C1 | - |
-| card-absent sources (3) | plan AC 2 | absent C2 · `[]` C2 · last deleted C2 | - |
-| chips (8) | v6 `CHIPS` l.652 | all 8 by order equality C3 | - |
-| single-measure states (4) | v6 l.732-739 | hidden C2 · no entry C7 · one entry C8 · chart C9, C11 | - |
-| pair states (5) | plan AC 17-22 | both ≥2 C18 · one side single C21 · one side none C22 · one date C23 · two singles on two dates C21 | - |
-| change sign (3) and rounding (2) | `chart.ts:225-227` | `+`, `−`, `±` · round up, round to zero: C10 | - |
-| y-tick step candidates (5) | `chart.ts:236`, v6 l.723. Named in the level evidence ("step choice over 5 candidates", `checks.md:197`) | ×2 C13 (35.6..36) · ×2.5 C13, C14 (28.3..29) · ×10 C13 (71.6..74, 30..200 and others) · ×1 none: no row has a raw step that is an exact power of ten, and removing it survives (Q1) · ×5 none exactly: only the flat rows reach it, and they assert properties, not values. Removing it survives (Q2) | ×1, ×5 |
-| x-label counts (4) | `chart.ts:243-245` | 2, 3, 4 and 5 dates: C14 | - |
-| date formats (2) | `History.tsx:8` | this year C9, C14 · other year C15 | - |
-| pointer events (3) | `Evolution.tsx:153-155`, v6 l.782 | leave C25 · down none apart from move · move none apart from down. `pointAt` (`grafico.spec.ts:66-71`) always moves and then presses, so removing either handler alone survives (Q3, Q4). A touch tap sends no pointermove, so the touch path rests on an unproven handler | down, move |
-| tip inside the card (4 positions C24 claims) | C24's text | `CIN3` right C24 (`:86-87`) · `CIN3` left C24 · `PAIR` right none: measured 210.5-345.5 against card 16-344, outside · one side single, left none: measured 49.5-114.5, inside but unasserted | `PAIR` right, one side single left |
-| tip contents (3) | plan AC 23 | single · pair · one side: C24 | - |
-| re-derive triggers (3) | plan AC 26 | save, edit, delete: C27 (delete also C2) | - |
-| untouched record fields (5) | the record shape | all 5: C33 | - |
-| colour schemes (2) | v6 l.29-42 | light and dark: C20, C32, C35 | - |
-| mockup v6 decided values, Gráfico (see below) | v6, read in full | 10 members are neither asserted nor out of reach | `.card` box-shadow, `.card` display flex, `.card` flex-direction column, crosshair y1, crosshair y2, hover dot r, hover dot fill, legend line geometry, legend svg viewBox, hit rect |
-
-### Decided values in mockup v6, recomputed
-
-- **Rules.** Every declaration in the rules below is asserted, with these exceptions:
-  - `.card` l.86: `box-shadow` and `display: flex; flex-direction: column` are not asserted.
-  - `.chips::-webkit-scrollbar` l.163 is named out of reach at `checks.md:179`.
-
-  The asserted rules and their checks:
-  - `.chips` and `.chip`: C29, C32
-  - `.chip[aria-pressed]`: C32
-  - `.chart-card`: C32
-  - `.sr-title` and the global `h2` rule: C32
-  - `.headline`, `.now`, `.now small`, `.delta` and `.delta b`: C30, C32
-  - `.pair` and `.pair .now`: C30, C31, C32
-  - `.legend`, `.legend span` and `.legend svg`: C32
-  - `.plot` and `.plot svg`: C26, C30, C32
-  - `.grid`, `.tick`, `.series`, `.dot`, `.end-label` and `.cross`: C32
-  - `.tip`: C32, C36
-  - `.first` and `.first b`: C32
-  - the tokens: C35
-
-  C32 asserts the `.card`'s `row-gap: 14px` as declared. P6 shows that the gap's effect is not asserted: with `display: block` the 14px gaps vanish, and every proof stays green.
-- **SVG and markup.** These are asserted:
-  - the viewBox ratio: C30
-  - the grid's x1/x2: C16
-  - the tick texts at x L−6 and y+4: C14
-  - the x texts at y H−6 with their anchors: C14
-  - the polyline points: C11, C19
-  - the `6 4` dash: C19
-  - the last dot's `r` 5 and its fill: C16, C19
-  - the end labels at +9/+4: C19
-  - the legend lines' stroke, width and dash: C19
-  - the crosshair's x and visibility: C24, C25
-  - the hover dot centre: C24, on `CIN3` only
-  - the tip's `<b>` date: C24
-
-  These are not asserted (the Unproven members above):
-  - the crosshair's `y1` T=12 and `y2` H−B=156 (l.765). P2 survives
-  - the hover dots' `r="5"` (P4 survives) and their per-side `fill` (l.774). P3, which makes both dots D-coloured, survives
-  - the legend line's coordinates and its svg `viewBox="0 0 22 8"` (l.746-747). P5 survives
-  - the transparent hit `rect` (l.766). P7 survives. It has no visible effect in Chromium, because the outer svg receives the pointer anyway. The remedy is to name it out of reach, not to assert it
+| pointer events (3). Verified at `32aa089` | v6 l.782; `Evolution.tsx:163-165` | down alone C37 `:152-153` (M4 killed) · move alone C37 `:155-156` (M5 killed) · leave C25 `:164-166` (F5, carried) | - |
+| tip positions (5). Verified at `32aa089` | C24's four positions plus PAIR left (C38); the Assumption at `plan.md:155` | CIN3 right C24 `:87-88`, C36 `:96` · CIN3 left C24 `:87-88`, C36 `:99` · PAIR right C38 `:131` · PAIR left C38 `:133` (M3 killed) · one side single, left C38 `:144` (M2 killed) | - |
+| clamp branches (3). Verified at `32aa089` | `Evolution.tsx:72-73` | 50px floor wins (single tip ≈ 51-59px): C36 `:96`, `:99`, C38 `:144` (M2 killed) · half-width wins (pair tip ≈ 135px): C38 `:131`, `:133` (M1 killed) · no hover or no tip, early return: jsdom probe, see "Faults injected" | - |
+| y-tick step candidates (5). Verified at `32aa089` | `chart.ts:32`; v6 l.722 | ×1 `chart.test.ts:53` (M6 killed) · ×2 `:51` · ×2.5 `:49` · ×5 `:54`, `:55-56` (M7 killed) · ×10 `:47`, `:48`, `:50`, `:52` · all exact at `:60` | - |
+| y-tick ranges (10, `checks.md:182`). Verified at `32aa089` | `checks.md` C13 and C39 rows | all 10 rows `chart.test.ts:47-56`, exact `toEqual` at `:60` (the flat rows were property-only in round 1 and are now exact) | - |
+| round 1's unaccounted mockup v6 values (10). Verified at `32aa089` | v6 l.86, l.746-747, l.765-766, l.774 | `.card` box-shadow C42 `:335` (M13) · `.card` display flex C42 `:335` (M14) · `.card` flex-direction column C42 `:335` (M15) · crosshair y1 C40 `:2158` (M10) · crosshair y2 C40 `:2159` (M17) · hover dot r C41 `:126`, `:143` (M9) · hover dot side fill C41 `:126`, `:143` (M8) · legend line geometry C40 `:2155` (M11) · legend svg viewBox C40 `:2153` (M12) · hit rect out of reach `checks.md:200` | - |
+| mockup v6 `.card` rule l.86 (7 declarations). Verified at `32aa089` | v6 l.86, with `.chart-card` l.167 | background C32 `:333` · radius C32 `:333` · box-shadow C42 · padding (18 16 14, with `.chart-card`) C32 `:334` · display C42 · flex-direction C42 · gap C32 `:334` | - |
+| mockup v6 elements (20) and rules (27). Verified at `32aa089` | v6 l.162-188, l.243, `#chartCard` l.356-360 | as round 1 (all asserted), plus the hover dots now C41 and the crosshair C40. `.card` is now complete (row above) | - |
+| v6 SVG geometry (11). Verified at `32aa089` | v6 l.748-766, l.774 | viewBox ratio C30 · plot box L/R C11, C16 · T/B C11, C14 · tick text C14 · x text C14 · last dot r C16 · end labels C19 · dashes C19 · crosshair y1/y2 C40 · legend viewBox and line C40 · hover dot r, fill, centre C41, C24 | - |
+| Medidas sections (4) · card-absent sources (3) · chips (8) · single-measure states (4) · pair states (5) · change sign and rounding (5) · x-label counts (4) · date formats (2) · tip contents (3) · re-derive triggers (3) · untouched record fields (5) · colour schemes (2) | carried from 5bd6cf7. The fix touched no code these come from; `chart.ts` and `index.css` are unchanged | as in round 1 | - |
 
 ## Test policy rows
 
 | Row | Files it classifies | Required proof | Expectation met |
 | --- | --- | --- | --- |
-| The chart rules (series, change, ticks, x labels) | `src/domain/chart.ts` | own layer `chart.test.ts:13-74` · through `App`: C11, C14, C9 and C18 render `CIN3` and `PAIR` | yes. Every row of C10, C12, C13 and C14 is in the tables, and `CIN3`/`PAIR` are rendered through `App`. The ×1/×5 gap is recorded under Coverage, because the expectation as written ("every row of …") is satisfied |
-| The card's state through `App` | `src/components/Evolution.tsx`, `src/App.tsx` | jsdom C7, C8, C9, C18, C21, C22 and C23 | yes. Each single-measure state and each pair state has a proof through `App` |
-| Pointer, layout, type and colour | `src/index.css`, `Evolution.tsx` | Playwright at 360×740 (`grafico.spec.ts:4`) | yes. C20, C32 and C35 run in both schemes. The pointer proofs run at 360×740 |
-
-## Swept existing
-
-| Row | Re-read | Holds |
-| --- | --- | --- |
-| failure modes: the storage warning (Menu C8) | `src/App.tsx:137-141`. "Seus dados não estão sendo salvos neste navegador" renders above the Menu for every page. The chart only reads `measurementsOf(record)` (`App.tsx:181`) | yes |
-| validation: stored values validated on parse | `src/domain/measurements.ts:88` (`parseMeasurements`), called from `src/domain/store.ts:68` | yes |
+| The chart rules (series, change, ticks, x labels) - re-judged, `chart.test.ts` touched | `src/domain/chart.ts` (unchanged) | own layer `chart.test.ts:13-76` · through `App`: C9, C11, C14 and C18 render `CIN3` and `PAIR` | yes. Every row of C10, C12, C13, C14 and C39 is in a table, and every tick row is now asserted exactly |
+| The card's state through `App` - re-judged, `Evolution.tsx` and `App.test.tsx` touched | `src/components/Evolution.tsx`, `src/App.tsx` | jsdom C7, C8, C9, C18, C21, C22, C23, C40 | yes. Each single-measure state and each pair state still has a proof through `App`. C40 adds the legend and crosshair attributes |
+| Pointer, layout, type and colour - re-judged, `Evolution.tsx` and `grafico.spec.ts` touched | `Evolution.tsx` (clamp, handlers), `src/index.css` (unchanged) | Playwright at 360×740 (`e2e/grafico.spec.ts:4`): C24, C36, C37, C38, C41, C42 | yes. The pointer proofs run at 360×740. C42 runs in both schemes, as does every colour claim (C20, C32, C35) |
 
 ## Faults injected
 
-The faults were injected in a scratch `git worktree add --detach` of `5bd6cf7` under the session scratchpad, with the real `node_modules` symlinked in.
+Verified at `32aa089`.
 
-Two edits were made to the scratch only:
+**Method.**
 
-- The Playwright port moved to 5199, so the scratch run could never reuse a server built from the real tree.
-- `server.fs.strict` was set to false, so Vite would serve the fontsource fonts through the symlink.
-
-The scratch baseline was 20/20 Playwright and 4/4 domain. The real tree's porcelain was ` M .specs/STATE.md` and `?? .playwright-mcp/` before the run. After `git worktree remove` it was identical (diffed, no output). The real `node_modules` is intact.
-
-**Behaviour faults: 5, one per distinct assertion surface, all killed.**
-
-| Mutation | Location | Killed |
-| --- | --- | --- |
-| F1 - the change's minus U+2212 changed to a hyphen | `src/domain/chart.ts:227` | yes - "change since the first" × |
-| F2 - the x-label middle index `floor` changed to `ceil` | `src/domain/chart.ts:244` | yes - "x labels" × |
-| F3 - the 2.5 step candidate dropped | `src/domain/chart.ts:236` | yes - "y ticks" × |
-| F4 - the one-entry state decided per side, as v6 does (`sides.every(s => s.pts.length === 1)`) | `src/components/Evolution.tsx:74` | yes - "a side with one entry shows primeira medicao" × |
-| F5 - pointer leave no longer clears the hover | `src/components/Evolution.tsx:155` | yes - "leaving the chart hides the tip" × (the tip stayed visible) |
-
-**Coverage and precision probes.** These run beyond the five-fault cap. They are the evidence for the Coverage and Binding-sources findings, not further behaviour faults. Each was run against the whole of `e2e/grafico.spec.ts` plus `App.test.tsx -t Gráfico`, or against the named proof.
+- **Scratch worktree.** Created with `git worktree add --detach <scratchpad>/wt HEAD`, with the real `node_modules` symlinked in.
+- **Scratch-only config.** The Playwright port moved to 5199, and `server.fs.strict` was set to false so the fontsource fonts load.
+- **Scratch baseline.** 21/21 Playwright (`e2e/grafico.spec.ts`) and 28/28 Vitest (Gráfico and chart).
+- **Each mutation.** Applied by a script as an exact single-occurrence replace, and shown with `git diff -U0`. The narrowest covering proof was then run, and the file restored with `git checkout --`. After each one, `git status --porcelain -- src e2e` was empty.
+- **Second pass.** A second scratch (`wt2`) ran M17 and M18.
+- **Clean-up.** Both worktrees were removed (`git worktree remove --force`, then `prune`). `git worktree list` shows only the main tree.
+- **Real tree.** `git status --porcelain` before was ` M .specs/STATE.md`, `?? .playwright-mcp/`. After, it was identical (`diff` printed nothing). The real `node_modules` is intact.
 
 | Mutation | Location | Killed |
 | --- | --- | --- |
-| Q1 - the ×1 step candidate dropped | `src/domain/chart.ts:236` | no - survived (24 Vitest green) |
-| Q2 - the ×5 step candidate dropped | `src/domain/chart.ts:236` | no - survived |
-| Q3 - `onPointerMove` removed | `src/components/Evolution.tsx:154` | no - survived (20 Playwright green) |
-| Q4 - `onPointerDown` removed | `src/components/Evolution.tsx:153` | no - survived |
-| P1 - `box-shadow: none` on the chart card | `src/index.css:124` | no - survived |
-| P2 - crosshair `y1={0} y2={H}` | `src/components/Evolution.tsx:184` | no - survived |
-| P3 - hover dots all `var(--s-d)` | `src/components/Evolution.tsx:187` | no - survived |
-| P4 - hover dot `r="3"` | `src/components/Evolution.tsx:187` | no - survived |
-| P5 - legend line `x1="11" y1="1" x2="21" y2="7"` | `src/components/Evolution.tsx:140` | no - survived |
-| P6 - `display: block` on the chart card | `src/index.css:124` | no - survived |
-| P7 - the transparent hit `rect` removed | `src/components/Evolution.tsx:190` | no - survived (no visible effect; it only needs naming out of reach) |
+| M1 - the clamp reverted to v6's fixed 50 (`const half = 50`) | `src/components/Evolution.tsx:72` | yes - "touching the chart shows the date - pair" × at `e2e/grafico.spec.ts:108` (the PAIR tip leaves the plot) |
+| M2 - the 50px floor dropped (`half = offsetWidth / 2`) | `Evolution.tsx:72` | yes - "touching the chart shows the date" × at `:96` (C36), and "- pair with one side missing" × at `:112` (C38) |
+| M3 - the left side clamped at 50, not half-width | `Evolution.tsx:73` | yes - "- pair" × at `:107` (the PAIR-left call, `:133`) |
+| M4 - `onPointerDown` removed | `Evolution.tsx:163` | yes - "a tap alone and a move alone each show the tip" × at `:153`. The 4 other pointer tests stayed green, which is the round-1 gap C37 closes |
+| M5 - `onPointerMove` removed | `Evolution.tsx:164` | yes - "a tap alone and a move alone …" × at `:156` |
+| M6 - the ×1 step candidate dropped | `src/domain/chart.ts:32` | yes - "y ticks" × (`0..30: expected [0, 20, 40]`) at `chart.test.ts:60` |
+| M7 - the ×5 step candidate dropped | `chart.ts:32` | yes - "y ticks" × (`0..12: expected [0, 10, 20]`) at `:60` |
+| M8 - every hover dot filled `var(--s-d)` | `Evolution.tsx:197` | yes - "- pair" × at `e2e/grafico.spec.ts:126` |
+| M9 - hover dot `r="3"` | `Evolution.tsx:197` | yes - "- pair" × at `:126`, "- pair with one side missing" × at `:143` |
+| M10 - crosshair `y1={0} y2={H}` | `Evolution.tsx:194` | yes - "legend and crosshair geometry" × (`'0'` vs `'12'`) at `src/App.test.tsx:2158` |
+| M11 - legend line `x1=11 y1=1 x2=21 y2=7` | `Evolution.tsx:150` | yes - × at `src/App.test.tsx:2155` |
+| M12 - legend svg `viewBox="0 0 20 10"` | `Evolution.tsx:149` | yes - × at `:2153` |
+| M13 - `.card.chart-card { box-shadow: none }` | `src/index.css:124` | yes - "mockup v6 chart declarations" light × and dark × ("card box-shadow", received `none`) at `e2e/grafico.spec.ts:335` |
+| M14 - `.card.chart-card { display: block }` | `index.css:124` | yes - light × and dark × ("card display", received `block`) at `:335` |
+| M15 - `.card.chart-card { flex-direction: column-reverse }` | `index.css:124` | yes - light × and dark × ("card flex-direction") at `:335` |
+| M16 - crosshair `visibility="visible"` at rest | `Evolution.tsx:194` | yes - × at `src/App.test.tsx:2160` |
+| M17 - crosshair `y2={H}` only (`y1` kept) | `Evolution.tsx:194` | yes - × (`'180'` vs `'156'`) at `:2159` |
+| M18 - hover dot `cy` + 1 | `Evolution.tsx:197` | yes - "- pair" × at `e2e/grafico.spec.ts:129` |
 
-## Notes, not failing
+**Totals.** 18 mutations, 18 killed. Each new assertion line in C37-C42 was made to fail at least once, except two:
 
-- **C10's row "62 → 62.05 is +0,1" differs from v6.** v6's `+(0.0499…).toFixed(1)` gives "±0" here. That input cannot be stored, because Key decision 6 allows one decimal. v6 decides nothing for it, so this is not a contradiction.
-- **Two pair-chart results depend on the fonts loading.**
-  - C31's pair wrap (`grafico.spec.ts:223`) holds only when Fredoka loads. It needs a `node_modules` that Vite will serve.
-  - The tip overflow measured for C24 likewise depends on DM Sans loading.
-- **The approved deviations are in place.** These are the "Ainda sem medição de …" copy, the side with one or no value, the flat ticks, and the one-date text for a pair. Each matches its Assumption row (`plan.md:151-152`).
+- `tipInside`'s card bounds at `:109-110`, which the plot bounds at `:107-108` imply, since the plot sits inside the card.
+- C38's right-hand centre bound at `:113`, which no mutant moved independently. The right-side clamp is the same expression as the left, and M1 reaches it through `:108`.
 
-## Ranked gaps
+**Behaviour faults F1-F5** are carried from 5bd6cf7, all killed. `chart.ts` is unchanged except where M6 and M7 probed it. Pointer leave (F5) still sits at `Evolution.tsx:165`.
 
-1. **C24 is false for a member its proof skips.** The `PAIR` tip at the right edge overflows the card by 1.5px (210.5-345.5 against 16-344), and the one-side-single case is not asserted. The tip-in-card assertion is only in `checkTip`, `e2e/grafico.spec.ts:86-87`. The pair tests at `:101-115` skip it. To fix: either clamp the tip to the card (the v6 clamp of 50px is too small for a pair tip about 135px wide), or narrow the claim and record the deviation. Then assert it for every position C24 names.
-2. **Pointer down and move are not proven apart.** This affects C24 and the Coverage row "pointer events". `pointAt` at `e2e/grafico.spec.ts:66-71` always moves before pressing, so Q3 and Q4 both survive. A touch tap, the phone case, fires only the down.
-3. **The ×1 and ×5 tick step candidates are never pinned (C13).** The flat rows at `src/domain/chart.test.ts:53-54` have `expected` `null`, and no row has a raw step that is an exact power of ten. Q1 and Q2 survive.
-4. **Ten mockup v6 values are neither asserted nor named out of reach.** The blanket "Nothing else … is out of reach" at `checks.md:179` is wrong about them. They are:
-   - the `.card`'s box-shadow and its flex column (P1, P6), v6 l.86
-   - the crosshair's y1/y2 (P2), l.765
-   - the hover dots' r and fill (P3, P4), l.774
-   - the legend line's geometry and viewBox (P5), l.746-747
-   - the hit rect (P7), l.766
-5. **C17 / AC 16 contradicts v6 l.756 on the accessible name, and the deviation is not recorded.** The name is "Gráfico de abdômen"/"braço" where v6 gives "abdomen"/"braco". To fix: add an Assumption row and list it at `checks.md:177`.
+**Hooks and the jsdom path.** A scratch-only probe (`src/zz-probe.test.tsx`, deleted afterwards) rendered `Evolution` in four steps:
+
+1. With one entry, which takes the early return.
+2. Re-rendered with two entries, which draws the chart.
+3. `fireEvent.pointerDown`, `pointerMove` and `pointerLeave` on the chart.
+4. Re-rendered with one entry again.
+
+What it showed:
+
+- No throw, and 0 `console.error` calls. So the hook order holds across the early-return boundary: `useState`, `useRef` ×2 and `useLayoutEffect` all sit at `Evolution.tsx:64-74`, above the returns at `:83-84`.
+- In jsdom, `offsetWidth` is 0, so `half` is 50. With the zero plot `width`, the tip's `left` comes out as `-50px`. The tip still showed and hid correctly.
+- No jsdom proof dispatches a pointer event (`grep -n -i pointer src/App.test.tsx` finds nothing), so this value reaches no assertion.
+
+**Measured at HEAD (scratch, fonts loaded).**
+
+| Position | Tip span (x) | Tip width |
+| --- | --- | --- |
+| CIN3 right | 248.5-307.5 | 59px |
+| CIN3 left | 56.5-107.5 | 51px |
+
+The plot spans 32-328 and the card 16-344. Each tip centre sits exactly at 50px from the plot edge.
 
 ## Gate
 
-- `pnpm vitest run` - 210 passed, 0 failed (11 files)
-- `pnpm exec playwright test` - 72 passed, 0 failed
-- `python3 .claude/skills/tlc-spec-lean/scripts/validate_verification.py grafico` - exit code recorded in the hand-off. A FAIL verdict exits 1 by design
+Run at `32aa089`, on the real tree:
+
+- `pnpm vitest run`: 11 files, **211 passed**, 0 failed. That is round 1's 210 plus C40's test.
+- `pnpm exec playwright test`: **73 passed**, 0 failed. That is round 1's 72 plus C37's test.
+
+## Swept existing
+
+Carried from 5bd6cf7. The fix touches no swept constraint. `src/App.tsx`, `src/domain/measurements.ts` and `src/domain/store.ts` are not in `git diff --stat 5bd6cf7..HEAD`.
+
+## Findings
+
+None failing.
+
+Notes:
+
+1. **C38's "within the plot" is asserted directly at 3 of its 5 positions.** Those are PAIR right, PAIR left and the one-side case, via `tipInside`. At CIN3's two positions, the proof asserts the tip inside the card (`:87-88`) and the clamped centre (`:96`, `:99`). Together these imply "within the plot" only while the single tip is at most 100px wide. Measured, it is 51-59px, and C32 pins its padding and font size. No single plausible mutant breaks it without tripping C36 or C32, so this is recorded as a note. If the orchestrator wants it literal, calling `tipInside` after each `pointAt` in the first test would close it.
+2. **`checks.md:187`, the Coverage row "tip positions (5)", has only 3 cells.** Its `Unproven` cell is missing. The recomputed row above has no unproven member, so this is cosmetic in the checks file.
+3. **The clamp has an unreachable edge.** A tip wider than the plot would make `width - half` fall below `half` and push the tip left. The widest content today is the PAIR tip at about 135px, against a 296px plot, so no current state reaches it.
+4. **Carried notes.**
+   - C10's `62 → 62.05` row differs from v6, but that input cannot be stored.
+   - C31's pair wrap and the tip widths depend on the fontsource fonts loading. Both scratches loaded them through `server.fs.strict: false`.
+5. **Lessons step.** The step that distils lessons (`scripts/lessons.py`) was not run. This verifier writes only this report.

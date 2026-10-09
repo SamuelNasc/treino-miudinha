@@ -56,6 +56,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: verification.md Binding sources - mockup v6 single-row, date-row, header and cue-below arrangement uncovered (C24 covers only D/E and Save) (ui-layout)
 - last seen: 2026-10-08T22:46:30Z
 
+### L-008 - Assert every CSS value the binding mockup decides for a new section, or name it out of reach per screen
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: historico
+- evidence: verification round 1 P1-P6 (b834871) (ui)
+- last seen: 2026-10-09T11:01:14Z
+
+### L-009 - Assert all four sides of a padding or radius shorthand, not one side or corner
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: historico
+- evidence: verification round 2 Q1, Q2 (ui)
+- last seen: 2026-10-09T11:01:14Z
+
+### L-010 - Assert a rotation's exact matrix after its transition settles, not only that transform is not none
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: historico
+- evidence: verification round 1 P5, checks.md C30 (ui)
+- last seen: 2026-10-09T11:01:14Z
+
+### L-011 - Compare a mockup's empty state by its structure and dividers, not only its copy
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: historico
+- evidence: verification round 1 gap 2, mockup l.857 (ui)
+- last seen: 2026-10-09T11:01:14Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

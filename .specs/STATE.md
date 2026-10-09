@@ -8,10 +8,10 @@
 
 ## Handoff
 
-**Feature**: lembrete (slice 4 of 7 in `.design/body-measurements.md`)
-**Where**: built and verified - 28 of 28 checks, verification PASS (round 4 scoped, ui, 97555c4..6df0875; validate_verification exit 0). Rounds 1-3 failed on test gaps only (unchecked mockup v6 arrangement and style values), closed by C24-C28 with no source change; round 3 escalated and Samuel chose to close and re-verify. 33 faults across 4 rounds, 31 killed, 2 probes on values named out of reach. Vitest 155/155, Playwright 37/37
-**In progress**: historico (slice 5) - built, 31 of 31 checks closed (ee9a100..d91b1a1). Vitest 183/183, Playwright 45/45. Verifier dispatched over 27447a4..HEAD, report pending
-**Next step**: read the verification report and run validate_verification. Then Gráfico and MeasureGuide, each needing a design review first
+**Feature**: historico (slice 5 of 7 in `.design/body-measurements.md`)
+**Where**: built and verified - 35 of 35 checks, verification PASS (round 2 scoped, ui, b834871..38ec089; validate_verification exit 0). Round 1 failed on 28 unaccounted mockup v6 values and the empty state's missing divider, closed by C32-C35 and one CSS rule. Vitest 183/183, Playwright 52/52. Lessons L-008..L-011 recorded as candidates
+**In progress**: none
+**Next step**: Gráfico, then MeasureGuide - each needs Samuel's design review of a new mockup version first. Optional follow-up from round 2: C32/C34 sample one corner/side of the radius and padding shorthands (Q1, Q2)
 **Blockers**: none
 **Uncommitted**: none
 **Branch**: main, not pushed (measurement, menu, registrar-medicao, lembrete, historico). They ship together after Samuel's go-ahead to push

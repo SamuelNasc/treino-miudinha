@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 8,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -130,6 +130,78 @@
       ],
       "created": "2026-10-08T22:46:30Z",
       "last_seen": "2026-10-08T22:46:30Z"
+    },
+    {
+      "id": "L-008",
+      "key": "surviving_mutant::assert every css value the binding mockup decides for a new section or name it out of reach per screen",
+      "text": "Assert every CSS value the binding mockup decides for a new section, or name it out of reach per screen",
+      "signal": "surviving_mutant",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "historico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification round 1 P1-P6 (b834871) (ui)"
+      ],
+      "created": "2026-10-09T11:01:14Z",
+      "last_seen": "2026-10-09T11:01:14Z"
+    },
+    {
+      "id": "L-009",
+      "key": "spec_precision_gap::assert all four sides of a padding or radius shorthand not one side or corner",
+      "text": "Assert all four sides of a padding or radius shorthand, not one side or corner",
+      "signal": "spec_precision_gap",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "historico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification round 2 Q1, Q2 (ui)"
+      ],
+      "created": "2026-10-09T11:01:14Z",
+      "last_seen": "2026-10-09T11:01:14Z"
+    },
+    {
+      "id": "L-010",
+      "key": "spec_precision_gap::assert a rotation s exact matrix after its transition settles not only that transform is not none",
+      "text": "Assert a rotation's exact matrix after its transition settles, not only that transform is not none",
+      "signal": "spec_precision_gap",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "historico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification round 1 P5, checks.md C30 (ui)"
+      ],
+      "created": "2026-10-09T11:01:14Z",
+      "last_seen": "2026-10-09T11:01:14Z"
+    },
+    {
+      "id": "L-011",
+      "key": "spec_deviation::compare a mockup s empty state by its structure and dividers not only its copy",
+      "text": "Compare a mockup's empty state by its structure and dividers, not only its copy",
+      "signal": "spec_deviation",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "historico"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification round 1 gap 2, mockup l.857 (ui)"
+      ],
+      "created": "2026-10-09T11:01:14Z",
+      "last_seen": "2026-10-09T11:01:14Z"
     }
   ]
 }

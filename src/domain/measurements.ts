@@ -50,6 +50,18 @@ export function saveMeasurement(record: TreinoRecord, date: string, values: Meas
   return { ok: true, record: { ...record, measurements } };
 }
 
+/** Sets the entry on `date` to exactly `values`: a measure left out is removed. Only an existing entry can be edited. */
+export function editMeasurement(record: TreinoRecord, date: string, values: MeasureValues): SaveResult {
+  const given = Object.entries(values).filter(([, v]) => v !== undefined) as [MeasureId, number][];
+  if (given.length === 0) return { ok: false, reason: "empty", record };
+  const list = measurementsOf(record);
+  if (!list.some((m) => m.date === date)) return { ok: false, reason: "date", record };
+  const invalid = given.filter(([id, v]) => !isValidValue(id, v)).map(([id]) => id);
+  if (invalid.length > 0) return { ok: false, reason: "invalid", invalid, record };
+  const measurements = list.map((m) => (m.date === date ? { date, values: Object.fromEntries(given) } : m));
+  return { ok: true, record: { ...record, measurements } };
+}
+
 export function deleteMeasurement(record: TreinoRecord, date: string): TreinoRecord {
   return { ...record, measurements: measurementsOf(record).filter((m) => m.date !== date) };
 }

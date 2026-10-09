@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MEASURES, type MeasureId } from "./measures";
 import {
   deleteMeasurement,
+  editMeasurement,
   lastTapeDate,
   measurementsOf,
   reminderDue,
@@ -154,5 +155,39 @@ describe("reminder due", () => {
   it.each(cases)("%s", (_, reminder, measurements, expected) => {
     const record: TreinoRecord = { ...withEntries(measurements), ...(reminder ? { reminder } : {}) };
     expect(reminderDue(record, TODAY)).toEqual(expected);
+  });
+});
+
+describe("edit measurement", () => {
+  const list: Measurement[] = [
+    { date: "2026-09-23", values: { peso: 62.9 } },
+    { date: "2026-09-30", values: { peso: 62.6, cintura: 71.6 } },
+  ];
+  const record = withEntries(list);
+
+  it("replaces the values with exactly the given ones", () => {
+    const dropped = editMeasurement(record, "2026-09-30", { peso: 62.4 });
+    expect(dropped.ok).toBe(true);
+    expect(measurementsOf(dropped.record)).toEqual([list[0], { date: "2026-09-30", values: { peso: 62.4 } }]);
+
+    const added = editMeasurement(record, "2026-09-30", { peso: 62.6, cintura: 71.6, busto: 90 });
+    expect(added.ok).toBe(true);
+    expect(measurementsOf(added.record)).toEqual([list[0], { date: "2026-09-30", values: { peso: 62.6, cintura: 71.6, busto: 90 } }]);
+  });
+
+  it("refuses invalid, empty, and a date with no entry", () => {
+    expect(editMeasurement(record, "2026-09-30", { cintura: 680 })).toEqual({ ok: false, reason: "invalid", invalid: ["cintura"], record });
+    for (const values of [{}, { peso: undefined }]) {
+      const result = editMeasurement(record, "2026-09-30", values);
+      expect(result).toEqual({ ok: false, reason: "empty", record });
+    }
+    const missing = editMeasurement(record, "2026-09-24", { peso: 62 });
+    expect(missing.ok).toBe(false);
+    expect(missing.record).toBe(record);
+    expect(measurementsOf(record)).toEqual(list);
+  });
+
+  it("save still merges", () => {
+    expect(measurementsOf(saved(record, "2026-09-30", { peso: 62.4 }))).toEqual([list[0], { date: "2026-09-30", values: { peso: 62.4, cintura: 71.6 } }]);
   });
 });

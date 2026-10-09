@@ -8,10 +8,10 @@
 
 ## Handoff
 
-**Feature**: historico (slice 5 of 7 in `.design/body-measurements.md`)
-**Where**: built and verified - 35 of 35 checks, verification PASS (round 2 scoped, ui, b834871..38ec089; validate_verification exit 0). Round 1 failed on 28 unaccounted mockup v6 values and the empty state's missing divider, closed by C32-C35 and one CSS rule. Vitest 183/183, Playwright 52/52. Lessons L-008..L-011 recorded as candidates
+**Feature**: grafico (slice 6 of 7 in `.design/body-measurements.md`)
+**Where**: plan written, `validate_plan` exit 0, awaiting Samuel's review. Mockup v6's Gráfico approved as-is by Samuel 2026-10-09 (no v7). Profile ui
 **In progress**: none
-**Next step**: Gráfico, then MeasureGuide - each needs Samuel's design review of a new mockup version first. Optional follow-up from round 2: C32/C34 sample one corner/side of the radius and padding shorthands (Q1, Q2)
+**Next step**: Samuel reviews `.specs/features/grafico/plan.md` (three `n` defaults: AC 7 copy, pair with different dates, chip size), then checks.md
 **Blockers**: none
-**Uncommitted**: none
+**Uncommitted**: `.specs/features/grafico/plan.md`, this file
 **Branch**: main, pushed 2026-10-09 (4bf7012), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete and Histórico are live

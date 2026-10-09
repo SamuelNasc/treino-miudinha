@@ -8,10 +8,10 @@
 
 ## Handoff
 
-**Feature**: grafico (slice 6 of 7 in `.design/body-measurements.md`)
-**Where**: verified - round 1 FAIL (5 gaps), fixed in 02b207a/32aa089 (C37-C42 added, tip clamp and accessible-name deviations approved by Samuel 2026-10-09), round 2 scoped PASS: 42/42 checks, 18/18 faults killed, Vitest 211, Playwright 73, validate_verification exit 0. Lessons L-012..L-015 added, L-008 confirmed
+**Feature**: measure-guide (slice 7 of 7 in `.design/body-measurements.md`)
+**Where**: plan written - Samuel approved mockup v6's seven drawings as-is from a contact sheet 2026-10-09; `validate_plan.py` 0 errors, 1 expected warning (open question: has she seen the drawings - blocks go-live)
 **In progress**: none
-**Next step**: MeasureGuide (slice 7) - needs Samuel's mockup review first
+**Next step**: Samuel reviews `.specs/features/measure-guide/plan.md`, then checks.md (profile ui)
 **Blockers**: none
-**Uncommitted**: this file
+**Uncommitted**: this file, `.specs/features/measure-guide/plan.md`
 **Branch**: main, pushed 2026-10-09 (69fb998), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete, Histórico and Gráfico are live

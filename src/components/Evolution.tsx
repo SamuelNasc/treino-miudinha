@@ -52,7 +52,10 @@ export function Evolution({ measurements, today }: Props) {
           </button>
         ))}
       </div>
-      <ChartBody key={chosen} measurements={measurements} today={today} label={chip.label} ids={chip.ids} />
+      {/* One block, as v6's #chartBody: the card's gap sits around it, not between headline, legend and plot. */}
+      <div>
+        <ChartBody key={chosen} measurements={measurements} today={today} label={chip.label} ids={chip.ids} />
+      </div>
     </section>
   );
 }

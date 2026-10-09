@@ -88,8 +88,10 @@ test("open row arrangement at 360", async ({ page }) => {
 
   await li.getByRole("button", { name: "Apagar" }).click();
   const confirm = page.getByRole("group", { name: "Apagar a medição de 30/09?" });
+  // Measured again after the tap: with the Gráfico card above, the tap scrolls the page.
   const c = await box(confirm);
-  expect(c.y).toBeGreaterThanOrEqual(apagar.y + apagar.height);
+  const action = await box(li.getByRole("button", { name: "Apagar" }).first());
+  expect(c.y).toBeGreaterThanOrEqual(action.y + action.height);
   const yes = await box(confirm.getByRole("button", { name: "Apagar" }));
   const no = await box(confirm.getByRole("button", { name: "Cancelar" }));
   expect(yes.x + yes.width).toBeLessThanOrEqual(no.x);

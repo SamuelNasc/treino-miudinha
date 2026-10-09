@@ -118,6 +118,8 @@ She corrects a saved entry, including taking a measure out of it.
 28. WHEN a row is open at a 360×740 viewport THEN its values SHALL sit in one panel with label left and value right on each line, and "Editar" and "Apagar" SHALL sit right-aligned on one row below it, each at least 44 px tall
 29. The open row's values panel SHALL use the `--blush` background, and the confirm's "Apagar" a `--cherry` fill, in the light and the dark colour scheme
 
+30. WHILE no Measurement is stored THEN the empty state SHALL draw the 1px `--line` top divider a row draws, in the light and the dark colour scheme. Added 2026-10-09 after verification round 1, Samuel's choice
+
 **Independent test:** at 360×740 in both schemes, open a row and its confirm; compare against mockup v6.
 
 ## Out of scope
@@ -143,6 +145,8 @@ Defaults that are not already a numbered criterion. Drop a row once it is.
 | The year in the row's date (AC 7) | `dd/mm`, plus `/aa` when the year is not this year | the design shows `dd/mm`. From October 2027 two rows would both read "08/10" | n |
 | "Editar" with the form open (AC 18) | the form switches to the entry, dropping typed values | "Editar" names the entry to change, so it wins over a half-typed new one. The opposite of "Medir agora", which only means "take me there" | n |
 | The edit toast (AC 20) | "Medição atualizada" | mockup v6 | n |
+| "Fazer a primeira" with the form already open (AC 3) | left as it is | mockup v6 reopens it on today and clears it. Same reasoning as "Medir agora" in Lembrete: losing typing to a button that only means "take me there" is worse. Verification round 1 found it unrecorded | y - Samuel, 2026-10-09 |
+| The empty state's divider (AC 30) | a 1px `--line` top divider, as a row has | mockup v6 draws the empty state as a row of the list. Verification round 1 found it missing | y - Samuel, 2026-10-09 |
 | Pushing to her phone | ships with Menu, Registrar medição and Lembrete at the earliest, after Samuel's go-ahead | push is never part of an approved plan | y - Samuel, 2026-10-08 |
 
 **Open questions:** none - all resolved or logged above.

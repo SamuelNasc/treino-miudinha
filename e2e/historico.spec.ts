@@ -213,3 +213,101 @@ test("empty state arrangement at 360", async ({ page }) => {
   await expect(text).toHaveCSS("text-align", "center");
   expect(b.height).toBeGreaterThanOrEqual(44);
 });
+
+const SURFACE = { light: "#ffffff", dark: "#2a1016" };
+const css = (l: Locator, prop: string) => l.evaluate((e, p) => getComputedStyle(e).getPropertyValue(p), prop);
+
+test("list pinned to the card", async ({ page }) => {
+  await medidas(page);
+  const list = section(page).getByRole("list");
+  await expect(list).toHaveCSS("list-style-type", "none");
+  for (const side of ["top", "right", "bottom", "left"]) {
+    await expect(list, side).toHaveCSS(`margin-${side}`, "0px");
+    await expect(list, side).toHaveCSS(`padding-${side}`, "0px");
+  }
+  const heading = await box(page.getByRole("heading", { name: "Histórico" }));
+  const s = await box(section(page));
+  const contentRight = s.x + s.width - parseFloat(await css(section(page), "padding-right"));
+  for (const date of ["30/09", "23/09"]) {
+    const li = item(page, date);
+    const r = await box(li);
+    expect(Math.abs(r.x - heading.x), date).toBeLessThanOrEqual(1);
+    expect(Math.abs(r.x + r.width - contentRight), date).toBeLessThanOrEqual(1);
+    await expect(li, date).toHaveCSS("border-top-style", "solid");
+    const head = rowButton(page, date);
+    await expect(head, date).toHaveCSS("text-align", "left");
+    await expect(head, date).toHaveCSS("background-color", TRANSPARENT);
+    await expect(head, date).toHaveCSS("border-top-left-radius", "10px");
+    const d = await box(head.getByTestId("hist-date"));
+    const hb = await box(head);
+    expect(Math.abs(d.x - hb.x), date).toBeLessThanOrEqual(1);
+  }
+});
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`values panel and chevron - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await medidas(page);
+    await openRow(page, "30/09");
+    // The chevron turns over a 0.2s transition, so wait for it to settle before reading the matrix.
+    const chev = rowButton(page, "30/09").locator("svg");
+    const matrix = async () => (await css(chev, "transform")).match(/matrix\(([^)]+)\)/)?.[1].split(",").map(Number) ?? [];
+    await expect.poll(async () => (await matrix())[0]).toBeLessThan(-0.999);
+    const [a, b, c, d] = await matrix();
+    expect(Math.abs(a + 1)).toBeLessThan(0.001);
+    expect(Math.abs(d + 1)).toBeLessThan(0.001);
+    expect(Math.abs(b)).toBeLessThan(0.001);
+    expect(Math.abs(c)).toBeLessThan(0.001);
+    const li = item(page, "30/09");
+    const panel = li.locator("dl");
+    for (const side of ["top", "right", "bottom", "left"]) await expect(panel, side).toHaveCSS(`margin-${side}`, "0px");
+    expect(["0px", "normal"]).toContain(await css(panel, "row-gap"));
+    const lines = li.locator("dl > div");
+    for (let i = 0; i < 2; i++) await expect(lines.nth(i)).toHaveCSS("column-gap", "8px");
+    await expect(lines.nth(1)).toHaveCSS("border-top-style", "solid");
+    await expect(lines.nth(1)).toHaveCSS("border-top-color", rgb(LINE[scheme]));
+    for (let i = 0; i < 2; i++) await expect(lines.nth(i).locator("dd")).toHaveCSS("margin-left", "0px");
+  });
+
+  test(`confirm and empty buttons - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await medidas(page);
+    await openRow(page, "30/09");
+    await item(page, "30/09").getByRole("button", { name: "Apagar" }).click();
+    const confirm = page.getByRole("group", { name: "Apagar a medição de 30/09?" });
+    await expect(confirm).toHaveCSS("align-items", "center");
+    await expect(confirm.getByRole("button", { name: "Apagar" })).toHaveCSS("border-top-width", "0px");
+    const no = confirm.getByRole("button", { name: "Cancelar" });
+    await expect(no).toHaveCSS("border-top-style", "solid");
+    await expect(no).toHaveCSS("background-color", rgb(SURFACE[scheme]));
+    await expect(no).toHaveCSS("font-size", "14px");
+
+    await page.evaluate(() => localStorage.removeItem("treino:v1"));
+    await page.reload();
+    await page.getByRole("navigation", { name: "Menu" }).getByRole("button", { name: "Medidas" }).click();
+    const first = section(page).getByRole("button", { name: "Fazer a primeira" });
+    await expect(first).toHaveCSS("border-top-width", "0px");
+    await expect(first).toHaveCSS("color", rgb(ON_ACCENT[scheme]));
+    const radius = parseFloat(await css(first, "border-top-left-radius"));
+    expect(radius).toBeGreaterThanOrEqual((await box(first)).height / 2);
+    await expect(first).toHaveCSS("padding-top", "9px");
+    await expect(first).toHaveCSS("padding-left", "18px");
+    expect(await css(first, "font-family")).toMatch(/^"?Fredoka/);
+    await expect(first).toHaveCSS("font-weight", "600");
+    await expect(first).toHaveCSS("font-size", "16px");
+    for (const side of ["top", "right", "bottom", "left"]) await expect(first, side).toHaveCSS(`margin-${side}`, "0px");
+  });
+
+  test(`empty state divider - ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await medidas(page, []);
+    const empty = section(page).getByText("Nenhuma medição ainda.").locator("xpath=..");
+    await expect(empty).toHaveCSS("border-top-width", "1px");
+    await expect(empty).toHaveCSS("border-top-style", "solid");
+    await expect(empty).toHaveCSS("border-top-color", rgb(LINE[scheme]));
+    await expect(empty).toHaveCSS("padding-top", "4px");
+    await expect(empty).toHaveCSS("padding-bottom", "8px");
+    const heading = await box(page.getByRole("heading", { name: "Histórico" }));
+    expect((await box(empty)).y).toBeGreaterThanOrEqual(heading.y + heading.height);
+  });
+}

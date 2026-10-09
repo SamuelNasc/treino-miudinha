@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/historico/plan.md`
 
-31 checks in 4 slices · 0 one-way doors · 0 open
+35 checks in 4 slices · 0 one-way doors · 0 open
 
 The edit rule is proven at its own layer in `src/domain/measurements.test.ts` (new
 `describe("edit measurement")`). Behaviour proofs render `App` in jsdom (`src/App.test.tsx`, new
@@ -124,6 +124,18 @@ Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "historico type and b
 **C31** - At 360×740 with no Measurement: "Nenhuma medição ainda." sits above "Fazer a primeira" (its bottom ≤ the button's top), the horizontal centres of both are within 2px of the section's centre, and the text's computed `text-align` is `center`; "Fazer a primeira" is ≥ 44px tall (AC 2) — done
 Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "empty state arrangement at 360"`
 
+**C32** - At 360×740 with `TWO` and `PESO` stored, as mockup v6 pins the list to the card: the list has computed `list-style-type` `none`, margins `0px` and padding `0px`; each row's left edge is within 1px of the heading "Histórico"'s left edge and its right edge within 1px of the section's content right edge (the section's right minus its `padding-right`); each row's `border-top-style` is `solid`; each row button has `text-align` `left`, a transparent `background-color`, `border-top-left-radius` `10px`, and its date's left edge within 1px of the row's left edge (AC 27). Added after round 1 of verification: probes P1 and P4 survived and these values were neither checked nor named out of reach — done
+Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "list pinned to the card"`
+
+**C33** - With the 30/09 row of `TWO` open, in each scheme (light / dark): the chevron's computed `transform` is a 180° rotation (matrix `a` and `d` within 0.001 of `-1`, `b` and `c` within 0.001 of `0`); the values panel has margins `0px` and `row-gap` `0px` (`normal` counts as 0); each value line has `column-gap` `8px`; the second line's `border-top-style` is `solid` and `border-top-color` `#f6d3d9` / `#45202a`; each value (`dd`) has `margin-left` `0px` (AC 28, AC 29). Added after round 1 of verification: probes P2, P5 and P8 survived — done
+Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "values panel and chevron"`
+
+**C34** - In each scheme (light / dark): the row confirm has `align-items` `center`; its "Apagar" has `border-top-width` `0px`; "Cancelar" has `border-top-style` `solid`, `background-color` `#ffffff` / `#2a1016` and `font-size` `14px`; with no Measurement, "Fazer a primeira" has `border-top-width` `0px`, `color` `#ffffff` / `#1c0a0e`, a `border-top-left-radius` ≥ half its height, padding `9px` top / `18px` left, `font-family` starting with `Fredoka`, `font-weight` `600`, `font-size` `16px` and margins `0px` (AC 2, AC 29). Added after round 1 of verification: probes P3 and P6 survived — done
+Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "confirm and empty buttons"`
+
+**C35** - With no Measurement, in each scheme (light / dark): the empty state's `border-top-width` is `1px`, `border-top-style` `solid` and `border-top-color` `#f6d3d9` / `#45202a`, with padding `4px` top and `8px` bottom, as a row of mockup v6's list; its top is ≥ the heading "Histórico"'s bottom (AC 30). Added after round 1 of verification: Samuel chose the mockup's divider, 2026-10-09 — done
+Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "empty state divider"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -143,13 +155,14 @@ Proof: `pnpm exec playwright test e2e/historico.spec.ts -g "empty state arrangem
 | delete of the edited date (1) | form closes C15 | - |
 | reminder re-derives (3) | delete newest tape C13 · delete every tape C13 · edit drops the tape C25 | - |
 | untouched record fields (6) | `completions` C26 · `today` C26 · `weights` C26 · `restSeconds` C26 · `reminder` C26 · other Measurements C11, C16, C26 | - |
-| colour schemes (2) | light C29 · dark C29 | - |
+| colour schemes (2) | light C29, C33, C34, C35 · dark C29, C33, C34, C35 | - |
 | mockup v6 elements (25) | heading "Histórico" C1, C30 · empty text and button C2, C31 · rows newest first C4, C27 · date `dd/mm` C5 · summary copy C5 · date / summary / chevron in one line C27 · chevron rotates open C30 · date type C30 · summary type and colour C29, C30 · row divider C29, C30 · values panel blush C29 · panel radius and padding C30 · label / value lines C7, C28 · label colour, value weight C29, C30 · line dividers C30 · "Editar" / "Apagar" right-aligned C28 · action text style C29, C30 · confirm copy C9, C22 · confirm blush panel C29, C30 · confirm "Apagar" filled C29, C30 · "Cancelar" ghost C29, C30 · form title "Editar dd/mm" C17 · "Apagar medição" button C21 · toast "Medição apagada" C11 · toast "Medição atualizada" C20 | - |
+| mockup v6 values left unaccounted in round 1 (28) | `.hist` list-style C32 · `.hist` margin C32 · `.hist` padding C32 · row border style C32 · row button background C32 · row button text-align C32 · row button radius C32 · chevron `rotate(180deg)` C33 · panel margin C33 · panel gap C33 · line gap C33 · line border style C33 · line border colour C33 · value margin C33 · confirm `align-items` C34 · confirm "Apagar" border C34 · "Cancelar" border style C34 · "Cancelar" background C34 · "Cancelar" font size C34 · empty divider C35 · "Fazer a primeira" border C34 · "Fazer a primeira" colour C34 · "Fazer a primeira" radius C34 · "Fazer a primeira" padding C34 · "Fazer a primeira" font family C34 · "Fazer a primeira" weight C34 · "Fazer a primeira" size C34 · "Fazer a primeira" margin C34 | - |
 
-- Claims naming layout, type or colour: C27, C28, C29, C30, C31 - each proof runs in Chromium at 360×740
+- Claims naming layout, type or colour: C27-C35 - each proof runs in Chromium at 360×740
 - Deviation from mockup v6, approved in the plan: actions ≥ 44px tall (AC 28) where the mockup's padding gives about 33px; the form confirms before deleting (AC 22) where the mockup deletes on the tap; the date is locked in edit mode (AC 19)
 - No other check claims more than the cases its proof exercises
-- Out of reach, enumerated per screen against mockup v6. Histórico: each row's padding (4px 0 8px) and inner gap (10px); the row button's grid gap (12px) and padding (10px 0 2px); the date's `tabular-nums`; the chevron's rotation transition (0.2s); the panel's line padding (6px 0) and the value's `tabular-nums`; the actions' gap (4px), padding (6px 8px, overridden by the 44px floor) and radius (8px); the confirm's padding (10px 12px), gap (8px) and wrapping; the confirm "Apagar"'s padding (6px 14px); "Cancelar"'s padding (8px 16px) and radius; the empty state's padding (10px 0 14px) and gap (10px). Form in edit mode: nothing beyond the form slice's styles, which it reuses
+- Out of reach, enumerated per screen against mockup v6. Histórico: each row's padding (4px 0 8px) and inner gap (10px); the row button's grid gap (12px) and padding (10px 0 2px); the date's `tabular-nums`; the chevron's rotation transition (0.2s); the panel's line padding (6px 0) and the value's `tabular-nums`; the actions' gap (4px), padding (6px 8px, overridden by the 44px floor) and radius (8px); the confirm's padding (10px 12px), gap (8px) and wrapping; the confirm "Apagar"'s padding (6px 14px); "Cancelar"'s padding (8px 16px) and radius; the `.vals` grid template (one column); the empty state's gap (10px); its padding is the row's (4px 0 8px, C35). Form in edit mode: nothing beyond the form slice's styles, which it reuses
 
 ## Test policy
 
@@ -192,3 +205,4 @@ Cost: 1 domain proof, 25 `App` proofs, 5 Playwright proofs across 3 test files.
 - **Boundary:** C1-C31 closed at the `test(historico)` commit (one builder, no handoff)
 - **Settled mid-build:** C30's "Cancelar" border width is read from the declared rule, since Chromium computes a 1.5px border as `1px` (Samuel, 2026-10-08)
 - **Abandoned:** reading the longhand `border-top-width` alone - a shorthand holding `var()` leaves it empty
+- **Round 1 fix:** C32-C35 added for the verifier's surviving probes P1-P6 and P8 and the 28 unaccounted mockup v6 values; P7 (`list-style`) is asserted by C32. The empty state gains the mockup's row divider (AC 30, the only `src` change). "Fazer a primeira" keeping typed values recorded as confirmed. Samuel chose both, 2026-10-09

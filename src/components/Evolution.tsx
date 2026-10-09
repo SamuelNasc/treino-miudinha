@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from "react";
+import { useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { change, seriesOf, xLabels, yTicks, type Point } from "../domain/chart";
 import type { Measurement } from "../domain/measurements";
 import { MEASURES, type MeasureId } from "../domain/measures";
@@ -61,8 +61,18 @@ export function Evolution({ measurements, today }: Props) {
 }
 
 function ChartBody({ measurements, today, label, ids }: Props & { label: string; ids: MeasureId[] }) {
-  const [hover, setHover] = useState<{ date: string; left: number } | null>(null);
+  const [hover, setHover] = useState<{ date: string; left: number; width: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
+
+  // v6 keeps the tip's centre 50px in from each side; a pair's tip is wider than that, so use half its own width when larger.
+  useLayoutEffect(() => {
+    const tip = tipRef.current;
+    if (!hover || !tip) return;
+    const half = Math.max(tip.offsetWidth / 2, 50);
+    tip.style.left = `${Math.min(Math.max(hover.left, half), hover.width - half)}px`;
+  }, [hover]);
+
   const unit = MEASURES.find((m) => m.id === ids[0])!.unit;
   const pair = ids.length > 1;
   const sides = ids
@@ -97,7 +107,7 @@ function ChartBody({ measurements, today, label, ids }: Props & { label: string;
     const r = svgRef.current!.getBoundingClientRect();
     const px = ((e.clientX - r.left) * W) / r.width;
     const date = dates.reduce((a, b) => (Math.abs(x(b) - px) < Math.abs(x(a) - px) ? b : a));
-    setHover({ date, left: Math.min(Math.max((x(date) * r.width) / W, 50), r.width - 50) });
+    setHover({ date, left: (x(date) * r.width) / W, width: r.width });
   };
 
   return (
@@ -189,7 +199,7 @@ function ChartBody({ measurements, today, label, ids }: Props & { label: string;
           </g>
           <rect x={L} y="0" width={W - L - R + 10} height={H} fill="transparent" />
         </svg>
-        <div className="tip" hidden={!hover} style={hover ? { left: hover.left } : undefined}>
+        <div ref={tipRef} className="tip" hidden={!hover}>
           {hover && (
             <>
               <b>{shortDate(hover.date, today)}</b>

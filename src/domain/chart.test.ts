@@ -43,19 +43,21 @@ describe("chart", () => {
   });
 
   it("y ticks", () => {
-    const table: [number, number, number[] | null][] = [
+    const table: [number, number, number[]][] = [
       [71.6, 74, [71, 72, 73, 74]],
       [62.6, 64.2, [62, 63, 64, 65]],
       [28.3, 29, [28.25, 28.5, 28.75, 29]],
       [30, 200, [0, 100, 200]],
       [35.6, 36, [35.6, 35.8, 36]],
       [99.6, 101.5, [99, 100, 101, 102]],
-      [72, 72, null],
-      [62.9, 62.9, null],
+      [0, 30, [0, 10, 20, 30]],
+      [0, 12, [0, 5, 10, 15]],
+      [72, 72, [71.5, 72, 72.5]],
+      [62.9, 62.9, [62, 62.5, 63, 63.5]],
     ];
     for (const [lo, hi, expected] of table) {
       const ticks = yTicks(lo, hi);
-      if (expected) expect(ticks, `${lo}..${hi}`).toEqual(expected);
+      expect(ticks, `${lo}..${hi}`).toEqual(expected);
       expect(ticks.length, `${lo}..${hi}`).toBeGreaterThanOrEqual(3);
       expect(ticks.length, `${lo}..${hi}`).toBeLessThanOrEqual(5);
       const step = ticks[1] - ticks[0];

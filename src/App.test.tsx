@@ -2144,6 +2144,22 @@ describe("Gráfico", () => {
     expect(chart()!.querySelectorAll("text.end-label")).toHaveLength(0);
   });
 
+  it("legend and crosshair geometry", async () => {
+    const user = await onMedidas({ measurements: PAIR });
+    await user.click(chip("Braço"));
+    const svgs = Array.from(evoRegion().querySelectorAll(".legend svg"));
+    expect(svgs).toHaveLength(2);
+    for (const svg of svgs) {
+      expect(svg.getAttribute("viewBox")).toBe("0 0 22 8");
+      const l = svg.querySelector("line")!;
+      expect(["x1", "y1", "x2", "y2"].map((a) => l.getAttribute(a))).toEqual(["1", "4", "21", "4"]);
+    }
+    const cross = chart()!.querySelector("line.cross")!;
+    expect(cross.getAttribute("y1")).toBe("12");
+    expect(cross.getAttribute("y2")).toBe("156");
+    expect(cross.getAttribute("visibility")).toBe("hidden");
+  });
+
   it("a side with one entry shows primeira medicao", async () => {
     const user = await onMedidas({ measurements: ONE_SIDE_SINGLE });
     await user.click(chip("Braço"));

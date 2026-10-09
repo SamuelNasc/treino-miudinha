@@ -19,6 +19,7 @@ const BLUSH = { light: "#ffe1e6", dark: "#3a141c" };
 const LINE = { light: "#f6d3d9", dark: "#45202a" };
 const S_D = { light: "#e8304a", dark: "#e8364f" };
 const S_E = { light: "#8a3fb0", dark: "#a87ae0" };
+const SHADOW = { light: "rgba(179, 18, 46, 0.1) 0px 6px 20px 0px", dark: "rgba(0, 0, 0, 0.35) 0px 6px 20px 0px" };
 
 const CIN3 = [
   { date: "2026-08-27", values: { cintura: 74, peso: 64.2 } },
@@ -98,12 +99,39 @@ test("touching the chart shows the date", async ({ page }) => {
   expect(leftCentre).toBeGreaterThanOrEqual(50 - 0.5);
 });
 
+// The tip stays inside the plot, so inside the card, its centre at least 50px from each side as v6.
+async function tipInside(page: Page) {
+  const t = await box(tip(page));
+  const plot = await box(chart(page));
+  const c = await box(card(page));
+  expect(t.x).toBeGreaterThanOrEqual(plot.x - 0.5);
+  expect(t.x + t.width).toBeLessThanOrEqual(plot.x + plot.width + 0.5);
+  expect(t.x).toBeGreaterThanOrEqual(c.x);
+  expect(t.x + t.width).toBeLessThanOrEqual(c.x + c.width);
+  const centre = t.x + t.width / 2 - plot.x;
+  expect(centre).toBeGreaterThanOrEqual(50 - 0.5);
+  expect(centre).toBeLessThanOrEqual(plot.width - 50 + 0.5);
+}
+
+const dotsAt = (page: Page) =>
+  hoverDots(page).evaluateAll((cs) => cs.map((c) => [c.getAttribute("fill"), c.getAttribute("r"), Number(c.getAttribute("cx")), Number(c.getAttribute("cy"))] as const));
+
 test("touching the chart shows the date - pair", async ({ page }) => {
   await medidas(page, PAIR);
   await chip(page, "Braço").click();
   await pointAt(page, "right");
   await expect(tip(page)).toHaveText("08/10D 28,5 cm · E 28,3 cm");
   await expect(hoverDots(page)).toHaveCount(2);
+  const dots = await dotsAt(page);
+  expect(dots.map(([fill, r]) => [fill, r])).toEqual([["var(--s-d)", "5"], ["var(--s-e)", "5"]]);
+  for (const [i, [cx, cy]] of [[310, 108], [310, 146.4]].entries()) {
+    expect(Math.abs(dots[i][2] - cx)).toBeLessThan(0.01);
+    expect(Math.abs(dots[i][3] - cy)).toBeLessThan(0.01);
+  }
+  await tipInside(page);
+  await pointAt(page, "left");
+  await expect(tip(page)).toHaveText("24/09D 29 cm · E 28,6 cm");
+  await tipInside(page);
 });
 
 test("touching the chart shows the date - pair with one side missing", async ({ page }) => {
@@ -112,6 +140,20 @@ test("touching the chart shows the date - pair with one side missing", async ({ 
   await pointAt(page, "left");
   await expect(tip(page)).toHaveText("24/09D 29 cm");
   await expect(hoverDots(page)).toHaveCount(1);
+  expect((await dotsAt(page)).map(([fill, r]) => [fill, r])).toEqual([["var(--s-d)", "5"]]);
+  await tipInside(page);
+});
+
+test("a tap alone and a move alone each show the tip", async ({ page }) => {
+  await medidas(page);
+  const b = await box(chart(page));
+  const y = b.y + b.height / 2;
+  // A finger tap fires pointerdown with no move before it.
+  await chart(page).dispatchEvent("pointerdown", { clientX: b.x + b.width - 1, clientY: y, pointerType: "touch", isPrimary: true });
+  await expect(tip(page)).toHaveText("08/1071,6 cm");
+  // A mouse moving over the chart with no button down.
+  await page.mouse.move(b.x + 1, y);
+  await expect(tip(page)).toHaveText("27/0874 cm");
 });
 
 test("leaving the chart hides the tip", async ({ page }) => {
@@ -290,6 +332,7 @@ for (const scheme of ["light", "dark"] as const) {
     await expectCss(c, "card", {
       "background-color": rgb(SURFACE[scheme]), ...corners("24px"),
       "padding-top": "18px", "padding-right": "16px", "padding-bottom": "14px", "padding-left": "16px", "row-gap": "14px",
+      display: "flex", "flex-direction": "column", "box-shadow": SHADOW[scheme],
     });
     const h = c.getByRole("heading", { name: "Sua evolução" });
     await expectCss(h, "heading", { "font-size": "22px", ...four("margin", "", "0px") });

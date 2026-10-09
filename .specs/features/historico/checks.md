@@ -25,51 +25,51 @@ holding `{ peso: 62.6, cintura: 71.6 }`. "Tape" is a Measurement holding a measu
 
 ### S1 - The list · 5 files · ~93 KB · ~23k
 
-**C1** - On Medidas the headings come in the order "Nova medição", "Histórico", "Lembrete" in document order, with no Measurement and with one (AC 1)
+**C1** - On Medidas the headings come in the order "Nova medição", "Histórico", "Lembrete" in document order, with no Measurement and with one (AC 1) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "historico sits between the form and lembrete"`
 
-**C2** - With no `measurements` field, and again with `measurements: []`, the section holds the text "Nenhuma medição ainda." and a button "Fazer a primeira", and no `list` role (AC 2)
+**C2** - With no `measurements` field, and again with `measurements: []`, the section holds the text "Nenhuma medição ainda." and a button "Fazer a primeira", and no `list` role (AC 2) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "historico empty state"`
 
-**C3** - With the form closed, tapping "Fazer a primeira" shows the button "Fechar" and the field "Data" at `2026-10-08`, and `scrollIntoView` was called on the form's section. With the form opened, its date set to 2026-10-01 and Peso `62` typed, tapping "Fazer a primeira" leaves the date at `2026-10-01` and Peso at `62` (AC 3)
+**C3** - With the form closed, tapping "Fazer a primeira" shows the button "Fechar" and the field "Data" at `2026-10-08`, and `scrollIntoView` was called on the form's section. With the form opened, its date set to 2026-10-01 and Peso `62` typed, tapping "Fazer a primeira" leaves the date at `2026-10-01` and Peso at `62` (AC 3) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "fazer a primeira opens the form"`
 
-**C4** - Seeded with 60 weekly Measurements from 2025-08-21 to 2026-10-08, the section's list holds exactly 60 rows, the first row's date reads "08/10" and the last "21/08/25", and every row's date is later than the next one's (AC 4)
+**C4** - Seeded with 60 weekly Measurements from 2025-08-21 to 2026-10-08, the section's list holds exactly 60 rows, the first row's date reads "08/10" and the last "21/08/25", and every row's date is later than the next one's (AC 4) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "every entry newest first"`
 
-**C5** - Table-driven, each entry on 2026-09-30, the closed row shows "30/09" and the summary: `FULL` → "11 medidas"; `TWO` → "2 medidas"; `{ cintura: 72 }` → "1 medida"; `{ peso: 62.9 }` → "só peso · 62,9 kg"; `{ peso: 64 }` → "só peso · 64 kg"; and no row shows any measure's value while closed (AC 5, AC 6)
+**C5** - Table-driven, each entry on 2026-09-30, the closed row shows "30/09" and the summary: `FULL` → "11 medidas"; `TWO` → "2 medidas"; `{ cintura: 72 }` → "1 medida"; `{ peso: 62.9 }` → "só peso · 62,9 kg"; `{ peso: 64 }` → "só peso · 64 kg"; and no row shows any measure's value while closed (AC 5, AC 6) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "closed row summary"`
 
-**C6** - Table-driven with today 2026-10-08: an entry on 2025-12-30 reads "30/12/25"; on 2026-01-02 reads "02/01"; on 2026-10-08 reads "08/10". With today 2027-01-05, an entry on 2026-12-30 reads "30/12/26" (AC 7)
+**C6** - Table-driven with today 2026-10-08: an entry on 2025-12-30 reads "30/12/25"; on 2026-01-02 reads "02/01"; on 2026-10-08 reads "08/10". With today 2027-01-05, an entry on 2026-12-30 reads "30/12/26" (AC 7) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "row date shows the year only when it differs"`
 
-**C7** - Seeded with 2026-09-30 stored as `{ "braco-e": 28.3, peso: 62.6, cintura: 71.6 }` (keys out of order) and `{ peso: 62.9 }` on 2026-09-23: tapping the 30/09 row sets its `aria-expanded="true"` and shows, in order, the lines ["Peso", "62,6 kg"], ["Cintura", "71,6 cm"], ["Braço E", "28,3 cm"] and no other measure line, then the buttons "Editar" and "Apagar". Tapping the 23/09 row then sets 30/09's `aria-expanded="false"`, removes its lines and buttons, and opens 23/09 with only ["Peso", "62,9 kg"] (AC 8)
+**C7** - Seeded with 2026-09-30 stored as `{ "braco-e": 28.3, peso: 62.6, cintura: 71.6 }` (keys out of order) and `{ peso: 62.9 }` on 2026-09-23: tapping the 30/09 row sets its `aria-expanded="true"` and shows, in order, the lines ["Peso", "62,6 kg"], ["Cintura", "71,6 cm"], ["Braço E", "28,3 cm"] and no other measure line, then the buttons "Editar" and "Apagar". Tapping the 23/09 row then sets 30/09's `aria-expanded="false"`, removes its lines and buttons, and opens 23/09 with only ["Peso", "62,9 kg"] (AC 8) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "opening a row shows its values"`
 
-**C8** - Tapping an open row sets its `aria-expanded="false"` and removes its lines, "Editar" and "Apagar" (AC 9)
+**C8** - Tapping an open row sets its `aria-expanded="false"` and removes its lines, "Editar" and "Apagar" (AC 9) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "tapping an open row closes it"`
 
 ### S2 - Delete · 3 files · ~73 KB · ~18k
 
-**C9** - With `TWO` stored, opening its row and tapping "Apagar" shows inside that row the text "Apagar a medição de 30/09?" with the buttons "Apagar" and "Cancelar", and the stored record still deep-equals the seed (AC 10)
+**C9** - With `TWO` stored, opening its row and tapping "Apagar" shows inside that row the text "Apagar a medição de 30/09?" with the buttons "Apagar" and "Cancelar", and the stored record still deep-equals the seed (AC 10) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "apagar asks first"`
 
-**C10** - Then tapping "Cancelar" removes the confirm text, keeps the row open with its lines, and the stored record still deep-equals the seed (AC 11)
+**C10** - Then tapping "Cancelar" removes the confirm text, keeps the row open with its lines, and the stored record still deep-equals the seed (AC 11) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "cancelar keeps the entry"`
 
-**C11** - With 2026-09-23 and 2026-09-30 stored, confirming "Apagar" on 30/09 leaves `measurements` equal to just the 2026-09-23 entry, removes the 30/09 row, leaves 1 row, and shows a status "Medição apagada" (AC 12)
+**C11** - With 2026-09-23 and 2026-09-30 stored, confirming "Apagar" on 30/09 leaves `measurements` equal to just the 2026-09-23 entry, removes the 30/09 row, leaves 1 row, and shows a status "Medição apagada" (AC 12) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "confirmed apagar removes the entry"`
 
-**C12** - With the confirm showing on 30/09: tapping the 30/09 row (closing it) and reopening it shows no confirm text; with the confirm showing again, opening the 23/09 row shows no confirm text anywhere in the section. Stored record unchanged throughout (AC 13)
+**C12** - With the confirm showing on 30/09: tapping the 30/09 row (closing it) and reopening it shows no confirm text; with the confirm showing again, opening the 23/09 row shows no confirm text anywhere in the section. Stored record unchanged throughout (AC 13) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a row change dismisses the confirm"`
 
-**C13** - With tape `{ cintura: 72 }` on 2026-09-28 and 2026-10-05 and the reminder absent: Hoje has no card; after deleting 05/10 on Medidas and switching to Hoje, the card says "A última com fita foi há 10 dias."; after also deleting 28/09, it says "Hora da primeira medição" (AC 14)
+**C13** - With tape `{ cintura: 72 }` on 2026-09-28 and 2026-10-05 and the reminder absent: Hoje has no card; after deleting 05/10 on Medidas and switching to Hoje, the card says "A última com fita foi há 10 dias."; after also deleting 28/09, it says "Hora da primeira medição" (AC 14) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "deleting re-derives the reminder"`
 
-**C14** - Deleting the only stored Measurement shows "Nenhuma medição ainda." and "Fazer a primeira", and the stored `measurements` is `[]` (AC 15)
+**C14** - Deleting the only stored Measurement shows "Nenhuma medição ainda." and "Fazer a primeira", and the stored `measurements` is `[]` (AC 15) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "deleting the last entry shows the empty state"`
 
-**C15** - With 2026-09-23 and 2026-09-30 stored and the form in edit mode on 30/09 ("Editar 30/09" shown): deleting 23/09 from its row leaves "Editar 30/09" and its values in the form; then deleting 30/09 from its row leaves no form, the button "Abrir", and the heading "Nova medição" (AC 16)
+**C15** - With 2026-09-23 and 2026-09-30 stored and the form in edit mode on 30/09 ("Editar 30/09" shown): deleting 23/09 from its row leaves "Editar 30/09" and its values in the form; then deleting 30/09 from its row leaves no form, the button "Abrir", and the heading "Nova medição" (AC 16) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "deleting the edited entry closes the form"`
 
 ### S3 - Edit · 6 files · ~105 KB · ~26k
@@ -77,36 +77,36 @@ Proof: `pnpm vitest run src/App.test.tsx -t "deleting the edited entry closes th
 **C16** - The edit rule, table-driven over the stored list [2026-09-23 `{ peso: 62.9 }`, 2026-09-30 `TWO`], today 2026-10-08: edit 2026-09-30 with `{ peso: 62.4 }` → ok, that entry's values exactly `{ peso: 62.4 }`, 2026-09-23 untouched, order kept; with `{ peso: 62.6, cintura: 71.6, busto: 90 }` → values exactly those three; with `{ cintura: 680 }` → refused as invalid naming `cintura`, record unchanged; with `{}` → refused as empty, record unchanged; on 2026-09-24 (no entry) → refused, record unchanged; and `saveMeasurement` on 2026-09-30 with `{ peso: 62.4 }` still merges to `{ peso: 62.4, cintura: 71.6 }` (AC 20, AC 23) — done
 Proof: `pnpm vitest run src/domain/measurements.test.ts -t "edit measurement"`
 
-**C17** - With `TWO` stored and today's 2026-10-08 entry `{ peso: 63 }` also stored: tapping "Editar" on 30/09 shows the heading "Editar 30/09" and no heading "Nova medição", Peso `62,6`, Cintura `71,6` and the other 9 fields empty, no text "Já tem medição nesse dia. O que você preencher atualiza ela.", and `scrollIntoView` was called on the form's section (AC 17)
+**C17** - With `TWO` stored and today's 2026-10-08 entry `{ peso: 63 }` also stored: tapping "Editar" on 30/09 shows the heading "Editar 30/09" and no heading "Nova medição", Peso `62,6`, Cintura `71,6` and the other 9 fields empty, no text "Já tem medição nesse dia. O que você preencher atualiza ela.", and `scrollIntoView` was called on the form's section (AC 17) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "editar opens the form on the entry"`
 
-**C18** - With the form opened as "Nova medição" and Peso `70` typed, tapping "Editar" on 30/09 shows Peso `62,6`; then tapping "Editar" on 23/09 shows "Editar 23/09" with Peso `62,9` and Cintura empty (AC 18)
+**C18** - With the form opened as "Nova medição" and Peso `70` typed, tapping "Editar" on 30/09 shows Peso `62,6`; then tapping "Editar" on 23/09 shows "Editar 23/09" with Peso `62,9` and Cintura empty (AC 18) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "editar replaces what the form holds"`
 
-**C19** - In edit mode on 30/09 the field "Data" has value `2026-09-30` and is `disabled` or `readonly`; firing a change to `2026-09-20` leaves it at `2026-09-30` and the heading at "Editar 30/09" (AC 19)
+**C19** - In edit mode on 30/09 the field "Data" has value `2026-09-30` and is `disabled` or `readonly`; firing a change to `2026-09-20` leaves it at `2026-09-30` and the heading at "Editar 30/09" (AC 19) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "the date is locked while editing"`
 
-**C20** - In edit mode on `TWO`, clearing Cintura, typing Peso `62,4` and Busto `90` and saving stores the 2026-09-30 entry's values exactly `{ peso: 62.4, busto: 90 }`, shows a status "Medição atualizada", leaves no form open, and the heading "Nova medição" with the button "Abrir"; the 30/09 row then reads "2 medidas" (AC 20)
+**C20** - In edit mode on `TWO`, clearing Cintura, typing Peso `62,4` and Busto `90` and saving stores the 2026-09-30 entry's values exactly `{ peso: 62.4, busto: 90 }`, shows a status "Medição atualizada", leaves no form open, and the heading "Nova medição" with the button "Abrir"; the 30/09 row then reads "2 medidas" (AC 20) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "saving an edit replaces the values"`
 
-**C21** - In edit mode on `TWO`, clearing Peso and Cintura makes the submit button read "Apagar medição" and be enabled; typing Peso `62` makes it read "Salvar medição" again. In "Nova medição" with every field blank the button reads "Salvar medição" and is disabled (AC 21)
+**C21** - In edit mode on `TWO`, clearing Peso and Cintura makes the submit button read "Apagar medição" and be enabled; typing Peso `62` makes it read "Salvar medição" again. In "Nova medição" with every field blank the button reads "Salvar medição" and is disabled (AC 21) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a cleared edit offers to delete"`
 
-**C22** - In edit mode on `TWO` with every field cleared, tapping "Apagar medição" shows inside the form "Apagar a medição de 30/09?" with "Apagar" and "Cancelar", stored record unchanged; "Cancelar" removes that text and leaves "Editar 30/09" with the fields still empty and the button "Apagar medição"; tapping "Apagar medição" and then "Apagar" leaves `measurements` without 2026-09-30, a status "Medição apagada", no form open, and no 30/09 row (AC 22)
+**C22** - In edit mode on `TWO` with every field cleared, tapping "Apagar medição" shows inside the form "Apagar a medição de 30/09?" with "Apagar" and "Cancelar", stored record unchanged; "Cancelar" removes that text and leaves "Editar 30/09" with the fields still empty and the button "Apagar medição"; tapping "Apagar medição" and then "Apagar" leaves `measurements` without 2026-09-30, a status "Medição apagada", no form open, and no 30/09 row (AC 22) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "deleting from the form asks first"`
 
-**C23** - In edit mode on `TWO`, typing Cintura `680` and leaving the field shows "Confira este valor" with Cintura `aria-invalid="true"`, and the submit button is disabled; stored record unchanged (AC 23)
+**C23** - In edit mode on `TWO`, typing Cintura `680` and leaving the field shows "Confira este valor" with Cintura `aria-invalid="true"`, and the submit button is disabled; stored record unchanged (AC 23) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "a bad value in an edit is marked"`
 
-**C24** - In edit mode on `TWO`, clearing Cintura and tapping "Fechar" leaves the stored record equal to the seed; tapping "Abrir" then shows the heading "Nova medição", "Data" at `2026-10-08`, and an editable date field (AC 24)
+**C24** - In edit mode on `TWO`, clearing Cintura and tapping "Fechar" leaves the stored record equal to the seed; tapping "Abrir" then shows the heading "Nova medição", "Data" at `2026-10-08`, and an editable date field (AC 24) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "fechar leaves the edit unsaved"`
 
-**C25** - With `{ cintura: 72 }` on 2026-09-28 and `{ peso: 62, cintura: 71 }` on 2026-10-05: Hoje has no card; after editing 05/10 to clear Cintura and saving, Hoje's card says "A última com fita foi há 10 dias." (AC 25)
+**C25** - With `{ cintura: 72 }` on 2026-09-28 and `{ peso: 62, cintura: 71 }` on 2026-10-05: Hoje has no card; after editing 05/10 to clear Cintura and saving, Hoje's card says "A última com fita foi há 10 dias." (AC 25) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "an edit that drops the tape re-derives the reminder"`
 
 ### S4 - Record and arrangement · 3 files · ~40 KB · ~10k
 
-**C26** - Seeded with completions, `today.checked`, `weights`, `restSeconds: 60`, `reminder: { everyDays: 14, snoozedOn: "2026-10-07" }` and Measurements on 2026-09-23, 2026-09-30 and 2026-10-05: after editing 30/09 and then deleting 23/09, the stored record has `version: 1` under `treino:v1`, and its `completions`, `today`, `weights`, `restSeconds`, `reminder` and the 2026-10-05 entry deep-equal the seed (AC 26)
+**C26** - Seeded with completions, `today.checked`, `weights`, `restSeconds: 60`, `reminder: { everyDays: 14, snoozedOn: "2026-10-07" }` and Measurements on 2026-09-23, 2026-09-30 and 2026-10-05: after editing 30/09 and then deleting 23/09, the stored record has `version: 1` under `treino:v1`, and its `completions`, `today`, `weights`, `restSeconds`, `reminder` and the 2026-10-05 entry deep-equal the seed (AC 26) — done
 Proof: `pnpm vitest run src/App.test.tsx -t "historico writes keep the rest of the record"`
 
 **C27** - At 360×740 with `TWO` and `{ peso: 62.9 }` on 2026-09-23 stored: in each closed row the date's right edge ≤ the summary's left edge, the summary's right edge ≤ the chevron's left edge, the chevron's right edge is within 1px of the row's right edge, the three vertical centres are within 2px of each other, and the row is ≥ 44px tall; the 30/09 row's top < the 23/09 row's top (AC 4, AC 27)

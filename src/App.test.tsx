@@ -1422,3 +1422,444 @@ describe("Lembrete", () => {
     expect(stored()).not.toHaveProperty("reminder");
   });
 });
+
+describe("Histórico", () => {
+  type User = ReturnType<typeof userEvent.setup>;
+  type Seed = Parameters<typeof seed>[0];
+  type Entry = NonNullable<TreinoRecord["measurements"]>[number];
+  const FULL: Entry = {
+    date: "2026-09-30",
+    values: {
+      peso: 62.6, busto: 91, cintura: 71.6, abdomen: 79.4, quadril: 99.6, "braco-d": 28.5, "braco-e": 28.3,
+      "coxa-d": 56.1, "coxa-e": 55.8, "panturrilha-d": 35.9, "panturrilha-e": 35.6,
+    },
+  };
+  const TWO: Entry = { date: "2026-09-30", values: { peso: 62.6, cintura: 71.6 } };
+  const PESO: Entry = { date: "2026-09-23", values: { peso: 62.9 } };
+  const tape = (date: string): Entry => ({ date, values: { cintura: 72 } });
+  const FIELDS = [
+    "Peso em kg", "Busto em cm", "Cintura em cm", "Abdômen em cm", "Quadril em cm",
+    "Braço D em cm", "Braço E em cm", "Coxa D em cm", "Coxa E em cm", "Panturrilha D em cm", "Panturrilha E em cm",
+  ];
+
+  const goTo = (user: User, name: "Hoje" | "Medidas") =>
+    user.click(within(screen.getByRole("navigation", { name: "Menu" })).getByRole("button", { name }));
+  const medidas = () => within(screen.getByRole("region", { name: "Medidas" }));
+  const historySection = () => screen.getByRole("heading", { name: "Histórico" }).closest("section")!;
+  const history = () => within(historySection());
+  const items = () => within(historySection()).queryAllByRole("listitem");
+  const dates = () => items().map((li) => within(li).getByTestId("hist-date").textContent);
+  const item = (date: string) => items().find((li) => within(li).getByTestId("hist-date").textContent === date)!;
+  const rowButton = (date: string) => within(item(date)).getAllByRole("button")[0];
+  const lines = (date: string) =>
+    Array.from(item(date).querySelectorAll("dl > div")).map((d) => [d.querySelector("dt")!.textContent, d.querySelector("dd")!.textContent]);
+  const confirmGroup = (date: string) => screen.queryByRole("group", { name: `Apagar a medição de ${date}?` });
+  const field = (name: string) => screen.getByRole("textbox", { name }) as HTMLInputElement;
+  const dateField = () => screen.getByLabelText("Data") as HTMLInputElement;
+  const formSection = () => screen.getByRole("form").closest("section")!;
+  const submit = () => within(screen.getByRole("form")).getAllByRole("button").find((b) => b.getAttribute("type") === "submit")!;
+  const card = () => screen.queryByRole("region", { name: "Lembrete de medidas" });
+
+  function start(record: Seed = {}, today = THU) {
+    setToday(today);
+    seed(record, today);
+    const user = userEvent.setup();
+    render(<App />);
+    return user;
+  }
+
+  async function onMedidas(record: Seed = {}, today = THU) {
+    const user = start(record, today);
+    await goTo(user, "Medidas");
+    return user;
+  }
+
+  async function open(user: User, date: string) {
+    await user.click(rowButton(date));
+  }
+
+  async function del(user: User, date: string) {
+    if (rowButton(date).getAttribute("aria-expanded") !== "true") await open(user, date);
+    await user.click(within(item(date)).getByRole("button", { name: "Apagar" }));
+    await user.click(within(confirmGroup(date)!).getByRole("button", { name: "Apagar" }));
+  }
+
+  async function edit(user: User, date: string) {
+    if (rowButton(date).getAttribute("aria-expanded") !== "true") await open(user, date);
+    await user.click(within(item(date)).getByRole("button", { name: "Editar" }));
+  }
+
+  it("historico sits between the form and lembrete", async () => {
+    for (const record of [{}, { measurements: [TWO] }]) {
+      const user = start(record);
+      await goTo(user, "Medidas");
+      const headings = medidas().getAllByRole("heading").map((h) => h.textContent);
+      const form = headings.indexOf("Nova medição");
+      const hist = headings.indexOf("Histórico");
+      expect(form).toBeGreaterThanOrEqual(0);
+      expect(hist).toBeGreaterThan(form);
+      expect(headings.indexOf("Lembrete")).toBeGreaterThan(hist);
+      cleanup();
+    }
+  });
+
+  it("historico empty state", async () => {
+    for (const record of [{}, { measurements: [] }]) {
+      const user = start(record);
+      await goTo(user, "Medidas");
+      expect(history().getByText("Nenhuma medição ainda.")).toBeInTheDocument();
+      expect(history().getByRole("button", { name: "Fazer a primeira" })).toBeInTheDocument();
+      expect(history().queryByRole("list")).toBeNull();
+      cleanup();
+    }
+  });
+
+  it("fazer a primeira opens the form", async () => {
+    const scroll = vi.spyOn(Element.prototype, "scrollIntoView");
+    const user = await onMedidas();
+    await user.click(history().getByRole("button", { name: "Fazer a primeira" }));
+    expect(medidas().getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+    expect(dateField().value).toBe("2026-10-08");
+    expect(scroll.mock.contexts).toContain(formSection());
+
+    fireEvent.change(dateField(), { target: { value: "2026-10-01" } });
+    await user.type(field("Peso em kg"), "62");
+    await user.click(history().getByRole("button", { name: "Fazer a primeira" }));
+    expect(dateField().value).toBe("2026-10-01");
+    expect(field("Peso em kg").value).toBe("62");
+  });
+
+  it("every entry newest first", async () => {
+    const measurements: Entry[] = [];
+    const [y, m, d] = [2025, 8, 21];
+    for (let i = 0; i < 60; i++) {
+      const day = new Date(y, m - 1, d + 7 * i);
+      const iso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+      measurements.push({ date: iso, values: { peso: 60 + (i % 10) } });
+    }
+    expect(measurements[59].date).toBe("2026-10-08");
+    await onMedidas({ measurements });
+    expect(items()).toHaveLength(60);
+    const shown = dates();
+    expect(shown[0]).toBe("08/10");
+    expect(shown[59]).toBe("21/08/25");
+    const iso = [...measurements].reverse().map((e) => e.date);
+    for (let i = 0; i < 59; i++) expect(iso[i] > iso[i + 1]).toBe(true);
+    // The rows are in that same order.
+    expect(shown).toEqual(iso.map((s) => (s.startsWith("2026") ? `${s.slice(8)}/${s.slice(5, 7)}` : `${s.slice(8)}/${s.slice(5, 7)}/${s.slice(2, 4)}`)));
+  });
+
+  it("closed row summary", async () => {
+    const cases: [Entry["values"], string][] = [
+      [FULL.values, "11 medidas"],
+      [TWO.values, "2 medidas"],
+      [{ cintura: 72 }, "1 medida"],
+      [{ peso: 62.9 }, "só peso · 62,9 kg"],
+      [{ peso: 64 }, "só peso · 64 kg"],
+    ];
+    for (const [values, summary] of cases) {
+      await onMedidas({ measurements: [{ date: "2026-09-30", values }] });
+      expect(dates(), summary).toEqual(["30/09"]);
+      expect(within(item("30/09")).getByTestId("hist-sum").textContent, summary).toBe(summary);
+      expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "false");
+      expect(item("30/09").querySelector("dl"), summary).toBeNull();
+      if (values.cintura !== undefined) expect(history().queryByText(/71,6|72 cm/), summary).toBeNull();
+      cleanup();
+    }
+  });
+
+  it("row date shows the year only when it differs", async () => {
+    const cases: [string, string, string][] = [
+      [THU, "2025-12-30", "30/12/25"],
+      [THU, "2026-01-02", "02/01"],
+      [THU, "2026-10-08", "08/10"],
+      ["2027-01-05", "2026-12-30", "30/12/26"],
+    ];
+    for (const [today, date, shown] of cases) {
+      await onMedidas({ measurements: [{ date, values: { peso: 62 } }] }, today);
+      expect(dates(), `${today} ${date}`).toEqual([shown]);
+      cleanup();
+    }
+  });
+
+  it("opening a row shows its values", async () => {
+    const user = await onMedidas({
+      measurements: [PESO, { date: "2026-09-30", values: { "braco-e": 28.3, peso: 62.6, cintura: 71.6 } }],
+    });
+    expect(dates()).toEqual(["30/09", "23/09"]);
+    await open(user, "30/09");
+    expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "true");
+    expect(lines("30/09")).toEqual([
+      ["Peso", "62,6 kg"],
+      ["Cintura", "71,6 cm"],
+      ["Braço E", "28,3 cm"],
+    ]);
+    const buttons = within(item("30/09")).getAllByRole("button").map((b) => b.textContent);
+    expect(buttons.slice(1)).toEqual(["Editar", "Apagar"]);
+
+    await open(user, "23/09");
+    expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "false");
+    expect(lines("30/09")).toEqual([]);
+    expect(within(item("30/09")).queryByRole("button", { name: "Editar" })).toBeNull();
+    expect(within(item("30/09")).queryByRole("button", { name: "Apagar" })).toBeNull();
+    expect(rowButton("23/09")).toHaveAttribute("aria-expanded", "true");
+    expect(lines("23/09")).toEqual([["Peso", "62,9 kg"]]);
+  });
+
+  it("tapping an open row closes it", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    await open(user, "30/09");
+    expect(lines("30/09")).toHaveLength(2);
+    await open(user, "30/09");
+    expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "false");
+    expect(lines("30/09")).toEqual([]);
+    expect(within(item("30/09")).queryByRole("button", { name: "Editar" })).toBeNull();
+    expect(within(item("30/09")).queryByRole("button", { name: "Apagar" })).toBeNull();
+  });
+
+  it("apagar asks first", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    const before = stored();
+    await open(user, "30/09");
+    await user.click(within(item("30/09")).getByRole("button", { name: "Apagar" }));
+    const confirm = confirmGroup("30/09")!;
+    expect(item("30/09")).toContainElement(confirm);
+    expect(within(confirm).getByText("Apagar a medição de 30/09?")).toBeInTheDocument();
+    expect(within(confirm).getByRole("button", { name: "Apagar" })).toBeInTheDocument();
+    expect(within(confirm).getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(stored()).toEqual(before);
+  });
+
+  it("cancelar keeps the entry", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    const before = stored();
+    await open(user, "30/09");
+    await user.click(within(item("30/09")).getByRole("button", { name: "Apagar" }));
+    await user.click(within(confirmGroup("30/09")!).getByRole("button", { name: "Cancelar" }));
+    expect(confirmGroup("30/09")).toBeNull();
+    expect(screen.queryByText("Apagar a medição de 30/09?")).toBeNull();
+    expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "true");
+    expect(lines("30/09")).toHaveLength(2);
+    expect(stored()).toEqual(before);
+  });
+
+  it("confirmed apagar removes the entry", async () => {
+    const user = await onMedidas({ measurements: [PESO, TWO] });
+    await del(user, "30/09");
+    expect(stored().measurements).toEqual([PESO]);
+    expect(dates()).toEqual(["23/09"]);
+    expect(items()).toHaveLength(1);
+    expect(screen.getByRole("status")).toHaveTextContent("Medição apagada");
+  });
+
+  it("a row change dismisses the confirm", async () => {
+    const user = await onMedidas({ measurements: [PESO, TWO] });
+    const before = stored();
+    await open(user, "30/09");
+    await user.click(within(item("30/09")).getByRole("button", { name: "Apagar" }));
+    expect(confirmGroup("30/09")).not.toBeNull();
+    await open(user, "30/09");
+    await open(user, "30/09");
+    expect(rowButton("30/09")).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryByText("Apagar a medição de 30/09?")).toBeNull();
+
+    await user.click(within(item("30/09")).getByRole("button", { name: "Apagar" }));
+    expect(confirmGroup("30/09")).not.toBeNull();
+    await open(user, "23/09");
+    expect(history().queryByText(/^Apagar a medição de/)).toBeNull();
+    expect(stored()).toEqual(before);
+  });
+
+  it("deleting re-derives the reminder", async () => {
+    const user = start({ measurements: [tape("2026-09-28"), tape("2026-10-05")] });
+    expect(card()).toBeNull();
+    await goTo(user, "Medidas");
+    await del(user, "05/10");
+    await goTo(user, "Hoje");
+    expect(within(card()!).getByText("A última com fita foi há 10 dias.")).toBeInTheDocument();
+    await goTo(user, "Medidas");
+    await del(user, "28/09");
+    await goTo(user, "Hoje");
+    expect(within(card()!).getByText("Hora da primeira medição")).toBeInTheDocument();
+  });
+
+  it("deleting the last entry shows the empty state", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    await del(user, "30/09");
+    expect(history().getByText("Nenhuma medição ainda.")).toBeInTheDocument();
+    expect(history().getByRole("button", { name: "Fazer a primeira" })).toBeInTheDocument();
+    expect(stored().measurements).toEqual([]);
+  });
+
+  it("deleting the edited entry closes the form", async () => {
+    const user = await onMedidas({ measurements: [PESO, TWO] });
+    await edit(user, "30/09");
+    expect(medidas().getByRole("heading", { name: "Editar 30/09" })).toBeInTheDocument();
+    await del(user, "23/09");
+    expect(medidas().getByRole("heading", { name: "Editar 30/09" })).toBeInTheDocument();
+    expect(field("Peso em kg").value).toBe("62,6");
+    expect(field("Cintura em cm").value).toBe("71,6");
+    await del(user, "30/09");
+    expect(screen.queryByRole("form")).toBeNull();
+    expect(medidas().getByRole("button", { name: "Abrir" })).toBeInTheDocument();
+    expect(medidas().getByRole("heading", { name: "Nova medição" })).toBeInTheDocument();
+  });
+
+  it("editar opens the form on the entry", async () => {
+    const scroll = vi.spyOn(Element.prototype, "scrollIntoView");
+    const user = await onMedidas({ measurements: [TWO, { date: THU, values: { peso: 63 } }] });
+    await edit(user, "30/09");
+    expect(medidas().getByRole("heading", { name: "Editar 30/09" })).toBeInTheDocument();
+    expect(medidas().queryByRole("heading", { name: "Nova medição" })).toBeNull();
+    expect(field("Peso em kg").value).toBe("62,6");
+    expect(field("Cintura em cm").value).toBe("71,6");
+    for (const name of FIELDS.filter((f) => f !== "Peso em kg" && f !== "Cintura em cm")) expect(field(name).value, name).toBe("");
+    expect(screen.queryByText("Já tem medição nesse dia. O que você preencher atualiza ela.")).toBeNull();
+    expect(scroll.mock.contexts).toContain(formSection());
+  });
+
+  it("editar replaces what the form holds", async () => {
+    const user = await onMedidas({ measurements: [PESO, TWO] });
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    await user.type(field("Peso em kg"), "70");
+    await edit(user, "30/09");
+    expect(field("Peso em kg").value).toBe("62,6");
+    await edit(user, "23/09");
+    expect(medidas().getByRole("heading", { name: "Editar 23/09" })).toBeInTheDocument();
+    expect(field("Peso em kg").value).toBe("62,9");
+    expect(field("Cintura em cm").value).toBe("");
+  });
+
+  it("the date is locked while editing", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    await edit(user, "30/09");
+    expect(dateField().value).toBe("2026-09-30");
+    expect(dateField().disabled || dateField().readOnly).toBe(true);
+    fireEvent.change(dateField(), { target: { value: "2026-09-20" } });
+    expect(dateField().value).toBe("2026-09-30");
+    expect(medidas().getByRole("heading", { name: "Editar 30/09" })).toBeInTheDocument();
+  });
+
+  it("saving an edit replaces the values", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    await edit(user, "30/09");
+    await user.clear(field("Cintura em cm"));
+    await user.clear(field("Peso em kg"));
+    await user.type(field("Peso em kg"), "62,4");
+    await user.type(field("Busto em cm"), "90");
+    await user.click(submit());
+    expect(stored().measurements).toEqual([{ date: "2026-09-30", values: { peso: 62.4, busto: 90 } }]);
+    expect(screen.getByRole("status")).toHaveTextContent("Medição atualizada");
+    expect(screen.queryByRole("form")).toBeNull();
+    expect(medidas().getByRole("heading", { name: "Nova medição" })).toBeInTheDocument();
+    expect(medidas().getByRole("button", { name: "Abrir" })).toBeInTheDocument();
+    expect(within(item("30/09")).getByTestId("hist-sum").textContent).toBe("2 medidas");
+  });
+
+  it("a cleared edit offers to delete", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    await edit(user, "30/09");
+    await user.clear(field("Peso em kg"));
+    await user.clear(field("Cintura em cm"));
+    expect(submit()).toHaveTextContent("Apagar medição");
+    expect(submit()).toBeEnabled();
+    await user.type(field("Peso em kg"), "62");
+    expect(submit()).toHaveTextContent("Salvar medição");
+
+    await user.click(medidas().getByRole("button", { name: "Fechar" }));
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    for (const name of FIELDS) expect(field(name).value, name).toBe("");
+    expect(submit()).toHaveTextContent("Salvar medição");
+    expect(submit()).toBeDisabled();
+  });
+
+  it("deleting from the form asks first", async () => {
+    const user = await onMedidas({ measurements: [PESO, TWO] });
+    const before = stored();
+    await edit(user, "30/09");
+    await user.clear(field("Peso em kg"));
+    await user.clear(field("Cintura em cm"));
+    await user.click(submit());
+    const confirm = confirmGroup("30/09")!;
+    expect(screen.getByRole("form")).toContainElement(confirm);
+    expect(within(confirm).getByText("Apagar a medição de 30/09?")).toBeInTheDocument();
+    expect(within(confirm).getByRole("button", { name: "Apagar" })).toBeInTheDocument();
+    expect(stored()).toEqual(before);
+
+    await user.click(within(confirm).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByText("Apagar a medição de 30/09?")).toBeNull();
+    expect(medidas().getByRole("heading", { name: "Editar 30/09" })).toBeInTheDocument();
+    for (const name of FIELDS) expect(field(name).value, name).toBe("");
+    expect(submit()).toHaveTextContent("Apagar medição");
+    expect(stored()).toEqual(before);
+
+    await user.click(submit());
+    await user.click(within(confirmGroup("30/09")!).getByRole("button", { name: "Apagar" }));
+    expect(stored().measurements).toEqual([PESO]);
+    expect(screen.getByRole("status")).toHaveTextContent("Medição apagada");
+    expect(screen.queryByRole("form")).toBeNull();
+    expect(dates()).toEqual(["23/09"]);
+  });
+
+  it("a bad value in an edit is marked", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    const before = stored();
+    await edit(user, "30/09");
+    await user.clear(field("Cintura em cm"));
+    await user.type(field("Cintura em cm"), "680");
+    await user.tab();
+    expect(screen.getByText("Confira este valor")).toBeInTheDocument();
+    expect(field("Cintura em cm")).toHaveAttribute("aria-invalid", "true");
+    expect(submit()).toBeDisabled();
+    expect(stored()).toEqual(before);
+  });
+
+  it("fechar leaves the edit unsaved", async () => {
+    const user = await onMedidas({ measurements: [TWO] });
+    const before = stored();
+    await edit(user, "30/09");
+    await user.clear(field("Cintura em cm"));
+    await user.click(medidas().getByRole("button", { name: "Fechar" }));
+    expect(stored()).toEqual(before);
+    await user.click(medidas().getByRole("button", { name: "Abrir" }));
+    expect(medidas().getByRole("heading", { name: "Nova medição" })).toBeInTheDocument();
+    expect(dateField().value).toBe("2026-10-08");
+    expect(dateField().disabled || dateField().readOnly).toBe(false);
+  });
+
+  it("an edit that drops the tape re-derives the reminder", async () => {
+    const user = start({ measurements: [tape("2026-09-28"), { date: "2026-10-05", values: { peso: 62, cintura: 71 } }] });
+    expect(card()).toBeNull();
+    await goTo(user, "Medidas");
+    await edit(user, "05/10");
+    await user.clear(field("Cintura em cm"));
+    await user.click(submit());
+    await goTo(user, "Hoje");
+    expect(within(card()!).getByText("A última com fita foi há 10 dias.")).toBeInTheDocument();
+  });
+
+  it("historico writes keep the rest of the record", async () => {
+    const record = {
+      completions: [c("2026-10-06", "A")],
+      today: { date: THU, workout: "B" as const, checked: [PLAN.B.exercises[0].id] },
+      weights: { [PLAN.B.exercises[0].id]: 20 },
+      restSeconds: 60 as const,
+      reminder: { everyDays: 14 as const, snoozedOn: "2026-10-07" },
+      measurements: [PESO, TWO, { date: "2026-10-05", values: { quadril: 95 } }],
+    };
+    const user = await onMedidas(record);
+    await edit(user, "30/09");
+    await user.clear(field("Peso em kg"));
+    await user.type(field("Peso em kg"), "62,4");
+    await user.click(submit());
+    await del(user, "23/09");
+    const after = JSON.parse(localStorage.getItem("treino:v1")!);
+    expect(after.version).toBe(1);
+    expect(after.completions).toEqual(record.completions);
+    expect(after.today).toEqual(record.today);
+    expect(after.weights).toEqual(record.weights);
+    expect(after.restSeconds).toBe(60);
+    expect(after.reminder).toEqual(record.reminder);
+    expect(after.measurements).toEqual([{ date: "2026-09-30", values: { peso: 62.4, cintura: 71.6 } }, record.measurements[2]]);
+  });
+});

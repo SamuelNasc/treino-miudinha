@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Measurement, MeasureValues } from "../domain/measurements";
 import { MEASURES, parseMeasure, type MeasureId } from "../domain/measures";
+import { DeleteConfirm, shortDate } from "./History";
 
 type Drafts = Record<MeasureId, string>;
 
@@ -38,24 +39,34 @@ interface Props {
   onSave: (date: string, values: MeasureValues) => boolean;
   /** Bumped by "Medir agora": opens the form on today, or leaves an open one as it is. */
   openRequest: number;
+  /** Set by "Editar" in Histórico: opens the form on that entry, replacing what it holds. */
+  editRequest: { date: string; n: number } | null;
+  /** Returns whether the edit was stored. */
+  onEdit: (date: string, values: MeasureValues) => boolean;
+  onDelete: (date: string) => void;
 }
 
 /** The form's state lives here: Medidas stays mounted while hidden, so a page switch keeps it. */
-export function MeasureForm({ measurements, today, onSave, openRequest }: Props) {
+export function MeasureForm({ measurements, today, onSave, openRequest, editRequest, onEdit, onDelete }: Props) {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(today);
   const [drafts, setDrafts] = useState<Drafts>(() => draftsFor(measurements, today));
   const [marked, setMarked] = useState<MeasureId[]>([]);
   const [guide, setGuide] = useState<string | null>(null);
+  // The date being edited from Histórico, or null for "Nova medição".
+  const [editing, setEditing] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
 
   const load = (day: string) => {
     setDate(day);
     setDrafts(draftsFor(measurements, day));
     setMarked([]);
+    setAsking(false);
   };
 
   const toggle = () => {
     if (!open) load(today);
+    setEditing(null);
     setGuide(null);
     setOpen(!open);
   };
@@ -68,14 +79,34 @@ export function MeasureForm({ measurements, today, onSave, openRequest }: Props)
     // Only a new request opens the form; later renders must not reopen it.
   }, [openRequest]);
 
+  useEffect(() => {
+    if (!editRequest) return;
+    load(editRequest.date);
+    setEditing(editRequest.date);
+    setGuide(null);
+    setOpen(true);
+    // Only a new request loads the entry; later renders must not reload it.
+  }, [editRequest]);
+
+  // The entry being edited was deleted, from Histórico or from this form.
+  useEffect(() => {
+    if (editing === null || measurements.some((m) => m.date === editing)) return;
+    setEditing(null);
+    setOpen(false);
+    setGuide(null);
+  }, [measurements, editing]);
+
   const changeDate = (value: string) => {
+    if (editing) return;
     const day = value === "" || value > today ? today : value;
     if (day !== date) load(day);
   };
 
   const parsed = MEASURES.map((m) => [m.id, parseMeasure(m.id, drafts[m.id])] as const);
   const values = Object.fromEntries(parsed.filter(([, v]) => typeof v === "number")) as MeasureValues;
-  const canSave = parsed.every(([, v]) => v !== "bad") && Object.keys(values).length > 0;
+  const valid = parsed.every(([, v]) => v !== "bad");
+  const blank = Object.keys(values).length === 0;
+  const canSave = valid && (!blank || editing !== null);
 
   const leave = (id: MeasureId) => {
     const bad = parseMeasure(id, drafts[id]) === "bad";
@@ -84,7 +115,10 @@ export function MeasureForm({ measurements, today, onSave, openRequest }: Props)
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!canSave || !onSave(date, values)) return;
+    if (!canSave) return;
+    if (editing && blank) return setAsking(true);
+    if (!(editing ? onEdit(editing, values) : onSave(date, values))) return;
+    setEditing(null);
     setOpen(false);
     setGuide(null);
   };
@@ -151,9 +185,9 @@ export function MeasureForm({ measurements, today, onSave, openRequest }: Props)
   ];
 
   return (
-    <section className="card" aria-labelledby="form-title">
+    <section className="card" id="measure-card" aria-labelledby="form-title">
       <div className="sec-head">
-        <h2 id="form-title">Nova medição</h2>
+        <h2 id="form-title">{editing ? `Editar ${shortDate(editing, today)}` : "Nova medição"}</h2>
         <button className="ghost" type="button" aria-expanded={open} aria-controls="measure-form" onClick={toggle}>
           {open ? "Fechar" : "Abrir"}
         </button>
@@ -162,14 +196,15 @@ export function MeasureForm({ measurements, today, onSave, openRequest }: Props)
         <form className="form" id="measure-form" aria-labelledby="form-title" noValidate onSubmit={submit}>
           <div className="datefield">
             <label htmlFor="m-date">Data</label>
-            <input type="date" id="m-date" max={today} value={date} onChange={(e) => changeDate(e.target.value)} />
+            <input type="date" id="m-date" max={today} value={date} disabled={editing !== null} onChange={(e) => changeDate(e.target.value)} />
           </div>
-          {measurements.some((m) => m.date === date) && <p className="hint">Já tem medição nesse dia. O que você preencher atualiza ela.</p>}
+          {!editing && measurements.some((m) => m.date === date) && <p className="hint">Já tem medição nesse dia. O que você preencher atualiza ela.</p>}
           {row(ROWS[0])}
           {group("Tronco", ROWS.slice(1, 5))}
           {group("Braços e pernas", ROWS.slice(5))}
+          {editing && asking && <DeleteConfirm label={shortDate(editing, today)} onYes={() => onDelete(editing)} onNo={() => setAsking(false)} />}
           <button className="cta save" type="submit" disabled={!canSave}>
-            Salvar medição
+            {editing && blank ? "Apagar medição" : "Salvar medição"}
           </button>
         </form>
       )}

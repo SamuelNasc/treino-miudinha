@@ -111,6 +111,27 @@
   .seg button { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); cursor: pointer; }
   .seg button[aria-pressed="true"] { border-color: var(--cherry); background: var(--blush); color: var(--cherry); font-weight: 500; }
 
+  /* Histórico: collapsible rows of past Measurements on Medidas, as mockup v6 draws them. Actions keep the 44px tap floor. */
+  .hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .hist li { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 8px; border-top: 1px solid var(--line); }
+  .row-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 44px; border: 0; background: none; padding: 10px 0 2px; text-align: left; border-radius: 10px; color: var(--ink); cursor: pointer; }
+  .row-head .d { font-family: var(--display); font-weight: 600; font-size: 17px; font-variant-numeric: tabular-nums; }
+  .row-head .sum { font-size: 14px; color: var(--muted); }
+  .row-head svg { width: 16px; height: 16px; color: var(--cherry); transition: transform 0.2s; }
+  .row-head[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .vals { margin: 0; display: grid; grid-template-columns: 1fr; background: var(--blush); border-radius: 14px; padding: 12px 14px; }
+  .vals div { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .vals div:first-child { border-top: 0; }
+  .vals dt { color: var(--muted); }
+  .vals dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hist .acts { display: flex; gap: 4px; justify-content: flex-end; }
+  .hist .acts button { min-height: 44px; border: 0; background: none; color: var(--cherry); font-size: 14px; font-weight: 500; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+  .confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--blush); border-radius: 14px; padding: 10px 12px; font-size: 14px; }
+  .confirm button { min-height: 44px; }
+  .confirm .danger { border: 0; background: var(--cherry); color: var(--on-accent); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 500; cursor: pointer; }
+  .empty { text-align: center; color: var(--muted); padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .empty p { margin: 0; }
+
   .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { display: flex; align-items: center; gap: 8px; }
   .brand .logo { width: 34px; height: 34px; flex: none; }

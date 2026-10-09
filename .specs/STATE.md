@@ -14,4 +14,4 @@
 **Next step**: Gráfico, then MeasureGuide - each needs Samuel's design review of a new mockup version first. Optional follow-up from round 2: C32/C34 sample one corner/side of the radius and padding shorthands (Q1, Q2)
 **Blockers**: none
 **Uncommitted**: none
-**Branch**: main, not pushed (measurement, menu, registrar-medicao, lembrete, historico). They ship together after Samuel's go-ahead to push
+**Branch**: main, pushed 2026-10-09 (4bf7012), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete and Histórico are live

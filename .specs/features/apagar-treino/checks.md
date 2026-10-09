@@ -83,7 +83,7 @@ Proof: `pnpm exec playwright test e2e/apagar-treino.spec.ts -g "confirm sits bet
 **C19** - In the light and the dark scheme, the confirm's background is `--blush` (#ffe1e6 / #3a141c) and its "Apagar" background is `--cherry` (#b3122e / #ff5c75) with `--on-accent` text (#ffffff / #1c0a0e) (AC 17) — done
 Proof: `pnpm exec playwright test e2e/apagar-treino.spec.ts -g "confirm colours match historico"`
 
-**C20** - In the light scheme, a strip day button's dot has the same size, border, background and letter colour as the same dot before this change (the done dot: background `--berry`, 42 px max width, font weight 600), the button has no visible native border or background of its own, and focused by keyboard (Tab) it shows a non-`none` outline (AC 18) — done
+**C20** - In the light scheme, a strip day button's dot has the same size, border, background and letter colour as the same dot before this change (the done dot: background `--berry`, 42 px max width, font weight 600), the button has no visible native border or background of its own, and focused by keyboard (Tab) it shows a non-`none` outline. Its label sits at the same y and height, within 0.5 px, as Tuesday's label (a day with no button). Label clause added 2026-10-09 after verification round 1 (AC 18) — done
 Proof: `pnpm exec playwright test e2e/apagar-treino.spec.ts -g "strip day button keeps its look"`
 
 **C21** - Histórico's confirm still reads "Apagar a medição de 30/09?" (AC 19) — done

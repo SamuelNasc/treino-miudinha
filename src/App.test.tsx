@@ -2390,7 +2390,7 @@ describe("Apagar treino", () => {
     ]);
     for (const i of [1, 3, 4, 5, 6]) expect(within(days()[i]).queryByRole("button")).toBeNull();
     cleanup();
-    seed({ completions: [...WEEK, c(FRI, "C")] }, FRI);
+    seed({ completions: [...WEEK, c(FRI, "A")] }, FRI);
     render(<App />);
     expect(within(strip()).getByRole("button", { name: "Apagar treino de sex, 09/10" })).toBeInTheDocument();
   });

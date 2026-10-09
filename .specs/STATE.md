@@ -8,10 +8,10 @@
 
 ## Handoff
 
-**Feature**: measure-guide (slice 7 of 7 in `.design/body-measurements.md`)
-**Where**: verified - round 1 PASS: 14/14 checks, 5/5 faults killed, Vitest 219, Playwright 78, validate_verification exit 0. Clean pass, no lessons recorded
+**Feature**: apagar-treino (remove a workout from this week's strip, or by unchecking today's)
+**Where**: verified - round 3 PASS: 22/22 checks, all faults killed (round 1 and 2 survivors closed by C20's label assertions), Vitest 236, Playwright apagar-treino 4, validate_verification exit 0. Lesson L-016 recorded (candidate)
 **In progress**: none
-**Next step**: none for body measurements - all 7 slices live. Plan open question 1 (his wife seeing the drawings) is still open; a band she misreads is moved by a redeploy
+**Next step**: push and deploy after Samuel's go-ahead; then his wife removes the demo workout from this week's strip
 **Blockers**: none
-**Uncommitted**: this file
-**Branch**: main, pushed 2026-10-09 (94da083), Vercel production deploy succeeded. Measurement, Menu, Registrar medição, Lembrete, Histórico, Gráfico and MeasureGuide are live
+**Uncommitted**: none after the verification commit
+**Branch**: main, not pushed. Measure-guide and earlier features are live (pushed 2026-10-09, 94da083)

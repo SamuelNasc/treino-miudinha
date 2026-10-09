@@ -291,10 +291,11 @@
       "harmful": 0,
       "evidence": [
         "verification.md round 1 (1645c5f): .day button display:flex column -> block survived C20, src/index.css:202 (ui)",
-        "verification.md round 2 (e14d261): .day button color:inherit -> var(--ink) survived C20, src/index.css:202 (ui)"
+        "verification.md round 2 (e14d261): .day button color:inherit -> var(--ink) survived C20, src/index.css:202 (ui)",
+        "verification.md round 3 (51fb95b): round 2's .day button color:inherit -> var(--ink) killed by C20 e2e/apagar-treino.spec.ts:93 after asserting label color and type against Tuesday (ui)"
       ],
       "created": "2026-10-09T23:52:07Z",
-      "last_seen": "2026-10-09T23:52:07Z"
+      "last_seen": "2026-10-09T23:55:56Z"
     }
   ]
 }
